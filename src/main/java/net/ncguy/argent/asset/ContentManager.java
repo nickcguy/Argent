@@ -1,15 +1,21 @@
 package net.ncguy.argent.asset;
 
 import com.badlogic.gdx.assets.AssetManager;
+import net.ncguy.argent.asset.loader.ArgentAssetLoader;
 import net.ncguy.argent.utils.FileUtils;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Guy on 08/06/2016.
  */
 public class ContentManager {
+
+    private Map<String, String> assetMap;
+    private Map<String, Class<?>> assetTypes;
 
     private AssetManager manager;
     private LoaderCallback finishedCallback;
@@ -31,6 +37,9 @@ public class ContentManager {
 
     private void initLoader() {
         manager = new AssetManager();
+        manager.setLoader(ArgentAsset.class, new ArgentAssetLoader(manager.getFileHandleResolver()));
+        assetMap = new HashMap<>();
+        assetTypes = new HashMap<>();
         fileRoots = new FileRoot[0];
     }
 
@@ -61,12 +70,23 @@ public class ContentManager {
             for(FileRoot root : fileRoots) {
                 List<File> files = FileUtils.getAllFilesInDirectory(root.root);
                 files.forEach(f -> {
-                    if(root.isExtensionValid(f))
+                    if(root.isExtensionValid(f)) {
+                        String key = root.assetType.getSimpleName().charAt(0)+"_"+FileUtils.getFileName(f);
+                        assetMap.put(key, FileUtils.formatFilePath(f.getPath()));
+                        assetTypes.put(key, root.assetType);
                         manager.load(f.getPath(), root.assetType);
+                    }
                 });
             }
             canUpdate = true;
         }).start();
+    }
+
+    public <T> T get(String ref) {
+        if(!assetMap.containsKey(ref))
+            return null;
+        String val = assetMap.get(ref);
+        return manager.get(val);
     }
 
     public float progress() {
@@ -86,6 +106,8 @@ public class ContentManager {
         }
         return done;
     }
+
+    public Map<String, String> assetMap() { return assetMap; }
 
     public interface LoaderCallback {
         void done(AssetManager manager);

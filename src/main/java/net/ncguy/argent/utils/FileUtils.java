@@ -28,9 +28,20 @@ public class FileUtils {
         return files;
     }
 
-    public static String getFileExtension(File file) {
-        return file.getName().substring(file.getName().lastIndexOf('.')+1);
+    public static int getFileExtensionStart(File file) {
+        return file.getName().lastIndexOf('.')+1;
     }
 
+    public static String getFileExtension(File file) {
+        return file.getName().substring(getFileExtensionStart(file));
+    }
+
+    public static String getFileName(File file) {
+        return file.getName().substring(0, getFileExtensionStart(file)-1);
+    }
+
+    public static String formatFilePath(String path) {
+        return path.replace("\\", "/");
+    }
 
 }
