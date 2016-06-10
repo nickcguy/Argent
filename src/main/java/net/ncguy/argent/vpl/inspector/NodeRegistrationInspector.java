@@ -2,6 +2,7 @@ package net.ncguy.argent.vpl.inspector;
 
 import net.ncguy.argent.vpl.node.VPLNodePin;
 
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -17,6 +18,7 @@ public class NodeRegistrationInspector extends NodeInspector {
 
     @Override
     public String inspect() {
+        if(!Modifier.isStatic(node.method().getModifiers())) return "Method must be static: "+node.method();
         Parameter[] params = node.method().getParameters();
         if(params.length < 2) return "Insufficient parameters on method "+node.method().toString();
         String out = "";

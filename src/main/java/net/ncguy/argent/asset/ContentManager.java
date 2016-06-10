@@ -24,14 +24,8 @@ public class ContentManager {
     private boolean hasFinished = false;
     private boolean canUpdate = false;
 
-    private static ContentManager instance;
-    public static ContentManager instance() {
-        if(instance == null)
-            instance = new ContentManager();
-        return instance;
-    }
 
-    private ContentManager() {
+    public ContentManager() {
         initLoader();
     }
 
