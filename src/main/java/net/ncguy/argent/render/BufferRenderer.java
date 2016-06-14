@@ -83,6 +83,12 @@ public abstract class BufferRenderer<T> {
         modelBatch.end();
     }
 
+    public void invalidateFBO() {
+        if(fbo == null) return;
+        fbo.dispose();
+        fbo = null;
+    }
+
     public String name() {
         return "Unnamed buffer";
     }

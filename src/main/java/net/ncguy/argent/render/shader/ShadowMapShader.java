@@ -37,7 +37,15 @@ public class ShadowMapShader extends BaseShader {
         register(Inputs.projViewTrans, Setters.projViewTrans);
         register(Inputs.normalMatrix, Setters.normalMatrix);
         register(Inputs.diffuseTexture, Setters.diffuseTexture);
+        register(Inputs.diffuseColor, Setters.diffuseColor);
 
+        register(Inputs.cameraPosition, Setters.cameraPosition);
+        register(new Uniform("u_lightTrans"), new LocalSetter() {
+            @Override
+            public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
+                shader.set(inputID, shader.camera.combined);
+            }
+        });
     }
 
     @Override

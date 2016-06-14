@@ -2,46 +2,34 @@ package net.ncguy.argent.render.sample;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.Shader;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
-import com.badlogic.gdx.math.Vector3;
+import net.ncguy.argent.asset.DecalManager;
 import net.ncguy.argent.render.BufferRenderer;
 import net.ncguy.argent.render.WorldRenderer;
 import net.ncguy.argent.render.shader.SimpleTextureShader;
-import net.ncguy.argent.render.wrapper.LightWrapper;
 import net.ncguy.argent.render.wrapper.PointLightWrapper;
 import net.ncguy.argent.utils.ScreenshotFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static net.ncguy.argent.render.WorldRenderer.setupShader;
 
 /**
- * Created by Guy on 13/06/2016.
+ * Created by Guy on 14/06/2016.
  */
-public class DepthRenderer<T> extends BufferRenderer<T> {
+public class DecalRenderer<T> extends BufferRenderer<T> {
 
-    List<LightWrapper> lights;
+    private DecalManager decalManager;
 
-    public DepthRenderer(WorldRenderer<T> renderer) {
+    public DecalRenderer(WorldRenderer<T> renderer, DecalManager decalManager) {
         super(renderer);
-        this.lights = new ArrayList<>();
-        addLight(new PointLightWrapper(new PointLight().set(Color.WHITE, new Vector3(-300, 300, -300), 500)));
-    }
-
-    public void addLight(LightWrapper light) {
-        this.lights.add(light);
-    }
-
-    public void removeLight(LightWrapper light) {
-        this.lights.remove(light);
-        light.dispose();
+        this.decalManager = decalManager;
+        shaderProgram.begin();
+        shaderProgram.setUniformf("u_cameraFar", decalManager.camera.far);
+        shaderProgram.end();
     }
 
     @Override
@@ -49,11 +37,10 @@ public class DepthRenderer<T> extends BufferRenderer<T> {
         ShaderProgram shaderProgram;
         ModelBatch modelBatch;
 
-        shaderProgram = setupShader("simpleDepth");
+        shaderProgram = setupShader("decal");
         modelBatch = new ModelBatch(new DefaultShaderProvider(){
             @Override
             protected Shader createShader(Renderable renderable) {
-//                return new ShadowMapShader(lights, renderable, shaderProgram);
                 return new SimpleTextureShader(renderable, shaderProgram);
             }
         });
@@ -65,21 +52,21 @@ public class DepthRenderer<T> extends BufferRenderer<T> {
         this.modelBatch = modelBatch;
     }
 
-    @Override
-    public void render(float delta, boolean toScreen) {
-        lights.forEach(l -> l.draw(renderer.renderables()));
-        super.render(delta, toScreen);
+    public void setLight() {
+        PointLightWrapper l = new PointLightWrapper(new PointLight());
+        l.light.position.set(10, 10, 10);
+        l.light.intensity = 10;
+        l.applyToShader(shaderProgram);
     }
 
     @Override
     public void renderIntoBatch() {
-        shaderProgram.begin();
-        shaderProgram.setUniformf("u_cameraFar", renderer.camera().far);
-        shaderProgram.setUniformf("u_lightPos", renderer.camera().position);
-        shaderProgram.end();
-        super.renderIntoBatch();
+//        modelBatch.begin(renderer.camera());
+
+        decalManager.update(Gdx.graphics.getDeltaTime());
+//        modelBatch.end();
         if(Gdx.input.isKeyJustPressed(Input.Keys.F2))
-            ScreenshotFactory.saveScreenshot(fbo.getWidth(), fbo.getHeight(), "depth");
+            ScreenshotFactory.saveScreenshot(fbo.getWidth(), fbo.getHeight(), name());
     }
 
     @Override
@@ -91,14 +78,6 @@ public class DepthRenderer<T> extends BufferRenderer<T> {
 
     @Override
     public String name() {
-        return "depth";
-    }
-
-    @Override
-    public void invalidateFBO() {
-        if(fbo == null) return;
-        fbo.dispose();
-        fbo = null;
-        lights.forEach(LightWrapper::invalidate);
+        return "decal";
     }
 }

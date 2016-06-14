@@ -24,7 +24,7 @@ void main() {
     col.rgb *= normal.rgb;
 
     vec4 depth = texture2D(u_depth, texel);
-    col.rgb *= 1.0-depth.r;
+    col.rgb *= 1-depth.r;
 
     gl_FragColor = vec4(col, 1.0);
 //    gl_FragColor = vec4(v_texCoords0.x, v_texCoords0.y, 0.0, 1.0);

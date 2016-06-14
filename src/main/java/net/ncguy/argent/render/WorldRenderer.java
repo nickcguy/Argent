@@ -50,6 +50,10 @@ public abstract class WorldRenderer<T> {
         }
     }
 
+    public void invalidateFBOs() {
+        renderPipe.forEach(BufferRenderer::invalidateFBO);
+    }
+
     public void setFinalBuffer(BufferRenderer<T> renderer) {
         if(renderPipe.contains(renderer)) renderPipe.remove(renderer);
         this.finalBuffer = renderer;
@@ -73,7 +77,7 @@ public abstract class WorldRenderer<T> {
 //        buffer.end();
 
 
-        int[] mutableId = new int[]{3};
+        int[] mutableId = new int[]{6};
 
         if(finalBuffer != null) {
 //            buffer.getColorBufferTexture().bind(bufferId);
@@ -92,6 +96,13 @@ public abstract class WorldRenderer<T> {
 //        buffer.dispose();
         currentRenderer = null;
         canRender = true;
+    }
+
+    public void resize(int width, int height) {
+        this.invalidateFBOs();
+        camera().viewportWidth = width;
+        camera().viewportHeight = height;
+        camera().update(true);
     }
 
     public List<ModelInstance> renderables() {

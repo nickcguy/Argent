@@ -32,6 +32,8 @@ public class DepthMapShader extends BaseShader
         register(Inputs.worldTrans, Setters.worldTrans);
         register(Inputs.projViewTrans, Setters.projViewTrans);
         register(Inputs.normalMatrix, Setters.normalMatrix);
+        register(Inputs.cameraPosition, Setters.cameraPosition);
+        register(Inputs.cameraNearFar, Setters.cameraNearFar);
 
     }
 

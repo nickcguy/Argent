@@ -1,16 +1,21 @@
 #version 120
 
 attribute vec4 a_position;
-attribute vec4 a_color;
-attribute vec2 a_texCoord0;
 
 uniform mat4 u_projViewTrans;
+uniform mat4 u_worldTrans;
+uniform mat4 u_lightTrans;
+uniform float u_cameraFar;
 
-varying vec4 v_color;
-varying vec2 v_texCoord0;
+uniform vec4 u_cameraPosition;
+uniform vec2 u_cameraNearFar;
+
+varying vec4 v_position;
+varying float v_depth;
 
 void main() {
-    v_color = a_color;
-    v_texCoord0 = a_texCoord0;
-    gl_Position = u_projViewTrans * a_position;
+    v_position = u_worldTrans * a_position;
+    gl_Position = u_projViewTrans * v_position;
+
+    v_depth = (gl_Position.z-u_cameraPosition.z) / (u_cameraNearFar.y/2);
 }
