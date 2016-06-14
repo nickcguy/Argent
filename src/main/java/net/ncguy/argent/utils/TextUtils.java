@@ -9,6 +9,22 @@ public class TextUtils {
         return String.format("%"+len+"s", Integer.toBinaryString(dec)).replace(' ', '0');
     }
 
+    public static String camelCase(String text) {
+        StringBuilder sb = new StringBuilder();
+        boolean nextTitle = false;
+
+        for(char c : text.toCharArray()) {
+            if(Character.isSpaceChar(c))
+                nextTitle = true;
+            else if(nextTitle) {
+                c = Character.toTitleCase(c);
+                nextTitle = false;
+            }
+            sb.append(c);
+        }
+        return sb.toString();
+    }
+
 //    static String getPaddedBinary(int num, int len) { return String.format("%"+len+"s", Integer.toBinaryString(num)).replace(' ', '0'); }
 
 }

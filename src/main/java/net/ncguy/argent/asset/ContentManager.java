@@ -65,7 +65,7 @@ public class ContentManager {
                 List<File> files = FileUtils.getAllFilesInDirectory(root.root);
                 files.forEach(f -> {
                     if(root.isExtensionValid(f)) {
-                        String key = root.assetType.getSimpleName().charAt(0)+"_"+FileUtils.getFileName(f);
+                        String key = root.assetType.getSimpleName()+"_"+FileUtils.getFileName(f);
                         assetMap.put(key, FileUtils.formatFilePath(f.getPath()));
                         assetTypes.put(key, root.assetType);
                         manager.load(f.getPath(), root.assetType);
@@ -74,6 +74,10 @@ public class ContentManager {
             }
             canUpdate = true;
         }).start();
+    }
+
+    public <T> T get(String ref, Class<T> cls) {
+        return (T)get(ref);
     }
 
     public <T> T get(String ref) {
