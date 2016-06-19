@@ -17,7 +17,7 @@ public class GameWorld<T> {
         this.renderer = renderer;
     }
 
-    public void addInstance(T instance) {    this.instances.add(instance);    }
+    public void addInstance(T instance)    { this.instances.add(instance);    }
     public void removeInstance(T instance) { this.instances.remove(instance); }
 
     public void render(float delta) { renderer.render(delta); }

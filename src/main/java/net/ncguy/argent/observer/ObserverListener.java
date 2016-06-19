@@ -5,6 +5,6 @@ package net.ncguy.argent.observer;
  */
 public interface ObserverListener<T> {
 
-    void onChange(T oldVal, T newVal);
+    void onChange(String identifier, T newVal);
 
 }
