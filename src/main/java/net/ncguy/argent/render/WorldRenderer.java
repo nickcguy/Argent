@@ -5,6 +5,8 @@ import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +19,8 @@ import static com.badlogic.gdx.Gdx.graphics;
  * Created by Guy on 13/06/2016.
  */
 public abstract class WorldRenderer<T> {
+
+    public List<T> objects() { return objects; }
 
     protected List<T> objects;
     protected PerspectiveCamera camera;
@@ -66,16 +70,6 @@ public abstract class WorldRenderer<T> {
             currentRenderer = b;
             b.render(delta, false);
         }
-//        FrameBuffer buffer = new FrameBuffer(Pixmap.Format.RGBA8888, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()*renderPipe.size(), true);
-//        SpriteBatch bufferBatch = new SpriteBatch();
-//        buffer.begin();
-//        bufferBatch.begin();
-//        int index = 0;
-//        for (BufferRenderer<T> b : renderPipe)
-//            bufferBatch.draw(b.fbo().getColorBufferTexture(), 0, Gdx.graphics.getHeight()*(++index));
-//        bufferBatch.end();
-//        buffer.end();
-
 
         int[] mutableId = new int[]{6};
 
@@ -130,6 +124,8 @@ public abstract class WorldRenderer<T> {
     }
 
     public abstract ModelInstance getRenderable(T obj);
+    public abstract void buildBulletCollision(T obj, btCollisionShape shape);
+    public btRigidBody getBulletBody(T obj) { return null; }
 
     public Optional<ModelInstance> getRenderableOptional(T obj) {
         ModelInstance inst = getRenderable(obj);

@@ -6,13 +6,10 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector2;
 import net.ncguy.argent.utils.TextUtils;
-
-import java.util.Optional;
 
 /**
  * Created by Guy on 13/06/2016.
@@ -76,10 +73,7 @@ public abstract class BufferRenderer<T> {
 
     public void renderIntoBatch() {
         modelBatch.begin(renderer.camera());
-        renderer.objects.forEach(o -> {
-            Optional<ModelInstance> inst = renderer.getRenderableOptional(o);
-            if(inst.isPresent()) modelBatch.render(inst.get());
-        });
+        renderer.renderables().forEach(modelBatch::render);
         modelBatch.end();
     }
 
