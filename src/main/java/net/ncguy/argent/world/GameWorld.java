@@ -35,6 +35,7 @@ public class GameWorld {
         protected List<T> instances;
         protected PooledEngine engine;
         protected Console console;
+        protected T selected;
 
         public Skin consoleSkin;
         public boolean consoleEnabled = false;
@@ -45,6 +46,9 @@ public class GameWorld {
             this.renderer = renderer;
             this.engine = new PooledEngine(10, 512, 10, 512);
         }
+
+        public T selected() { return selected; }
+        public Generic selected(T selected) { this.selected = selected; return this; }
 
         public void addInstance(T instance) {
             this.instances.add(instance);

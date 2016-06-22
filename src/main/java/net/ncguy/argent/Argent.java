@@ -77,4 +77,10 @@ public class Argent {
         onResize.forEach(r -> r.run(width, height));
     }
 
+    public static class GlobalConfig {
+
+        public static float exposure = 1.0f;
+
+    }
+
 }

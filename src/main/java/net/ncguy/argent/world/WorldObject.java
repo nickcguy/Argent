@@ -1,16 +1,24 @@
 package net.ncguy.argent.world;
 
+import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import net.ncguy.argent.editor.ConfigurableAttribute;
+import net.ncguy.argent.editor.IConfigurable;
+
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 import static com.badlogic.gdx.physics.bullet.collision.btCollisionObject.CollisionFlags.*;
 
 /**
  * Created by Guy on 20/06/2016.
  */
-public class WorldObject extends Entity {
+public class WorldObject extends Entity implements IConfigurable {
 
     // BULLET
 
@@ -52,4 +60,16 @@ public class WorldObject extends Entity {
         setWorldFilters(flag);
     }
 
+    @Override
+    public List<ConfigurableAttribute> getConfigurableAttributes() {
+        List<ConfigurableAttribute> attrs = new ArrayList<>();
+
+        Set<Component> componentSet = new LinkedHashSet<>();
+        getComponents().forEach(componentSet::add);
+        componentSet.stream().filter(c -> c instanceof IConfigurable).forEach(c -> attrs.addAll(((IConfigurable)c).getConfigurableAttributes()));
+
+        attrs.add(attr("Mass", () -> mass, (var) -> mass = var));
+
+        return attrs;
+    }
 }

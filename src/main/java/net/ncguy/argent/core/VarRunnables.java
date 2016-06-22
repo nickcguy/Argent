@@ -10,4 +10,8 @@ public class VarRunnables {
     public interface Var2Runnable<T> {
         void run(T arg1, T arg2);
     }
+
+    public interface ReturnRunnable<T> {
+        T run();
+    }
 }
