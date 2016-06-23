@@ -1,4 +1,6 @@
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.kotcrab.vis.ui.VisUI;
@@ -19,6 +21,12 @@ public class TestLauncher extends Game {
     public void resize(int width, int height) {
         super.resize(width, height);
         Argent.resize(width, height);
+    }
+
+    @Override
+    public void setScreen(Screen screen) {
+        Gdx.graphics.setTitle(screen.getClass().getSimpleName());
+        super.setScreen(screen);
     }
 
     public static void main(String[] args) {

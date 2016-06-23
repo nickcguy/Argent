@@ -7,6 +7,9 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.badlogic.gdx.utils.Disposable;
+import net.ncguy.argent.Argent;
+import net.ncguy.argent.core.VarRunnables;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +21,7 @@ import static com.badlogic.gdx.Gdx.graphics;
 /**
  * Created by Guy on 13/06/2016.
  */
-public abstract class WorldRenderer<T> {
+public abstract class WorldRenderer<T> implements Disposable {
 
     public List<T> objects() { return objects; }
 
@@ -29,9 +32,13 @@ public abstract class WorldRenderer<T> {
     protected BufferRenderer currentRenderer = null;
     protected boolean canRender = true;
 
+    protected VarRunnables.Var2Runnable<Integer> resizeRunnable;
+
     public WorldRenderer(List<T> objList) {
         this.objects = objList;
         this.renderPipe = new ArrayList<>();
+        resizeRunnable = this::resize;
+        Argent.onResize.add(resizeRunnable);
     }
 
     public PerspectiveCamera camera() {
@@ -150,4 +157,9 @@ public abstract class WorldRenderer<T> {
         return new ShaderProgram(Gdx.files.internal(String.format(shaderPathFormat, prefix, "vert")), Gdx.files.internal(String.format(shaderPathFormat, prefix, "frag")));
     }
 
+    @Override
+    public void dispose() {
+        Argent.onResize.remove(resizeRunnable);
+        resizeRunnable = null;
+    }
 }
