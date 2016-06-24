@@ -24,7 +24,6 @@ public class ContentManager {
     private boolean hasFinished = false;
     private boolean canUpdate = false;
 
-
     public ContentManager() {
         initLoader();
     }

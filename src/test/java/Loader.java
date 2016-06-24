@@ -1,9 +1,9 @@
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.Model;
 import net.ncguy.argent.Argent;
-
-import java.io.File;
 
 /**
  * Created by Guy on 22/06/2016.
@@ -24,8 +24,10 @@ public class Loader implements Screen {
             Argent.content.assetMap().forEach((k, v) -> System.out.printf("\t%s: %s\n", k, v));
             game.setScreen(new MenuScreen(game));
         });
-        Argent.content.addDirectoryRoot(new File("assets"), Texture.class, "png", "jpg");
-        Argent.content.addDirectoryRoot(new File("assets"), Model.class, "g3db");
+        FileHandle assetHandle = Gdx.files.internal("assets");
+        System.out.println(assetHandle.file().getAbsolutePath());
+        Argent.content.addDirectoryRoot(assetHandle.file(), Texture.class, "png", "jpg");
+        Argent.content.addDirectoryRoot(assetHandle.file(), Model.class, "g3db");
         Argent.content.start();
     }
 

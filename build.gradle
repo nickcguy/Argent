@@ -65,8 +65,6 @@ task testFatJar(type: Jar) {
     with jar
 }
 
-
-
 ext {
     appName = "ArgentEngine"
     gdxVersion = '1.9.3'
