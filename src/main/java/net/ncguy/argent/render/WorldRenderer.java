@@ -1,6 +1,8 @@
 package net.ncguy.argent.render;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
@@ -53,6 +55,12 @@ public abstract class WorldRenderer<T> implements Disposable {
         return camera;
     }
 
+    public void clearRenderPipe() {
+        renderPipe.clear();
+        finalBuffer = null;
+    }
+
+
     @SafeVarargs
     public final void addBufferRenderers(BufferRenderer<T>... renderers) {
         for (BufferRenderer<T> renderer : renderers) {
@@ -85,10 +93,15 @@ public abstract class WorldRenderer<T> implements Disposable {
             if(finalBuffer.shaderProgram != null) {
                 finalBuffer.shaderProgram.begin();
                 renderPipe.forEach(b -> b.setSceneUniforms(finalBuffer.shaderProgram, mutableId));
-                finalBuffer.shaderProgram.setUniformf("u_screenRes", Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-                finalBuffer.shaderProgram.setUniformf("u_cameraDir", camera().direction);
-                finalBuffer.shaderProgram.setUniformf("u_cameraPos", camera().position);
                 finalBuffer.shaderProgram.end();
+
+                if(Gdx.input.isKeyJustPressed(Input.Keys.H)) {
+                    System.out.println("Program Uniforms: ");
+                    for(String s : finalBuffer.shaderProgram.getUniforms()) {
+                        System.out.printf("\t%s: %s\n", s, finalBuffer.shaderProgram.getUniformLocation(s));
+                    }
+                }
+
             }
 
             currentRenderer = finalBuffer;
@@ -154,7 +167,13 @@ public abstract class WorldRenderer<T> implements Disposable {
 
     public static ShaderProgram setupShader(String prefix) {
         ShaderProgram.pedantic = false;
-        return new ShaderProgram(Gdx.files.internal(String.format(shaderPathFormat, prefix, "vert")), Gdx.files.internal(String.format(shaderPathFormat, prefix, "frag")));
+        FileHandle vertHandle = Gdx.files.internal(String.format(shaderPathFormat, prefix, "vert"));
+        FileHandle fragHandle = Gdx.files.internal(String.format(shaderPathFormat, prefix, "frag"));
+
+        System.out.println(vertHandle.file().getAbsolutePath());
+        System.out.println(fragHandle.file().getAbsolutePath());
+
+        return new ShaderProgram(vertHandle, fragHandle);
     }
 
     @Override

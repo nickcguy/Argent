@@ -16,7 +16,7 @@ void main() {
     texCol *= u_diffuseColor.rgb;
 
     vec3 col = v_position.xyz;
-    col /= 600;
+                   col /= 600;
 
     col *= texCol;
 

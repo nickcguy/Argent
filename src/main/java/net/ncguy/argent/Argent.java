@@ -77,6 +77,11 @@ public class Argent {
         onResize.forEach(r -> r.run(width, height));
     }
 
+    public static void log(String text, boolean dialog) {
+        System.out.println(text);
+        // TODO implement global dialog
+    }
+
     public static class GlobalConfig {
 
         public static float exposure = 1.0f;

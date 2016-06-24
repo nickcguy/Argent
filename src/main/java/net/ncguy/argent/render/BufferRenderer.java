@@ -24,10 +24,14 @@ public abstract class BufferRenderer<T> {
     protected ModelBatch modelBatch;
 
     public BufferRenderer(WorldRenderer<T> renderer) {
+        this(renderer, true);
+    }
+    public BufferRenderer(WorldRenderer<T> renderer, boolean doInit) {
         this.renderer = renderer;
         this.screenClearColour = new Color(.3f, .3f, .3f, 1);
         this.fboClearColour = new Color(0, 0, 0, 1);
-        init();
+        if(doInit)
+            init();
     }
 
     protected FrameBuffer fbo() {
@@ -92,7 +96,7 @@ public abstract class BufferRenderer<T> {
 
     public Vector2 size() { return new Vector2(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()); }
 
-    public final String uniformName() {
+    public String uniformName() {
         return "u_"+ TextUtils.camelCase(name()).replace(" ", "");
     }
 

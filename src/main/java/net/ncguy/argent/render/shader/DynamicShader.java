@@ -9,7 +9,10 @@ import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
 import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import net.ncguy.argent.Argent;
 
+import javax.swing.tree.DefaultMutableTreeNode;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,6 +24,10 @@ public class DynamicShader extends BaseShader {
     public final String vertexShaderCode;
     public final String fragmentShaderCode;
 
+    public DynamicShader(final Renderable renderable, DynamicShader.Info info) {
+        this(renderable, info.compile(), info.vertex, info.fragment);
+    }
+
     public DynamicShader(final Renderable renderable, final ShaderProgram shaderProgramModelBorder, String vertexShaderCode, String fragmentShaderCode)  {
         this.renderable = renderable;
         this.program = shaderProgramModelBorder;
@@ -28,14 +35,9 @@ public class DynamicShader extends BaseShader {
         this.fragmentShaderCode = fragmentShaderCode;
 
         detectUniforms().forEach(this::register);
-//        register(DefaultShader.Inputs.worldTrans, DefaultShader.Setters.worldTrans);
-//        register(DefaultShader.Inputs.projViewTrans, DefaultShader.Setters.projViewTrans);
-//        register(DefaultShader.Inputs.normalMatrix, DefaultShader.Setters.normalMatrix);
-//        register(DefaultShader.Inputs.cameraPosition, DefaultShader.Setters.cameraPosition);
-//        register(DefaultShader.Inputs.cameraNearFar, DefaultShader.Setters.cameraNearFar);
     }
 
-    public Map<Uniform, Setter> detectUniforms() {
+    private Map<Uniform, Setter> detectUniforms() {
         return ShaderUtils.detectUniforms(vertexShaderCode, fragmentShaderCode);
     }
 
@@ -71,5 +73,46 @@ public class DynamicShader extends BaseShader {
 
     @Override public int compareTo(final Shader other) { return 0; }
     @Override public boolean canRender(final Renderable instance) { return true; }
-    @Override public void render(final Renderable renderable, final Attributes combinedAttributes) { super.render(renderable, combinedAttributes); }
+    @Override public void render(final Renderable renderable, final Attributes combinedAttributes) {
+        super.render(renderable, combinedAttributes);
+    }
+
+    public static class Info {
+        public String name;
+        public String desc;
+        public String vertex;
+        public String fragment;
+
+        public transient List<String> uniforms;
+        public transient DefaultMutableTreeNode treeNode;
+
+        public Info copy() { return copy(false); }
+        public Info copy(boolean transitive) {
+            Info info = new Info();
+            info.name = this.name;
+            info.desc = this.desc;
+            info.vertex = this.vertex;
+            info.fragment = this.fragment;
+            if(transitive) {
+                info.uniforms = this.uniforms;
+                info.treeNode = this.treeNode;
+            }
+            return info;
+        }
+
+        @Override
+        public String toString() {
+            return name.replace(" ", "");
+        }
+
+        public ShaderProgram compile() {
+            ShaderProgram program = new ShaderProgram(vertex, fragment);
+            if(program.isCompiled())
+                return program;
+            Argent.log(program.getLog(), true);
+            return null;
+        }
+
+    }
+
 }

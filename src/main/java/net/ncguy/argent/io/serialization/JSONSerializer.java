@@ -1,6 +1,7 @@
 package net.ncguy.argent.io.serialization;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * Created by Guy on 09/06/2016.
@@ -18,7 +19,9 @@ public class JSONSerializer implements ISerializer {
     private Gson gson;
 
     private JSONSerializer() {
-        gson = new Gson();
+        GsonBuilder gb = new GsonBuilder();
+//        gb.registerTypeAdapter(DynamicShader.Info.class, new DynamicShaderInfoTypeAdapter());
+        gson = gb.create();
     }
 
     @Override
@@ -28,7 +31,13 @@ public class JSONSerializer implements ISerializer {
 
     @Override
     public <T> T deserialize(String json, Class<T> cls) {
-        return gson.fromJson(json, cls);
+        try {
+            T obj = gson.fromJson(json, cls);
+            return obj;
+        }catch (Exception jse) {
+            jse.printStackTrace();
+        }
+        return null;
     }
 
 }

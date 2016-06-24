@@ -1,8 +1,11 @@
 package net.ncguy.argent.utils;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.Material;
+import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
@@ -62,7 +65,7 @@ public class Reference {
                     "uniform mat4 u_worldTrans;\n" +
                     "\n" +
                     "void main() {\n" +
-                    "\tgl_Position = u_projViewTrans * (u_worldTrans * a_position)\n" +
+                    "\tgl_Position = u_projViewTrans * (u_worldTrans * a_position);\n" +
                     "}\n";
             public static final String FRAGMENT = "" +
                     "#version 120\n" +
@@ -75,11 +78,23 @@ public class Reference {
             public static final Map<BaseShader.Uniform, BaseShader.Setter> UNIFORMS() {
                 if(UNIFORMS == null) {
                     Map<BaseShader.Uniform, BaseShader.Setter> m = new HashMap<>();
-//                    m.put(Inputs.projTrans,         Setters.projTrans);
-//                    m.put(Inputs.viewTrans,         Setters.viewTrans);
-//                    m.put(Inputs.projViewTrans,     Setters.projViewTrans);
-//                    m.put(Inputs.cameraPosition,    Setters.cameraPosition);
-//                    m.put(Inputs.)
+
+                    m.put(new BaseShader.Uniform("u_viewportSize"), new BaseShader.LocalSetter() {
+                        @Override
+                        public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
+                            // No idea why this is required, the correct method doesn't work
+                            shader.program.setUniformf("u_viewportSize", Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+//                            shader.set(inputID, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+                        }
+                    });
+                    m.put(new BaseShader.Uniform("u_bufferSize"), new BaseShader.LocalSetter() {
+                        @Override
+                        public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
+                            // No idea why this is required, the correct method doesn't work
+                            shader.program.setUniformf("u_bufferSize", Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight());
+//                            shader.set(inputID, Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight());
+                        }
+                    });
 
                     Field[] fields = DefaultShader.Inputs.class.getDeclaredFields();
                     for (Field field : fields) {
@@ -94,6 +109,7 @@ public class Reference {
                             e.printStackTrace();
                         }
                     }
+
                     UNIFORMS = m;
                 }
                 return UNIFORMS;
