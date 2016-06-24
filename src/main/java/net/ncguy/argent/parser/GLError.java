@@ -13,6 +13,7 @@ public class GLError {
     public int line;
     public Type type;
     public String text;
+    public String raw;
 
     @Override
     public String toString() {
@@ -33,6 +34,7 @@ public class GLError {
                 error.line = getErrorLine(line);
                 error.text = getErrorText(line);
                 error.type = getErrorType(line);
+                error.raw = line;
                 errorList.add(error);
             }
             return errorList;

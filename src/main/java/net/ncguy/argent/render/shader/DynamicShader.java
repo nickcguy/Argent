@@ -112,7 +112,7 @@ public class DynamicShader extends BaseShader {
             ShaderProgram program = new ShaderProgram(vertex, fragment);
             if(program.isCompiled())
                 return program;
-            Argent.toast(program.getLog(), errorParser());
+            Argent.toast(this.name, program.getLog(), errorParser(), 5);
             return null;
         }
 

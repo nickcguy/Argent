@@ -39,11 +39,11 @@ public class ShaderEditor<T> {
     }
 
     public void compile() {
-        this.gameWorld.renderer().clearRenderPipe();
         Stack<DynamicShader.Info> infoStack = shaderForm.compileToStack();
-        while(infoStack.size() > 1) {
+        if(infoStack == null) return;
+        this.gameWorld.renderer().clearRenderPipe();
+        while(infoStack.size() > 1)
             this.gameWorld.renderer().addBufferRenderers(new DynamicRenderer<>(this.gameWorld.renderer(), infoStack.pop()));
-        }
         this.gameWorld.renderer().setFinalBuffer(new DynamicRenderer<>(this.gameWorld.renderer(), infoStack.pop()));
     }
 

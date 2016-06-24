@@ -2,6 +2,7 @@ package net.ncguy.argent.editor.swing;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.utils.StringBuilder;
 import com.bulenkov.darcula.DarculaLaf;
 import com.intellij.uiDesigner.core.GridConstraints;
@@ -304,7 +305,6 @@ public class ShaderForm {
     }
 
     public Stack<DynamicShader.Info> compileToStack() {
-        Stack<DynamicShader.Info> infoStack = new Stack<>();
         DynamicShader.Info[] finalShaderInfo = new DynamicShader.Info[]{null};
         Object obj = finalRendererSelect.getSelectedItem();
         if (obj instanceof DynamicShader.Info) finalShaderInfo[0] = (DynamicShader.Info) obj;
@@ -312,6 +312,16 @@ public class ShaderForm {
             Argent.log("A final shader needs to be selected", true);
             return null;
         }
+
+        ShaderProgram prog = null;
+        for (DynamicShader.Info info : shaderInfo) {
+            prog = info.compile();
+            if (prog == null) return null;
+        }
+        prog = finalShaderInfo[0].compile();
+        if (prog == null) return null;
+
+        Stack<DynamicShader.Info> infoStack = new Stack<>();
         infoStack.push(finalShaderInfo[0]);
         shaderInfo.stream().filter(i -> i != finalShaderInfo[0]).forEach(infoStack::push);
         return infoStack;

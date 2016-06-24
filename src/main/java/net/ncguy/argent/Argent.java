@@ -89,15 +89,24 @@ public class Argent {
     }
 
     public static void log(String text, boolean dialog) {
-        System.out.println(text);
-        // TODO implement global dialog
-        if(dialog)
-            new NotificationActor(text, VisUI.getSkin(), 3).addToStage(container, new Vector2(notifiationAnchorX, notifiationAnchorY)).open();
+        log("", text, dialog);
+    }
+    public static void log(String title, String text, boolean dialog) {
+        log(title, text, dialog ? 3 : -1);
+    }
+    public static void log(String title, String text, int dialogLen) {
+        System.out.println(title+": "+text);
+        if(dialogLen > 0)
+            new NotificationActor(title, text, VisUI.getSkin(), dialogLen).addToStage(container, new Vector2(notifiationAnchorX, notifiationAnchorY)).open();
     }
 
-    public static <T> void toast(String text, IParser<T> parser) {
+
+    public static <T> void toast(String title, String text, IParser<T> parser) {
+        toast(title, text, parser, 3);
+    }
+    public static <T> void toast(String title, String text, IParser<T> parser, int duration) {
         Set<T> set = parser.parse(text);
-        set.forEach(s -> log(s.toString(), true));
+        set.forEach(s -> log(title, s.toString(), duration));
     }
 
     public static void setNotificationAnchor(float x, float y) {
