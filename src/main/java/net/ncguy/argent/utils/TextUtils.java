@@ -9,6 +9,12 @@ public class TextUtils {
         return String.format("%"+len+"s", Integer.toBinaryString(dec)).replace(' ', '0');
     }
 
+    public static boolean isInteger(String text) {
+        char[] ch = text.toCharArray();
+        for (char c : ch) if(!Character.isDigit(c)) return false;
+        return true;
+    }
+
     public static String camelCase(String text) {
         StringBuilder sb = new StringBuilder();
         boolean nextTitle = false;

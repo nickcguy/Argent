@@ -24,6 +24,12 @@ public class TestLauncher extends Game {
     }
 
     @Override
+    public void render() {
+        super.render();
+        Argent.render(Gdx.graphics.getDeltaTime());
+    }
+
+    @Override
     public void setScreen(Screen screen) {
         Gdx.graphics.setTitle(screen.getClass().getSimpleName());
         super.setScreen(screen);

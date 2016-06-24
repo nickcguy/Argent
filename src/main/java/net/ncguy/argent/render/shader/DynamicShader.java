@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
 import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import net.ncguy.argent.Argent;
+import net.ncguy.argent.parser.GLError;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.List;
@@ -20,6 +21,8 @@ import java.util.Map;
  */
 public class DynamicShader extends BaseShader {
     public Renderable renderable;
+
+    private static GLError.Parser errorParser;
 
     public final String vertexShaderCode;
     public final String fragmentShaderCode;
@@ -109,10 +112,16 @@ public class DynamicShader extends BaseShader {
             ShaderProgram program = new ShaderProgram(vertex, fragment);
             if(program.isCompiled())
                 return program;
-            Argent.log(program.getLog(), true);
+            Argent.toast(program.getLog(), errorParser());
             return null;
         }
 
+    }
+
+    public static GLError.Parser errorParser() {
+        if (errorParser == null)
+            errorParser = new GLError.Parser();
+        return errorParser;
     }
 
 }
