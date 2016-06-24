@@ -125,18 +125,6 @@ public class ShaderForm {
             form.fragmentShaderArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_CPLUSPLUS);
             form.fragmentShaderArea.setCodeFoldingEnabled(true);
 
-            try {
-                File themeFile = new File("themes");
-                System.out.println(themeFile.getAbsolutePath());
-                File[] files = themeFile.listFiles();
-                for (File file : files) {
-                    Theme theme = Theme.load(new FileInputStream(file));
-                    themeMap.put(FileUtils.getFileName(file).toLowerCase(), theme);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
             form.shaderInfo = new ArrayList();
 
             form.newShaderButton.addActionListener(e -> form.add());
@@ -167,9 +155,22 @@ public class ShaderForm {
             rootNode.add(autoWireNode);
             rootNode.add(form.shaderNode);
 
-            form.vertexLabel.setComponentPopupMenu(new ThemeContext(themeMap, form.vertexShaderArea));
-            form.fragmentLabel.setComponentPopupMenu(new ThemeContext(themeMap, form.fragmentShaderArea));
+//            form.vertexLabel.setComponentPopupMenu(new ThemeContext(themeMap, form.vertexShaderArea));
+//            form.fragmentLabel.setComponentPopupMenu(new ThemeContext(themeMap, form.fragmentShaderArea));
 
+            form.readFromDisk();
+
+            try {
+                File themeFile = new File("themes");
+                System.out.println(themeFile.getAbsolutePath());
+                File[] files = themeFile.listFiles();
+                for (File file : files) {
+                    Theme theme = Theme.load(new FileInputStream(file));
+                    themeMap.put(FileUtils.getFileName(file).toLowerCase(), theme);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             JMenuBar menuBar = new JMenuBar();
             JMenu themeMenu = new JMenu("Theme");
             themeMap.forEach((s, t) -> themeMenu.add(new JMenuItem(new AbstractAction(s) {
@@ -181,8 +182,6 @@ public class ShaderForm {
             })));
             menuBar.add(themeMenu);
             frame.setJMenuBar(menuBar);
-
-            form.readFromDisk();
         }
         return form;
     }
