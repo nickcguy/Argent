@@ -44,14 +44,28 @@ task dist(type: Jar) {
 task fatJar(type: Jar) {
     manifest {
         attributes 'Implementation-Title': 'Gradle Jar File Example',
-                'Implementation-Version': version,
-                "Main-Class": 'TestLauncher'
+                'Implementation-Version': version
     }
     baseName = project.name + '-fat'
     from { configurations.provided.collect { it.isDirectory() ? it : zipTree(it) } }
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
+
+task testFatJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Jar File Example',
+                'Implementation-Version': version,
+                "Main-Class": 'TestLauncher'
+    }
+    baseName = project.name + '-test-fat'
+    from { configurations.provided.collect { it.isDirectory() ? it : zipTree(it) } }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    from { sourceSets.test.output }
+    with jar
+}
+
+
 
 ext {
     appName = "ArgentEngine"
