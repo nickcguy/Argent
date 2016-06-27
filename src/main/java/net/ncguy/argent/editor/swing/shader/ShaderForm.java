@@ -1,14 +1,16 @@
-package net.ncguy.argent.editor.swing;
+package net.ncguy.argent.editor.swing.shader;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.utils.StringBuilder;
-import com.bulenkov.darcula.DarculaLaf;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import net.ncguy.argent.Argent;
+import net.ncguy.argent.editor.swing.components.DraggableTreeNode;
+import net.ncguy.argent.editor.swing.components.DroppableTreeNode;
+import net.ncguy.argent.editor.swing.components.JDraggableTree;
 import net.ncguy.argent.render.shader.DynamicShader;
 import net.ncguy.argent.render.shader.ShaderUtils;
 import net.ncguy.argent.utils.FileUtils;
@@ -21,11 +23,11 @@ import org.fife.ui.rsyntaxtextarea.Theme;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -42,7 +44,7 @@ public class ShaderForm {
 
     private JPanel rootPanel;
     private JPanel splitPanel;
-    private JTree collectionTree;
+    private JDraggableTree collectionTree;
     private JButton shaderCompileBtn;
     private JButton newShaderButton;
     private RSyntaxTextArea vertexShaderArea;
@@ -55,21 +57,35 @@ public class ShaderForm {
     private JButton applyShaderBtn;
     private JComboBox finalRendererSelect;
     private JTextField shaderDescArea;
+    private JTextField finalRendererText;
 
     private List<DynamicShader.Info> shaderInfo;
     private DynamicShader.Info selectedShaderInfo;
     private DefaultMutableTreeNode shaderNode;
 
     private GameWorld.Generic<?> world;
+    private ShaderEditor<?> editorController;
 
     public static JFrame frame;
-    private static ShaderForm form;
-    private static Thread ioThread;
+    public static Thread ioThread;
     private static Stack<Runnable> ioCalls;
 
-    private static Map<String, Theme> themeMap = new HashMap<>();
+    private boolean realtime = false;
+
+    public RSyntaxTextArea vertexShaderArea() {
+        return vertexShaderArea;
+    }
+
+    public RSyntaxTextArea fragmentShaderArea() {
+        return fragmentShaderArea;
+    }
 
     public Runnable onApply;
+
+    public ShaderForm(ShaderEditor<?> editorController) {
+        this.editorController = editorController;
+        init();
+    }
 
     static {
         ioCalls = new Stack<>();
@@ -82,8 +98,18 @@ public class ShaderForm {
                     e.printStackTrace();
                 }
             }
-        });
+        }, "IOThread");
+        ioThread.setDaemon(true);
         ioThread.start();
+    }
+
+    public boolean realtime() {
+        return realtime;
+    }
+
+    public ShaderForm realtime(boolean realtime) {
+        this.realtime = realtime;
+        return this;
     }
 
     public GameWorld.Generic<?> world() {
@@ -95,96 +121,90 @@ public class ShaderForm {
         return this;
     }
 
-    public static JFrame getFrame() {
-        if (frame == null)
-            getForm();
-        return frame;
-    }
+    public void init() {
+        vertexShaderArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_CPLUSPLUS);
+        vertexShaderArea.setCodeFoldingEnabled(true);
 
-    public static ShaderForm getForm() {
-        if (frame == null) {
+        fragmentShaderArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_CPLUSPLUS);
+        fragmentShaderArea.setCodeFoldingEnabled(true);
 
-            try {
-                UIManager.setLookAndFeel(DarculaLaf.class.getCanonicalName());
-            } catch (ClassNotFoundException | InstantiationException | UnsupportedLookAndFeelException | IllegalAccessException e) {
-                e.printStackTrace();
-            }
+        shaderInfo = new ArrayList();
 
-            form = new ShaderForm();
-            frame = new JFrame("ShaderForm");
-            frame.setContentPane(form.rootPanel);
-            frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-            frame.pack();
-            frame.setSize(626, 446);
-            frame.setLocationByPlatform(true);
-            frame.setLocationRelativeTo(null);
-            frame.setVisible(false);
+        newShaderButton.addActionListener(e -> add());
+        shaderCompileBtn.addActionListener(e -> {
+            displayDetectedUniforms();
+            save();
+        });
+        applyShaderBtn.addActionListener(e -> apply());
+        deleteShaderBtn.addActionListener(e -> delete());
 
-            form.vertexShaderArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_CPLUSPLUS);
-            form.vertexShaderArea.setCodeFoldingEnabled(true);
+        uniformList.setModel(new DefaultListModel<>());
 
-            form.fragmentShaderArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_CPLUSPLUS);
-            form.fragmentShaderArea.setCodeFoldingEnabled(true);
+        // TREE
 
-            form.shaderInfo = new ArrayList();
+        DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Editor");
 
-            form.newShaderButton.addActionListener(e -> form.add());
-            form.shaderCompileBtn.addActionListener(e -> {
-                form.displayDetectedUniforms();
-                form.save();
-            });
-            form.applyShaderBtn.addActionListener(e -> form.apply());
-            form.deleteShaderBtn.addActionListener(e -> form.delete());
+//        collectionTree.setModel(new DefaultTreeModel(rootNode));
 
-            form.uniformList.setModel(new DefaultListModel<>());
+        collectionTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        collectionTree.addTreeSelectionListener(e -> select());
 
-            DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Editor");
+        DefaultMutableTreeNode autoWireNode = new DefaultMutableTreeNode("Autowired Uniforms");
+        UNIFORMS().keySet().stream().sorted((o1, o2) -> o1.alias.compareToIgnoreCase(o2.alias)).forEach(k -> {
+            autoWireNode.add(new DefaultMutableTreeNode(k.alias));
+        });
 
-            form.collectionTree.setModel(new DefaultTreeModel(rootNode));
+        shaderNode = new DroppableTreeNode("Shaders");
+        DefaultTreeModel model = new DefaultTreeModel(rootNode);
 
-            form.collectionTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-            form.collectionTree.addTreeSelectionListener(e -> form.select());
+        collectionTree.setModel(model);
 
-            DefaultMutableTreeNode autoWireNode = new DefaultMutableTreeNode("Autowired Uniforms");
-            UNIFORMS().keySet().stream().sorted((o1, o2) -> o1.alias.compareToIgnoreCase(o2.alias)).forEach(k -> {
-                autoWireNode.add(new DefaultMutableTreeNode(k.alias));
-            });
-
-            form.shaderNode = new DefaultMutableTreeNode("Shaders");
-            form.collectionTree.setModel(new DefaultTreeModel(rootNode));
-
-            rootNode.add(autoWireNode);
-            rootNode.add(form.shaderNode);
+        rootNode.add(autoWireNode);
+        rootNode.add(shaderNode);
 
 //            form.vertexLabel.setComponentPopupMenu(new ThemeContext(themeMap, form.vertexShaderArea));
 //            form.fragmentLabel.setComponentPopupMenu(new ThemeContext(themeMap, form.fragmentShaderArea));
 
-            form.readFromDisk();
+        readFromDisk();
 
-            try {
-                File themeFile = new File("themes");
-                System.out.println(themeFile.getAbsolutePath());
-                File[] files = themeFile.listFiles();
-                for (File file : files) {
-                    Theme theme = Theme.load(new FileInputStream(file));
-                    themeMap.put(FileUtils.getFileName(file).toLowerCase(), theme);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            JMenuBar menuBar = new JMenuBar();
-            JMenu themeMenu = new JMenu("Theme");
-            themeMap.forEach((s, t) -> themeMenu.add(new JMenuItem(new AbstractAction(s) {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    t.apply(form.vertexShaderArea);
-                    t.apply(form.fragmentShaderArea);
-                }
-            })));
-            menuBar.add(themeMenu);
-            frame.setJMenuBar(menuBar);
+        finalRendererText.setText(getFinalShader().name);
+
+        collectionTree.addTreeSelectionListener(e -> {
+            DynamicShader.Info info = getFinalShader();
+            finalRendererText.setText(info != null ? info.name : "Error");
+            if (realtime)
+                if (info != null)
+                    Gdx.app.postRunnable(editorController::compile);
+        });
+    }
+
+    private void shiftNode(DefaultMutableTreeNode node, int offset, int cap, boolean gt) {
+        int index = getChildIndex(node);
+        System.out.println(index);
+        if (index == -1) return;
+        if (gt) {
+            if (index >= cap) return;
+        } else {
+            if (index <= cap) return;
         }
-        return form;
+        index += offset;
+        node.removeFromParent();
+        shaderNode.insert(node, index);
+        collectionTree.invalidate();
+        collectionTree.repaint();
+    }
+
+    private int getChildIndex(TreeNode node) {
+        if (shaderNode.isNodeChild(node)) {
+            int index = 0;
+            Enumeration enumeration = shaderNode.children();
+            while (enumeration.hasMoreElements()) {
+                Object obj = enumeration.nextElement();
+                if (obj == node) return index;
+                index++;
+            }
+        }
+        return -1;
     }
 
     private List<String> getDetectedUniformNames() {
@@ -226,6 +246,7 @@ public class ShaderForm {
     }
 
     private void selectShader(DynamicShader.Info info) {
+        selectedShaderInfo = info;
         shaderName.setText(info.name);
         shaderDescArea.setText(info.desc);
         vertexShaderArea.setText(info.vertex);
@@ -233,24 +254,23 @@ public class ShaderForm {
         if (info.uniforms == null)
             info.uniforms = getDetectedUniformNames();
         displayItems(info.uniforms);
-        selectedShaderInfo = info;
     }
 
     private void updateSelectionElement() {
-        Object selected = finalRendererSelect.getSelectedItem();
-        finalRendererSelect.removeAllItems();
-        DefaultComboBoxModel model = (DefaultComboBoxModel) finalRendererSelect.getModel();
-        shaderInfo.forEach(i -> model.addElement(i));
-
-        int index = model.getIndexOf(selected);
-        if (index == -1) return;
-        model.setSelectedItem(selected);
+//        Object selected = finalRendererSelect.getSelectedItem();
+//        finalRendererSelect.removeAllItems();
+//        DefaultComboBoxModel model = (DefaultComboBoxModel) finalRendererSelect.getModel();
+//        shaderInfo.forEach(i -> model.addElement(i));
+//
+//        int index = model.getIndexOf(selected);
+//        if (index == -1) return;
+//        model.setSelectedItem(selected);
     }
 
     private void save() {
         if (selectedShaderInfo == null) {
             selectedShaderInfo = new DynamicShader.Info();
-            shaderNode.add(selectedShaderInfo.treeNode = new DefaultMutableTreeNode(selectedShaderInfo));
+            shaderNode.add(selectedShaderInfo.treeNode = new DraggableTreeNode(selectedShaderInfo));
             shaderInfo.add(selectedShaderInfo);
         }
         selectedShaderInfo.name = shaderName.getText();
@@ -305,26 +325,51 @@ public class ShaderForm {
     }
 
     public Stack<DynamicShader.Info> compileToStack() {
-        DynamicShader.Info[] finalShaderInfo = new DynamicShader.Info[]{null};
-        Object obj = finalRendererSelect.getSelectedItem();
-        if (obj instanceof DynamicShader.Info) finalShaderInfo[0] = (DynamicShader.Info) obj;
-        if (finalShaderInfo[0] == null) {
-            Argent.log("A final shader needs to be selected", true);
-            return null;
-        }
-
-        ShaderProgram prog = null;
+        ShaderProgram prog;
         for (DynamicShader.Info info : shaderInfo) {
             prog = info.compile();
             if (prog == null) return null;
         }
-        prog = finalShaderInfo[0].compile();
-        if (prog == null) return null;
 
         Stack<DynamicShader.Info> infoStack = new Stack<>();
-        infoStack.push(finalShaderInfo[0]);
-        shaderInfo.stream().filter(i -> i != finalShaderInfo[0]).forEach(infoStack::push);
+//        infoStack.push(finalShaderInfo[0]);
+        Enumeration children = shaderNode.children();
+        List<DynamicShader.Info> infoList = new ArrayList<>();
+        while (children.hasMoreElements()) {
+            Object nodeObj = children.nextElement();
+            if (nodeObj instanceof DefaultMutableTreeNode) {
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodeObj;
+                DynamicShader.Info info = getInfoFromNode(node);
+                infoList.add(info);
+            }
+        }
+
+        for (int i = infoList.size() - 1; i >= 0; i--) {
+            DynamicShader.Info info = infoList.get(i);
+            if (info != null)
+                infoStack.push(info);
+        }
         return infoStack;
+    }
+
+    public DynamicShader.Info getFinalShader() {
+        DynamicShader.Info info = null;
+        TreeNode treeNode = shaderNode.getLastChild();
+        if (treeNode instanceof DefaultMutableTreeNode) {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) treeNode;
+            info = getInfoFromNode(node);
+        }
+        return info;
+    }
+
+    private DynamicShader.Info getInfoFromNode(DefaultMutableTreeNode node) {
+        for (DynamicShader.Info info : shaderInfo)
+            if (info == node.getUserObject()) {
+                return info;
+            } else {
+                System.out.println("Error");
+            }
+        return null;
     }
 
     private void readFromDisk() {
@@ -340,7 +385,7 @@ public class ShaderForm {
                     DynamicShader.Info info = read(FileUtils.getFileName(file));
                     System.out.println(info);
                     if (info != null) {
-                        shaderNode.add(info.treeNode = new DefaultMutableTreeNode(info));
+                        shaderNode.add(info.treeNode = new DraggableTreeNode(info));
                         shaderInfo.add(info);
                         updateSelectionElement();
                     }
@@ -398,25 +443,23 @@ public class ShaderForm {
         splitPane1.setLeftComponent(panel1);
         final JScrollPane scrollPane1 = new JScrollPane();
         panel1.add(scrollPane1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
-        collectionTree = new JTree();
-        collectionTree.setRootVisible(true);
-        collectionTree.setShowsRootHandles(false);
+        collectionTree = new JDraggableTree();
         scrollPane1.setViewportView(collectionTree);
         final JPanel panel2 = new JPanel();
-        panel2.setLayout(new GridLayoutManager(4, 1, new Insets(0, 0, 0, 0), -1, -1));
+        panel2.setLayout(new GridLayoutManager(4, 2, new Insets(0, 0, 0, 0), -1, -1));
         panel1.add(panel2, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         newShaderButton = new JButton();
         newShaderButton.setText("New Shader");
-        panel2.add(newShaderButton, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panel2.add(newShaderButton, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         shaderCompileBtn = new JButton();
         shaderCompileBtn.setText("Compile Shader");
-        panel2.add(shaderCompileBtn, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panel2.add(shaderCompileBtn, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         deleteShaderBtn = new JButton();
         deleteShaderBtn.setText("Delete Shader");
-        panel2.add(deleteShaderBtn, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panel2.add(deleteShaderBtn, new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         applyShaderBtn = new JButton();
         applyShaderBtn.setText("Apply Shader");
-        panel2.add(applyShaderBtn, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panel2.add(applyShaderBtn, new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         splitPanel = new JPanel();
         splitPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
         splitPane1.setRightComponent(splitPanel);
@@ -426,6 +469,7 @@ public class ShaderForm {
         splitPane2.setResizeWeight(0.8);
         splitPanel.add(splitPane2, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(200, 200), null, 0, false));
         final JSplitPane splitPane3 = new JSplitPane();
+        splitPane3.setContinuousLayout(true);
         splitPane3.setResizeWeight(0.5);
         splitPane2.setLeftComponent(splitPane3);
         final JPanel panel3 = new JPanel();
@@ -435,7 +479,7 @@ public class ShaderForm {
         panel3.add(scrollPane2, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         vertexShaderArea = new RSyntaxTextArea();
         vertexShaderArea.setTabsEmulated(false);
-        vertexShaderArea.setText("asdfgh");
+        vertexShaderArea.setText("");
         vertexShaderArea.setUseSelectedTextColor(true);
         scrollPane2.setViewportView(vertexShaderArea);
         vertexLabel = new JPanel();
@@ -489,19 +533,20 @@ public class ShaderForm {
         final JLabel label5 = new JLabel();
         label5.setText("Shader Description");
         panel8.add(label5, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        finalRendererSelect = new JComboBox();
-        panel8.add(finalRendererSelect, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         shaderDescArea = new JTextField();
         panel8.add(shaderDescArea, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
-        final JPanel panel9 = new JPanel();
-        panel9.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-        panel8.add(panel9, new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        panel9.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), null));
         final JLabel label6 = new JLabel();
         label6.setText("Final Renderer");
         panel8.add(label6, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        finalRendererText = new JTextField();
+        finalRendererText.setEditable(false);
+        finalRendererText.setEnabled(true);
+        finalRendererText.setText("Shader");
+        panel8.add(finalRendererText, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         final Spacer spacer1 = new Spacer();
-        panel8.add(spacer1, new GridConstraints(4, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        panel8.add(spacer1, new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        final Spacer spacer2 = new Spacer();
+        panel8.add(spacer2, new GridConstraints(4, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
     }
 
     /**

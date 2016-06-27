@@ -5,7 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
-import net.ncguy.argent.editor.swing.ShaderEditor;
+import net.ncguy.argent.editor.swing.shader.ShaderEditor;
 import net.ncguy.argent.world.GameWorld;
 import net.ncguy.argent.world.GameWorldFactory;
 import net.ncguy.argent.world.WorldObject;
@@ -48,7 +48,7 @@ public class VisualEditor implements Screen {
 
         if(Gdx.input.isKeyJustPressed(Input.Keys.P)) {
             if(Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT)) {
-                editor.openEditor();
+//                editor.openEditor();
             }
         }
     }

@@ -14,4 +14,8 @@ public class VarRunnables {
     public interface ReturnRunnable<T> {
         T run();
     }
+
+    public interface VarReturnRunnable<T, R> {
+        R run(T arg);
+    }
 }

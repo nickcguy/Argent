@@ -42,28 +42,32 @@ public class OVRCore implements Disposable {
 
     public OVRCore() throws ArgentInitialisationException {
 
-        Hmd.initialize();
-        this.hmd = Hmd.create();
-        this.desc = hmd.getDesc();
+        try {
+            Hmd.initialize();
+            this.hmd = Hmd.create();
+            this.desc = hmd.getDesc();
 
-        this.eyeOffsets = OvrVector3f.buildPair();
-        this.poses = Posef.buildPair();
-        this.fovPorts = FovPort.buildPair();
-        this.textureSizes = new OvrSizei[2];
+            this.eyeOffsets = OvrVector3f.buildPair();
+            this.poses = Posef.buildPair();
+            this.fovPorts = FovPort.buildPair();
+            this.textureSizes = new OvrSizei[2];
 
-        this.position = getTrackingState().HeadPose.Pose.Position;
-        this.orientation = getTrackingState().HeadPose.Pose.Orientation;
-        this.fovPort = new FovPort();
-        this.projection = Hmd.getPerspectiveProjection(this.fovPort, 0.1f, 1000, 0);
+            this.position = getTrackingState().HeadPose.Pose.Position;
+            this.orientation = getTrackingState().HeadPose.Pose.Orientation;
+            this.fovPort = new FovPort();
+            this.projection = Hmd.getPerspectiveProjection(this.fovPort, 0.1f, 1000, 0);
 
-        for (int eye = 0; eye < 2; ++eye) {
-            fovPorts[eye] = this.desc.DefaultEyeFov[eye];
-            OvrMatrix4f m = Hmd.getPerspectiveProjection(fovPorts[eye], 0.1f, 1000000f, ovrProjection_ClipRangeOpenGL);
-            projections[eye] = RiftUtils.toMatrix4f(RiftUtils.toMatrix4(m));
-            textureSizes[eye] = hmd.getFovTextureSize(eye, fovPorts[eye], 1.0f);
+            for (int eye = 0; eye < 2; ++eye) {
+                fovPorts[eye] = this.desc.DefaultEyeFov[eye];
+                OvrMatrix4f m = Hmd.getPerspectiveProjection(fovPorts[eye], 0.1f, 1000000f, ovrProjection_ClipRangeOpenGL);
+                projections[eye] = RiftUtils.toMatrix4f(RiftUtils.toMatrix4(m));
+                textureSizes[eye] = hmd.getFovTextureSize(eye, fovPorts[eye], 1.0f);
+            }
+
+            init();
+        }catch (Exception e) {
+            throw new ArgentInitialisationException(e);
         }
-
-        init();
     }
 
     public Matrix4 getPerspectiveProjection() {

@@ -15,12 +15,14 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.kotcrab.vis.ui.VisUI;
 import net.ncguy.argent.Argent;
-import net.ncguy.argent.editor.swing.ShaderEditor;
+import net.ncguy.argent.editor.swing.VisualEditorRoot;
+import net.ncguy.argent.editor.swing.VisualEditorRootConfig;
 import net.ncguy.argent.render.WorldRenderer;
 import net.ncguy.argent.render.sample.*;
 import net.ncguy.argent.ui.BufferWidget;
 import net.ncguy.argent.utils.FirstPersonCameraInputController;
 import net.ncguy.argent.utils.Reference;
+import net.ncguy.argent.vr.OVRCameraController;
 import net.ncguy.argent.world.GameWorld;
 import net.ncguy.argent.world.GameWorldFactory;
 import net.ncguy.argent.world.WorldObject;
@@ -36,7 +38,7 @@ import java.util.List;
 public class GameScreen implements Screen {
 
     TestLauncher game;
-    private ShaderEditor editor;
+    private VisualEditorRoot<WorldObject> editor;
     private List<WorldObject> instances;
     private GameWorld.Generic<WorldObject> gameWorld;
     private WorldRenderer<WorldObject> renderer;
@@ -86,10 +88,13 @@ public class GameScreen implements Screen {
         this.renderer.addBufferRenderers(new UberRenderer<>(this.renderer));
         this.renderer.addBufferRenderers(new NormalRenderer<>(this.renderer));
         this.renderer.setFinalBuffer(new SceneRenderer<>(this.renderer));
-        this.editor = new ShaderEditor(this.gameWorld);
+        VisualEditorRootConfig<WorldObject> editorConfig = new VisualEditorRootConfig<>();
+        editorConfig.gameWorld = this.gameWorld;
+        this.editor = new VisualEditorRoot<>(editorConfig);
         this.editor.addToStage(stage);
 
-        this.cameraController = new FirstPersonCameraInputController(this.renderer.camera());
+        if(Argent.useHMD()) this.cameraController = new OVRCameraController(this.renderer.camera());
+        else this.cameraController = new FirstPersonCameraInputController(this.renderer.camera());
 
         this.table = new Table();
         this.scrollpane = new ScrollPane(this.table);
@@ -107,6 +112,9 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta) {
+        this.gameWorld.renderer().camera().far = 2000;
+
+
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
         this.cameraController.update();

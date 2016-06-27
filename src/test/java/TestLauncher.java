@@ -2,7 +2,6 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
-import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.kotcrab.vis.ui.VisUI;
 import net.ncguy.argent.Argent;
 
@@ -36,10 +35,7 @@ public class TestLauncher extends Game {
     }
 
     public static void main(String[] args) {
-        Lwjgl3ApplicationConfiguration cfg = new Lwjgl3ApplicationConfiguration();
-        cfg.setWindowedMode(1600, 900);
-        cfg.useOpenGL3(true, 4, 2);
-        new Lwjgl3Application(new TestLauncher(), cfg);
+        new Lwjgl3Application(new TestLauncher(), Argent.defaultConfig());
     }
 
 }

@@ -19,6 +19,7 @@ public class Loader implements Screen {
     @Override
     public void show() {
         Argent.initStandard();
+        Argent.initVR();
         Argent.content.setOnFinish(manager -> {
             System.out.println("Loaded Assets:");
             Argent.content.assetMap().forEach((k, v) -> System.out.printf("\t%s: %s\n", k, v));

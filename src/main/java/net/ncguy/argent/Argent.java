@@ -1,6 +1,7 @@
 package net.ncguy.argent;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
@@ -20,6 +21,7 @@ import net.ncguy.argent.ui.NotificationContainer;
 import net.ncguy.argent.vpl.VPLCore;
 import net.ncguy.argent.vr.OVRCore;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -95,18 +97,24 @@ public class Argent {
         log(title, text, dialog ? 3 : -1);
     }
     public static void log(String title, String text, int dialogLen) {
-        System.out.println(title+": "+text);
+        System.out.printf("[%s][%s] %s >> %s\n", Thread.currentThread().getName(), LocalDateTime.now(), title, text);
         if(dialogLen > 0)
             new NotificationActor(title, text, VisUI.getSkin(), dialogLen).addToStage(container, new Vector2(notifiationAnchorX, notifiationAnchorY)).open();
     }
 
-
+    public static void toast(String title, String text) {
+        toast(title, text, null);
+    }
     public static <T> void toast(String title, String text, IParser<T> parser) {
         toast(title, text, parser, 3);
     }
     public static <T> void toast(String title, String text, IParser<T> parser, int duration) {
-        Set<T> set = parser.parse(text);
-        set.forEach(s -> log(title, s.toString(), duration));
+        if(parser == null) {
+            log(title, text, duration);
+        }else{
+            Set<T> set = parser.parse(text);
+            set.forEach(s -> log(title, s.toString(), duration));
+        }
     }
 
     public static void setNotificationAnchor(float x, float y) {
@@ -140,6 +148,14 @@ public class Argent {
         stage().draw();
     }
 
+    public static Lwjgl3ApplicationConfiguration defaultConfig() {
+        Lwjgl3ApplicationConfiguration cfg = new Lwjgl3ApplicationConfiguration();
+        cfg.setTitle("Argent game");
+        cfg.setWindowedMode(1600, 900);
+        cfg.useOpenGL3(true, 4, 2);
+        return cfg;
+    }
+
     public static class GlobalConfig {
 
         public static float exposure = 1.0f;
@@ -147,4 +163,6 @@ public class Argent {
     }
 
 }
+
+
 

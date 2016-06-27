@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.parser.GLError;
+import net.ncguy.argent.utils.HSBColour;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.List;
@@ -85,6 +86,7 @@ public class DynamicShader extends BaseShader {
         public String desc;
         public String vertex;
         public String fragment;
+        public HSBColour hsb;
 
         public transient List<String> uniforms;
         public transient DefaultMutableTreeNode treeNode;
@@ -96,6 +98,7 @@ public class DynamicShader extends BaseShader {
             info.desc = this.desc;
             info.vertex = this.vertex;
             info.fragment = this.fragment;
+            info.hsb = this.hsb;
             if(transitive) {
                 info.uniforms = this.uniforms;
                 info.treeNode = this.treeNode;
@@ -103,6 +106,10 @@ public class DynamicShader extends BaseShader {
             return info;
         }
 
+        public HSBColour hsb() {
+            if(hsb == null) hsb = new HSBColour();
+            return hsb;
+        }
         @Override
         public String toString() {
             return name.replace(" ", "");
