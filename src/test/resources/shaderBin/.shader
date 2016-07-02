@@ -1,1 +1,1 @@
-{"name":"","desc":"","vertex":"asdfgh","fragment":""}
+{"name":"","desc":"","vertex":"","fragment":""}

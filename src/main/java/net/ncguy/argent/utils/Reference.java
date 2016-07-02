@@ -100,7 +100,8 @@ public class Reference {
                     for (Field field : fields) {
                         try {
                             String fName = field.getName();
-                            Field f = DefaultShader.Setters.class.getField(fName);
+                            Class<?> cls = DefaultShader.Setters.class;
+                            Field f = cls.getField(fName);
                             if(f == null) continue;
                             BaseShader.Uniform uniform = (BaseShader.Uniform) field.get(null);
                             BaseShader.Setter setter = (BaseShader.Setter)f.get(null);

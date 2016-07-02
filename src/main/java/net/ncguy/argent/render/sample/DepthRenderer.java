@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector3;
+import net.ncguy.argent.editor.swing.shader.internal.simpledepth.SimpleDepthDescriptor;
 import net.ncguy.argent.render.BufferRenderer;
 import net.ncguy.argent.render.WorldRenderer;
 import net.ncguy.argent.render.shader.SimpleTextureShader;
@@ -20,13 +21,12 @@ import net.ncguy.argent.utils.ScreenshotFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.ncguy.argent.render.WorldRenderer.setupShader;
-
 /**
  * Created by Guy on 13/06/2016.
  */
 public class DepthRenderer<T> extends BufferRenderer<T> {
 
+    private static SimpleDepthDescriptor descriptor = new SimpleDepthDescriptor();
     List<LightWrapper> lights;
 
     public DepthRenderer(WorldRenderer<T> renderer) {
@@ -49,7 +49,7 @@ public class DepthRenderer<T> extends BufferRenderer<T> {
         ShaderProgram shaderProgram;
         ModelBatch modelBatch;
 
-        shaderProgram = setupShader("simpleDepth");
+        shaderProgram = descriptor.compile();
         modelBatch = new ModelBatch(new DefaultShaderProvider(){
             @Override
             protected Shader createShader(Renderable renderable) {

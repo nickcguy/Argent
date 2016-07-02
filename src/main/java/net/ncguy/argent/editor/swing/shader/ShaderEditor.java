@@ -3,6 +3,8 @@ package net.ncguy.argent.editor.swing.shader;
 import com.badlogic.gdx.Gdx;
 import net.ncguy.argent.editor.swing.IEditorPane;
 import net.ncguy.argent.render.renderer.DynamicRenderer;
+import net.ncguy.argent.render.sample.UberDepthRenderer;
+import net.ncguy.argent.render.sample.UberRenderer;
 import net.ncguy.argent.render.shader.DynamicShader;
 import net.ncguy.argent.utils.FileUtils;
 import net.ncguy.argent.world.GameWorld;
@@ -44,6 +46,8 @@ public class ShaderEditor<T> implements IEditorPane<T> {
         this.gameWorld.renderer().clearRenderPipe();
         while(infoStack.size() > 1)
             this.gameWorld.renderer().addBufferRenderers(new DynamicRenderer<>(this.gameWorld.renderer(), infoStack.pop()));
+        this.gameWorld.renderer().addBufferRenderers(new UberRenderer<>(this.gameWorld.renderer()));
+        this.gameWorld.renderer().addBufferRenderers(new UberDepthRenderer<>(this.gameWorld.renderer()));
         this.gameWorld.renderer().setFinalBuffer(new DynamicRenderer<>(this.gameWorld.renderer(), infoStack.pop()));
     }
 

@@ -53,10 +53,11 @@ public class GameWorld {
         public void addInstance(T instance) {
             this.instances.add(instance);
         }
-
         public void removeInstance(T instance) {
             this.instances.remove(instance);
         }
+
+        public List<T> instances() { return instances; }
 
         public void initConsole() {
             if (!consoleEnabled) return;

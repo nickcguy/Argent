@@ -1,4 +1,5 @@
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
@@ -88,10 +89,10 @@ public class GameScreen implements Screen {
         this.renderer.addBufferRenderers(new UberRenderer<>(this.renderer));
         this.renderer.addBufferRenderers(new NormalRenderer<>(this.renderer));
         this.renderer.setFinalBuffer(new SceneRenderer<>(this.renderer));
+
         VisualEditorRootConfig<WorldObject> editorConfig = new VisualEditorRootConfig<>();
         editorConfig.gameWorld = this.gameWorld;
         this.editor = new VisualEditorRoot<>(editorConfig);
-        this.editor.addToStage(stage);
 
         if(Argent.useHMD()) this.cameraController = new OVRCameraController(this.renderer.camera());
         else this.cameraController = new FirstPersonCameraInputController(this.renderer.camera());
@@ -117,6 +118,12 @@ public class GameScreen implements Screen {
 
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+
+        if(Gdx.input.isKeyJustPressed(Input.Keys.HOME))
+            this.editor.addToStage(stage);
+        if(Gdx.input.isKeyJustPressed(Input.Keys.END))
+            this.editor.removeFromStage(stage);
+
         this.cameraController.update();
         Argent.draw(() -> this.gameWorld.render(delta));
         this.gameWorld.updateBuffers(this.stage, this.table, this.widgets, VisUI.getSkin());

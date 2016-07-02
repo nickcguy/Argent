@@ -98,7 +98,7 @@ dependencies {
         exclude group: 'com.badlogicgames.gdx', module: 'gdx'
     }
 
-    compile fileTree('libs').include("*.jar")
+    compile fileTree('libs')
 
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }

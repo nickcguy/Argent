@@ -2,6 +2,7 @@ package net.ncguy.argent.render.shader;
 
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.GL30;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.Shader;
@@ -11,7 +12,6 @@ import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.parser.GLError;
-import net.ncguy.argent.utils.HSBColour;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.List;
@@ -27,16 +27,18 @@ public class DynamicShader extends BaseShader {
 
     public final String vertexShaderCode;
     public final String fragmentShaderCode;
+    public final DynamicShader.Info info;
 
     public DynamicShader(final Renderable renderable, DynamicShader.Info info) {
-        this(renderable, info.compile(), info.vertex, info.fragment);
+        this(renderable, info.compile(), info.vertex, info.fragment, info);
     }
 
-    public DynamicShader(final Renderable renderable, final ShaderProgram shaderProgramModelBorder, String vertexShaderCode, String fragmentShaderCode)  {
+    public DynamicShader(final Renderable renderable, final ShaderProgram shaderProgramModelBorder, String vertexShaderCode, String fragmentShaderCode, DynamicShader.Info info)  {
         this.renderable = renderable;
         this.program = shaderProgramModelBorder;
         this.vertexShaderCode = vertexShaderCode;
         this.fragmentShaderCode = fragmentShaderCode;
+        this.info = info;
 
         detectUniforms().forEach(this::register);
     }
@@ -78,6 +80,7 @@ public class DynamicShader extends BaseShader {
     @Override public int compareTo(final Shader other) { return 0; }
     @Override public boolean canRender(final Renderable instance) { return true; }
     @Override public void render(final Renderable renderable, final Attributes combinedAttributes) {
+        renderable.meshPart.primitiveType = info.primitive.id;
         super.render(renderable, combinedAttributes);
     }
 
@@ -86,10 +89,22 @@ public class DynamicShader extends BaseShader {
         public String desc;
         public String vertex;
         public String fragment;
-        public HSBColour hsb;
+        public GLPrimitiveType primitive = GLPrimitiveType.GL_TRIANGLES;
 
         public transient List<String> uniforms;
         public transient DefaultMutableTreeNode treeNode;
+
+        public final boolean canCompile() { return canCompile; }
+
+        private final boolean canCompile;
+
+        public Info() {
+            this(true);
+        }
+
+        public Info(boolean canCompile) {
+            this.canCompile = canCompile;
+        }
 
         public Info copy() { return copy(false); }
         public Info copy(boolean transitive) {
@@ -98,7 +113,7 @@ public class DynamicShader extends BaseShader {
             info.desc = this.desc;
             info.vertex = this.vertex;
             info.fragment = this.fragment;
-            info.hsb = this.hsb;
+            info.primitive = this.primitive;
             if(transitive) {
                 info.uniforms = this.uniforms;
                 info.treeNode = this.treeNode;
@@ -106,16 +121,13 @@ public class DynamicShader extends BaseShader {
             return info;
         }
 
-        public HSBColour hsb() {
-            if(hsb == null) hsb = new HSBColour();
-            return hsb;
-        }
         @Override
         public String toString() {
             return name.replace(" ", "");
         }
 
         public ShaderProgram compile() {
+            if(!canCompile()) return null;
             ShaderProgram program = new ShaderProgram(vertex, fragment);
             if(program.isCompiled())
                 return program;
@@ -129,6 +141,19 @@ public class DynamicShader extends BaseShader {
         if (errorParser == null)
             errorParser = new GLError.Parser();
         return errorParser;
+    }
+
+    public enum GLPrimitiveType {
+        GL_POINTS(GL30.GL_POINTS),
+        GL_LINES(GL30.GL_LINES),
+        GL_LINE_STRIP(GL30.GL_LINE_STRIP),
+        GL_LINE_LOOP(GL30.GL_LINE_LOOP),
+        GL_TRIANGLES(GL30.GL_TRIANGLES),
+        GL_TRIANGLE_STRIP(GL30.GL_TRIANGLE_STRIP),
+        GL_TRIANGLE_FAN(GL30.GL_TRIANGLE_FAN),
+        ;
+        GLPrimitiveType(int id) { this.id = id; }
+        public final int id;
     }
 
 }

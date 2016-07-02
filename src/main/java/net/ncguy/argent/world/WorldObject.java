@@ -7,6 +7,7 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import net.ncguy.argent.editor.ConfigurableAttribute;
 import net.ncguy.argent.editor.IConfigurable;
+import net.ncguy.argent.editor.swing.config.ConfigControl;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -61,14 +62,14 @@ public class WorldObject extends Entity implements IConfigurable {
     }
 
     @Override
-    public List<ConfigurableAttribute> getConfigurableAttributes() {
-        List<ConfigurableAttribute> attrs = new ArrayList<>();
+    public List<ConfigurableAttribute<?>> getConfigurableAttributes() {
+        List<ConfigurableAttribute<?>> attrs = new ArrayList<>();
 
         Set<Component> componentSet = new LinkedHashSet<>();
         getComponents().forEach(componentSet::add);
         componentSet.stream().filter(c -> c instanceof IConfigurable).forEach(c -> attrs.addAll(((IConfigurable)c).getConfigurableAttributes()));
 
-        attrs.add(attr("Mass", () -> mass, (var) -> mass = var));
+        attrs.add(attr("Mass", () -> mass, (var) -> mass = var, ConfigControl.NUMBERSELECTOR));
 
         return attrs;
     }

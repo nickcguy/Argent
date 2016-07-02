@@ -2,12 +2,18 @@ package net.ncguy.argent.editor.swing;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.*;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Disposable;
 import com.bulenkov.darcula.DarculaLaf;
+import com.kotcrab.vis.ui.widget.Menu;
+import com.kotcrab.vis.ui.widget.MenuBar;
+import com.kotcrab.vis.ui.widget.MenuItem;
 import net.ncguy.argent.Argent;
+import net.ncguy.argent.core.VarRunnables;
+import net.ncguy.argent.editor.swing.object.ObjectEditor;
 import net.ncguy.argent.editor.swing.shader.ShaderEditor;
 import net.ncguy.argent.render.shader.DynamicShader;
 import net.ncguy.argent.world.GameWorld;
@@ -28,21 +34,26 @@ public class VisualEditorRoot<T> implements Disposable {
 
     private GameWorld.Generic<T> gameWorld;
     private ShaderEditor<T> shaderEditor;
+    private ObjectEditor<T> objectEditor;
 
     protected int keyCode = Input.Keys.P;
     protected int requiredModifier = Input.Keys.SHIFT_LEFT;
 
+    protected VarRunnables.Var2Runnable<Integer> onResize;
+    protected InputListener keyPressListener;
+
+    protected Group uiGroup;
+    // TODO replace with own skinnable menubar
+    MenuBar menuBar;
 
     public VisualEditorRoot(VisualEditorRootConfig<T> config) {
         this.config = config;
         this.gameWorld = config.gameWorld;
         this.shaderEditor = new ShaderEditor<>(config.gameWorld);
+        this.objectEditor = new ObjectEditor<>(config.gameWorld);
 
-        installLookAndFeel("Darcula", DarculaLaf.class);
-    }
-
-    public void addToStage(Stage stage) {
-        stage.addListener(new InputListener(){
+        onResize = this::resize;
+        keyPressListener = new InputListener(){
             @Override
             public boolean keyDown(InputEvent event, int keycode) {
                 if(keycode == keyCode) {
@@ -51,7 +62,82 @@ public class VisualEditorRoot<T> implements Disposable {
                 }
                 return super.keyDown(event, keycode);
             }
+        };
+        installLookAndFeel("Darcula", DarculaLaf.class);
+    }
+
+    public Group uiGroup() {
+        if(uiGroup == null) initUI();
+        return uiGroup;
+    }
+
+    private void initUI () {
+        uiGroup = new Group();
+        initMenuBar();
+    }
+    private void initMenuBar() {
+        menuBar = new MenuBar();
+        Menu fileMenu = new Menu("File");
+        MenuItem editorItem = new MenuItem("Open Editor", new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                SwingUtilities.invokeLater(() -> openEditor());
+            }
         });
+        editorItem.setShortcut(requiredModifier, keyCode);
+        fileMenu.addItem(editorItem);
+
+        menuBar.addMenu(fileMenu);
+
+        uiGroup().addActor(menuBar.getTable());
+    }
+
+    private void startTween() { startTween(.3f); }
+    private void startTween(float duration) {
+        resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        // Hiddens
+        tweenToHidden(0);
+
+        // Targets
+        menuBar.getTable().addAction(Actions.parallel(Actions.moveTo(0, Gdx.graphics.getHeight()-menuBar.getTable().getHeight(), duration), Actions.fadeIn(duration)));
+    }
+    private void tweenToHidden(float duration) { tweenToHidden(duration, null); }
+    private void tweenToHidden(float duration, Runnable callback) {
+        Table menuTable = menuBar.getTable();
+
+        /*
+        menuBar.getTable().setPosition(0, Gdx.graphics.getHeight()+menuBar.getTable().getHeight());
+        menuBar.getTable().getColor().a = 0;
+         */
+
+        menuTable.addAction(Actions.sequence(
+            Actions.parallel(
+                Actions.moveTo(0, Gdx.graphics.getHeight()+menuBar.getTable().getHeight(), duration),
+                Actions.fadeOut(duration)
+            ), Actions.run(() ->{
+                if(callback != null) callback.run();
+            })
+        ));
+    }
+
+    public void addToStage(Stage stage) {
+        stage.addListener(keyPressListener);
+        stage.addActor(uiGroup());
+        Argent.onResize.add(onResize);
+        startTween();
+//        onResize.run(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+    }
+
+    public void removeFromStage(Stage stage) {
+        stage.removeListener(keyPressListener);
+        tweenToHidden(.3f, () -> uiGroup().remove());
+    }
+
+    public void resize(int width, int height) {
+        uiGroup().setDebug(true, true);
+        uiGroup().setBounds(0, 0, width, height);
+        menuBar.getTable().setSize(width, 25);
+        menuBar.getTable().setPosition(0, height-menuBar.getTable().getHeight());
     }
 
     private void openEditor() {
@@ -100,6 +186,7 @@ public class VisualEditorRoot<T> implements Disposable {
         menuBar.add(lafMenu);
 
         form = new RootForm();
+        form.rootTabControl().addTab("Objects", objectEditor.init(menuBar).getRootComponent());
         form.rootTabControl().addTab("Shaders", shaderEditor.init(menuBar).getRootComponent());
 
         frame = new JFrame("Editor");
@@ -143,6 +230,8 @@ public class VisualEditorRoot<T> implements Disposable {
 
     @Override
     public void dispose() {
+        Argent.onResize.remove(onResize);
+
         frame.dispose();
         frame = null;
         gameWorld.dispose();

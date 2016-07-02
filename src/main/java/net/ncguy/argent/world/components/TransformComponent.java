@@ -6,6 +6,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Pool;
 import net.ncguy.argent.editor.ConfigurableAttribute;
 import net.ncguy.argent.editor.IConfigurable;
+import net.ncguy.argent.editor.swing.config.ConfigControl;
 import net.ncguy.argent.utils.Reference;
 
 import java.util.ArrayList;
@@ -57,20 +58,20 @@ public class TransformComponent implements Component, Pool.Poolable, IConfigurab
     }
 
     @Override
-    public List<ConfigurableAttribute> getConfigurableAttributes() {
-        List<ConfigurableAttribute> attrs = new ArrayList<>();
+    public List<ConfigurableAttribute<?>> getConfigurableAttributes() {
+        List<ConfigurableAttribute<?>> attrs = new ArrayList<>();
 
-        attrs.add(attr("Translation X",   () -> transform.getValues()[Reference.Matrix4Alias.TranslationX],   (var) -> transform.getValues()[Reference.Matrix4Alias.TranslationX] = var));
-        attrs.add(attr("Translation Y",   () -> transform.getValues()[Reference.Matrix4Alias.TranslationY],   (var) -> transform.getValues()[Reference.Matrix4Alias.TranslationY] = var));
-        attrs.add(attr("Translation Z",   () -> transform.getValues()[Reference.Matrix4Alias.TranslationZ],   (var) -> transform.getValues()[Reference.Matrix4Alias.TranslationZ] = var));
+        attrs.add(attr("Translation X",   () -> transform.getValues()[Reference.Matrix4Alias.TranslationX],   (var) -> transform.getValues()[Reference.Matrix4Alias.TranslationX] = var, ConfigControl.NUMBERSELECTOR));
+        attrs.add(attr("Translation Y",   () -> transform.getValues()[Reference.Matrix4Alias.TranslationY],   (var) -> transform.getValues()[Reference.Matrix4Alias.TranslationY] = var, ConfigControl.NUMBERSELECTOR));
+        attrs.add(attr("Translation Z",   () -> transform.getValues()[Reference.Matrix4Alias.TranslationZ],   (var) -> transform.getValues()[Reference.Matrix4Alias.TranslationZ] = var, ConfigControl.NUMBERSELECTOR));
 
-        attrs.add(attr("Rotation Roll",   () -> rotRoll,                                                      (val) -> { rotRoll =val; updateTransform(); }));
-        attrs.add(attr("Rotation Pitch",  () -> rotPitch,                                                     (val) -> { rotPitch=val; updateTransform(); }));
-        attrs.add(attr("Rotation Yaw",    () -> rotYaw,                                                       (val) -> { rotYaw  =val; updateTransform(); }));
+        attrs.add(attr("Rotation Roll",   () -> rotRoll,                                                      (val) -> { rotRoll =val; updateTransform(); }, ConfigControl.NUMBERSELECTOR));
+        attrs.add(attr("Rotation Pitch",  () -> rotPitch,                                                     (val) -> { rotPitch=val; updateTransform(); }, ConfigControl.NUMBERSELECTOR));
+        attrs.add(attr("Rotation Yaw",    () -> rotYaw,                                                       (val) -> { rotYaw  =val; updateTransform(); }, ConfigControl.NUMBERSELECTOR));
 
-        attrs.add(attr("Scale X",         () -> transform.getValues()[Reference.Matrix4Alias.ScaleX],         (var) -> transform.getValues()[Reference.Matrix4Alias.ScaleX] = var));
-        attrs.add(attr("Scale Y",         () -> transform.getValues()[Reference.Matrix4Alias.ScaleY],         (var) -> transform.getValues()[Reference.Matrix4Alias.ScaleY] = var));
-        attrs.add(attr("Scale Z",         () -> transform.getValues()[Reference.Matrix4Alias.ScaleZ],         (var) -> transform.getValues()[Reference.Matrix4Alias.ScaleZ] = var));
+        attrs.add(attr("Scale X",         () -> transform.getValues()[Reference.Matrix4Alias.ScaleX],         (var) -> transform.getValues()[Reference.Matrix4Alias.ScaleX] = var, ConfigControl.NUMBERSELECTOR));
+        attrs.add(attr("Scale Y",         () -> transform.getValues()[Reference.Matrix4Alias.ScaleY],         (var) -> transform.getValues()[Reference.Matrix4Alias.ScaleY] = var, ConfigControl.NUMBERSELECTOR));
+        attrs.add(attr("Scale Z",         () -> transform.getValues()[Reference.Matrix4Alias.ScaleZ],         (var) -> transform.getValues()[Reference.Matrix4Alias.ScaleZ] = var, ConfigControl.NUMBERSELECTOR));
 
         return attrs;
     }

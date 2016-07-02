@@ -31,7 +31,7 @@ public class DynamicRenderer<T> extends BufferRenderer<T> {
         modelBatch = new ModelBatch(new DefaultShaderProvider(){
             @Override
             protected Shader createShader(Renderable renderable) {
-                return new DynamicShader(renderable, shaderProgram, info.vertex, info.fragment);
+                return new DynamicShader(renderable, shaderProgram, info.vertex, info.fragment, info);
             }
         });
         this.modelBatch = modelBatch;

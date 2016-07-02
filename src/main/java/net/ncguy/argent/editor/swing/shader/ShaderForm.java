@@ -2,6 +2,8 @@ package net.ncguy.argent.editor.swing.shader;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
+import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
+import com.badlogic.gdx.graphics.g3d.shaders.DepthShader;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.utils.StringBuilder;
 import com.intellij.uiDesigner.core.GridConstraints;
@@ -46,7 +48,7 @@ public class ShaderForm {
     private JPanel splitPanel;
     private JDraggableTree collectionTree;
     private JButton shaderCompileBtn;
-    private JButton newShaderButton;
+    private JButton newShaderBtn;
     private RSyntaxTextArea vertexShaderArea;
     private RSyntaxTextArea fragmentShaderArea;
     private JList<Object> uniformList;
@@ -55,13 +57,14 @@ public class ShaderForm {
     private JPanel vertexLabel;
     private JPanel fragmentLabel;
     private JButton applyShaderBtn;
-    private JComboBox finalRendererSelect;
     private JTextField shaderDescArea;
     private JTextField finalRendererText;
+    private JComboBox<DynamicShader.GLPrimitiveType> shaderPrimitiveSelect;
 
     private List<DynamicShader.Info> shaderInfo;
     private DynamicShader.Info selectedShaderInfo;
     private DefaultMutableTreeNode shaderNode;
+    private DefaultMutableTreeNode premadeNode;
 
     private GameWorld.Generic<?> world;
     private ShaderEditor<?> editorController;
@@ -130,7 +133,7 @@ public class ShaderForm {
 
         shaderInfo = new ArrayList();
 
-        newShaderButton.addActionListener(e -> add());
+        newShaderBtn.addActionListener(e -> add());
         shaderCompileBtn.addActionListener(e -> {
             displayDetectedUniforms();
             save();
@@ -159,11 +162,29 @@ public class ShaderForm {
 
         collectionTree.setModel(model);
 
+        premadeNode = new DefaultMutableTreeNode("Native Shaders");
+        // Uber Shader
+        DynamicShader.Info uberShaderInfo = new DynamicShader.Info(false);
+        uberShaderInfo.name = "Uber Shader";
+        uberShaderInfo.desc = "The default LibGdx shader";
+        uberShaderInfo.vertex = DefaultShader.getDefaultVertexShader();
+        uberShaderInfo.fragment = DefaultShader.getDefaultFragmentShader();
+        premadeNode.add(new DefaultMutableTreeNode(uberShaderInfo));
+        DynamicShader.Info uberDepthShaderInfo = new DynamicShader.Info(false);
+        uberDepthShaderInfo.name = "Uber Depth Shader";
+        uberDepthShaderInfo.desc = "The default LibGdx Depth Shader";
+        uberDepthShaderInfo.vertex = DepthShader.getDefaultVertexShader();
+        uberDepthShaderInfo.fragment = DepthShader.getDefaultFragmentShader();
+        premadeNode.add(new DefaultMutableTreeNode(uberDepthShaderInfo));
+
         rootNode.add(autoWireNode);
+        rootNode.add(premadeNode);
         rootNode.add(shaderNode);
 
-//            form.vertexLabel.setComponentPopupMenu(new ThemeContext(themeMap, form.vertexShaderArea));
-//            form.fragmentLabel.setComponentPopupMenu(new ThemeContext(themeMap, form.fragmentShaderArea));
+        DefaultComboBoxModel<DynamicShader.GLPrimitiveType> primitiveModel = new DefaultComboBoxModel<>();
+        for (DynamicShader.GLPrimitiveType type : DynamicShader.GLPrimitiveType.values())
+            primitiveModel.addElement(type);
+        shaderPrimitiveSelect.setModel(primitiveModel);
 
         readFromDisk();
 
@@ -238,22 +259,60 @@ public class ShaderForm {
     private void select() {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode) collectionTree.getLastSelectedPathComponent();
         if (node == null) return;
+        final TreeNode parent = node.getParent();
         Object nodeObj = node.getUserObject();
-        if (nodeObj instanceof DynamicShader.Info) {
-            DynamicShader.Info info = (DynamicShader.Info) nodeObj;
-            selectShader(info);
+        if (parent == shaderNode) {
+            if (nodeObj instanceof DynamicShader.Info) {
+                DynamicShader.Info info = (DynamicShader.Info) nodeObj;
+                selectShader(info);
+            }
+        } else if (parent == premadeNode) {
+            if (nodeObj instanceof DynamicShader.Info) {
+                DynamicShader.Info info = (DynamicShader.Info) nodeObj;
+                selectPremade(info);
+            }
         }
     }
 
+    private void selectPremade(DynamicShader.Info info) {
+        setEditable(false);
+
+        selectedShaderInfo = null;
+
+        shaderName.setText(info.name);
+        shaderDescArea.setText(info.desc);
+        vertexShaderArea.setText(info.vertex);
+        fragmentShaderArea.setText(info.fragment);
+        shaderPrimitiveSelect.setSelectedItem(info.primitive);
+        if (info.uniforms == null)
+            info.uniforms = getDetectedUniformNames();
+        displayItems(info.uniforms);
+    }
+
     private void selectShader(DynamicShader.Info info) {
+        setEditable(true);
+
         selectedShaderInfo = info;
         shaderName.setText(info.name);
         shaderDescArea.setText(info.desc);
         vertexShaderArea.setText(info.vertex);
         fragmentShaderArea.setText(info.fragment);
+        shaderPrimitiveSelect.setSelectedItem(info.primitive);
         if (info.uniforms == null)
             info.uniforms = getDetectedUniformNames();
         displayItems(info.uniforms);
+    }
+
+    private void setEditable(boolean editable) {
+        vertexShaderArea.setEditable(editable);
+        fragmentShaderArea.setEditable(editable);
+        shaderName.setEditable(editable);
+        shaderDescArea.setEditable(editable);
+        shaderPrimitiveSelect.setEditable(editable);
+
+        applyShaderBtn.setEnabled(editable);
+        deleteShaderBtn.setEnabled(editable);
+        shaderCompileBtn.setEnabled(editable);
     }
 
     private void updateSelectionElement() {
@@ -278,6 +337,7 @@ public class ShaderForm {
         selectedShaderInfo.vertex = vertexShaderArea.getText();
         selectedShaderInfo.fragment = fragmentShaderArea.getText();
         selectedShaderInfo.uniforms = getDetectedUniformNames();
+        selectedShaderInfo.primitive = (DynamicShader.GLPrimitiveType) shaderPrimitiveSelect.getSelectedItem();
 
         updateSelectionElement();
         collectionTree.updateUI();
@@ -354,12 +414,16 @@ public class ShaderForm {
 
     public DynamicShader.Info getFinalShader() {
         DynamicShader.Info info = null;
-        TreeNode treeNode = shaderNode.getLastChild();
-        if (treeNode instanceof DefaultMutableTreeNode) {
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode) treeNode;
-            info = getInfoFromNode(node);
+        try {
+            TreeNode treeNode = shaderNode.getLastChild();
+            if (treeNode instanceof DefaultMutableTreeNode) {
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) treeNode;
+                info = getInfoFromNode(node);
+            }
+            return info;
+        } catch (Exception e) {
+            return null;
         }
-        return info;
     }
 
     private DynamicShader.Info getInfoFromNode(DefaultMutableTreeNode node) {
@@ -446,20 +510,28 @@ public class ShaderForm {
         collectionTree = new JDraggableTree();
         scrollPane1.setViewportView(collectionTree);
         final JPanel panel2 = new JPanel();
-        panel2.setLayout(new GridLayoutManager(4, 2, new Insets(0, 0, 0, 0), -1, -1));
+        panel2.setLayout(new GridLayoutManager(4, 1, new Insets(0, 0, 0, 0), -1, -1));
         panel1.add(panel2, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        newShaderButton = new JButton();
-        newShaderButton.setText("New Shader");
-        panel2.add(newShaderButton, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         shaderCompileBtn = new JButton();
         shaderCompileBtn.setText("Compile Shader");
-        panel2.add(shaderCompileBtn, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panel2.add(shaderCompileBtn, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         deleteShaderBtn = new JButton();
         deleteShaderBtn.setText("Delete Shader");
-        panel2.add(deleteShaderBtn, new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panel2.add(deleteShaderBtn, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        newShaderBtn = new JButton();
+        newShaderBtn.setAlignmentX(0.5f);
+        newShaderBtn.setAlignmentY(0.5f);
+        newShaderBtn.setBorderPainted(false);
+        newShaderBtn.setHideActionText(false);
+        newShaderBtn.setRolloverEnabled(true);
+        newShaderBtn.setText("New Shader");
+        newShaderBtn.setToolTipText("test ");
+        newShaderBtn.setVerticalAlignment(0);
+        newShaderBtn.setVerticalTextPosition(0);
+        panel2.add(newShaderBtn, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         applyShaderBtn = new JButton();
         applyShaderBtn.setText("Apply Shader");
-        panel2.add(applyShaderBtn, new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panel2.add(applyShaderBtn, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         splitPanel = new JPanel();
         splitPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
         splitPane1.setRightComponent(splitPanel);
@@ -523,30 +595,43 @@ public class ShaderForm {
         panel7.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
         splitPane4.setLeftComponent(panel7);
         final JPanel panel8 = new JPanel();
-        panel8.setLayout(new GridLayoutManager(5, 2, new Insets(0, 0, 0, 0), -1, -1));
+        panel8.setLayout(new GridLayoutManager(6, 2, new Insets(0, 0, 0, 0), -1, -1));
+        panel8.setAlignmentX(0.5f);
+        panel8.setAlignmentY(0.5f);
+        panel8.setAutoscrolls(false);
         panel7.add(panel8, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         final JLabel label4 = new JLabel();
         label4.setText("Shader Name");
         panel8.add(label4, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         shaderName = new JTextField();
-        panel8.add(shaderName, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        shaderName.setAlignmentY(0.0f);
+        panel8.add(shaderName, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         final JLabel label5 = new JLabel();
         label5.setText("Shader Description");
         panel8.add(label5, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         shaderDescArea = new JTextField();
-        panel8.add(shaderDescArea, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+        shaderDescArea.setAlignmentY(1.0f);
+        shaderDescArea.setEditable(true);
+        shaderDescArea.setEnabled(true);
+        shaderDescArea.setHorizontalAlignment(10);
+        panel8.add(shaderDescArea, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         final JLabel label6 = new JLabel();
         label6.setText("Final Renderer");
-        panel8.add(label6, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panel8.add(label6, new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         finalRendererText = new JTextField();
         finalRendererText.setEditable(false);
         finalRendererText.setEnabled(true);
         finalRendererText.setText("Shader");
-        panel8.add(finalRendererText, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+        panel8.add(finalRendererText, new GridConstraints(4, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         final Spacer spacer1 = new Spacer();
-        panel8.add(spacer1, new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        panel8.add(spacer1, new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         final Spacer spacer2 = new Spacer();
-        panel8.add(spacer2, new GridConstraints(4, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        panel8.add(spacer2, new GridConstraints(5, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        final JLabel label7 = new JLabel();
+        label7.setText("Shader Primitive");
+        panel8.add(label7, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        shaderPrimitiveSelect = new JComboBox();
+        panel8.add(shaderPrimitiveSelect, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
 
     /**

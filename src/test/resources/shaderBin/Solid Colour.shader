@@ -1,0 +1,1 @@
+{"name":"Solid Colour","desc":"","vertex":"#version 120\n\nattribute vec4 a_position;\n\nuniform mat4 u_projViewTrans;\nuniform mat4 u_worldTrans;\n\nvoid main() {\n\tgl_Position \u003d u_projViewTrans * (u_worldTrans * a_position);\n}\n\n5e46e57\neuyart\n\n\n","fragment":"#version 120\n\nvoid main() {\n\tgl_FragColor \u003d vec4(1.0, 0.0, 0.33, 1.0);\n}\n"}
