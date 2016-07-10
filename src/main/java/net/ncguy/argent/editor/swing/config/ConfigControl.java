@@ -10,6 +10,7 @@ public enum ConfigControl {
     CHECKBOX(new CheckBoxDescriptor()),
     COMBOBOX(new ComboBoxDescriptor()),
     NUMBERSELECTOR(new NumberSelectorDescriptor()),
+    SELECTIONLIST(new SelectionListDescriptor())
     ;
 
     ConfigControl(ControlConfigDescriptor descriptor) {

@@ -11,7 +11,6 @@ import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader.Inputs;
 import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
-import net.ncguy.argent.Argent;
 
 import static com.badlogic.gdx.graphics.g3d.shaders.DefaultShader.Setters;
 
@@ -36,13 +35,6 @@ public class SimpleTextureShader extends BaseShader {
         register(Inputs.normalMatrix, Setters.normalMatrix);
         register(Inputs.diffuseTexture, Setters.diffuseTexture);
         register(Inputs.diffuseColor, Setters.diffuseColor);
-
-        register(new Uniform("u_exposure"), new LocalSetter() {
-            @Override
-            public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-                shader.set(inputID, Argent.GlobalConfig.exposure);
-            }
-        });
     }
 
     @Override
@@ -91,7 +83,11 @@ public class SimpleTextureShader extends BaseShader {
 
     @Override
     public void render(final Renderable renderable, final Attributes combinedAttributes)  {
-        super.render(renderable, combinedAttributes);
+        try{
+            super.render(renderable, combinedAttributes);
+        }catch (NullPointerException npe) {
+
+        }
     }
 
 }

@@ -40,7 +40,7 @@ public class UberRenderer<T> extends BufferRenderer<T> {
 
     @Override
     public void setSceneUniforms(ShaderProgram program, int[] mutableId) {
-
+        super.setSceneUniforms(program, mutableId);
     }
 
     @Override

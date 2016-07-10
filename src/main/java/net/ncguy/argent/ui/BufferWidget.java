@@ -31,6 +31,7 @@ public class BufferWidget extends Group {
     public BufferWidget(String buffer, Skin skin) {
         this.label = new Label(buffer, skin);
         this.image = new Image();
+        this.addActor(this.label);
         this.addActor(this.image);
         this.globalBounds = new Rectangle();
         this.active = true;
@@ -73,9 +74,17 @@ public class BufferWidget extends Group {
 //            this.image.setDrawable(sprite.getTexture());
 //            this.image.setBounds(getX(), getY(), getWidth(), getHeight());
         }
-//        super.draw(batch, parentAlpha);
+        super.draw(batch, parentAlpha);
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if(!(obj instanceof BufferWidget)) return false;
+        if(this == obj) return true;
+        if(this.getName().equalsIgnoreCase(((BufferWidget)obj).getName()))
+            return true;
+        return super.equals(obj);
+    }
 
     public void setActive(boolean active) {
         this.active = active;

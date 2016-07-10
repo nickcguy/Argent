@@ -8,6 +8,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by Guy on 08/06/2016.
@@ -65,6 +66,7 @@ public class ContentManager {
                 files.forEach(f -> {
                     if(root.isExtensionValid(f)) {
                         String key = root.assetType.getSimpleName()+"_"+FileUtils.getFileName(f);
+                        key = key.toLowerCase();
                         assetMap.put(key, FileUtils.formatFilePath(f.getPath()));
                         assetTypes.put(key, root.assetType);
                         manager.load(f.getPath(), root.assetType);
@@ -80,10 +82,18 @@ public class ContentManager {
     }
 
     public <T> T get(String ref) {
+        ref = ref.toLowerCase();
         if(!assetMap.containsKey(ref))
             return null;
         String val = assetMap.get(ref);
         return manager.get(val);
+    }
+
+    public String[] getAllRefs(Class<?> cls) {
+        List<String> keys = assetMap.keySet().stream().filter(s -> s.startsWith(cls.getSimpleName().toLowerCase())).collect(Collectors.toList());
+        String[] arr = new String[keys.size()];
+        keys.toArray(arr);
+        return arr;
     }
 
     public float progress() {

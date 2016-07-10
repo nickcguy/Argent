@@ -81,7 +81,12 @@ public class DynamicShader extends BaseShader {
     @Override public boolean canRender(final Renderable instance) { return true; }
     @Override public void render(final Renderable renderable, final Attributes combinedAttributes) {
         renderable.meshPart.primitiveType = info.primitive.id;
-        super.render(renderable, combinedAttributes);
+        try {
+
+            super.render(renderable, combinedAttributes);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static class Info {
@@ -93,10 +98,9 @@ public class DynamicShader extends BaseShader {
 
         public transient List<String> uniforms;
         public transient DefaultMutableTreeNode treeNode;
+        private transient final boolean canCompile;
 
         public final boolean canCompile() { return canCompile; }
-
-        private final boolean canCompile;
 
         public Info() {
             this(true);

@@ -14,7 +14,6 @@ public class CheckBoxDescriptor extends ControlConfigDescriptor {
     @Override
     public Map<String, BasicEntry<Class<?>, Object>> attributes() {
         Map<String, BasicEntry<Class<?>, Object>> map = new HashMap<>();
-        add(map, "selected", Boolean.class, false);
         add(map, "name",     String.class,  "");
         return map;
     }

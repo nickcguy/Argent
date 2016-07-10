@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector2;
+import net.ncguy.argent.Argent;
 import net.ncguy.argent.utils.TextUtils;
 
 /**
@@ -30,8 +31,14 @@ public abstract class BufferRenderer<T> {
         this.renderer = renderer;
         this.screenClearColour = new Color(.3f, .3f, .3f, 1);
         this.fboClearColour = new Color(0, 0, 0, 1);
+        Argent.onResize.add(this::resize);
         if(doInit)
             init();
+    }
+
+    private void resize(int w, int h) {
+        if(this.fbo != null) this.fbo.dispose();
+        this.fbo = new FrameBuffer(Pixmap.Format.RGBA8888, w, h, true);
     }
 
     protected FrameBuffer fbo() {
@@ -41,7 +48,8 @@ public abstract class BufferRenderer<T> {
 
     protected void initFrameBuffer() {
         Vector2 s = size();
-        this.fbo = new FrameBuffer(Pixmap.Format.RGBA8888, (int)s.x, (int)s.y, true);
+        resize((int)s.x, (int)s.y);
+//        this.fbo = new FrameBuffer(Pixmap.Format.RGBA8888, (int)s.x, (int)s.y, true);
     }
 
 
@@ -50,7 +58,12 @@ public abstract class BufferRenderer<T> {
      * If {link@canBeReloaded} is true, insure that the shader binding has guards to prevent invalid compilation
      */
     public abstract void init();
-    public abstract void setSceneUniforms(ShaderProgram program, int[] mutableId);
+    public void setSceneUniforms(ShaderProgram program, int[] mutableId) {
+        final int texNum = mutableId[0]++;
+        getBufferContents().bind(texNum);
+        String uniformName = uniformName();
+        program.setUniformi(uniformName, texNum);
+    }
 
     public void render(float delta) {
         render(delta, renderer.finalBuffer == this);

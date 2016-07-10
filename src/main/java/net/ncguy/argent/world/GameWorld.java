@@ -1,8 +1,6 @@
 package net.ncguy.argent.world;
 
-import com.badlogic.ashley.core.PooledEngine;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionDispatcher;
@@ -17,13 +15,14 @@ import com.strongjoshua.console.Console;
 import com.strongjoshua.console.GUIConsole;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.command.CommandProcessor;
+import net.ncguy.argent.core.VarRunnables;
 import net.ncguy.argent.physics.debug.DebugRenderer;
 import net.ncguy.argent.render.WorldRenderer;
 import net.ncguy.argent.ui.BufferWidget;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Stack;
 
 /**
  * Created by Guy on 13/06/2016.
@@ -31,24 +30,35 @@ import java.util.Stack;
 public class GameWorld {
     public static class Generic<T> implements Disposable {
 
-        protected WorldRenderer<T> renderer;
+        protected transient WorldRenderer<T> renderer;
         protected List<T> instances;
-        protected PooledEngine engine;
-        protected Console console;
-        protected T selected;
+        protected transient Console console;
+        protected transient T selected;
 
-        public Skin consoleSkin;
-        public boolean consoleEnabled = false;
-        public boolean showBuffers = false;
+        public transient Skin consoleSkin;
+        public transient boolean consoleEnabled = false;
+        public transient boolean showBuffers = false;
+
+        protected transient List<VarRunnables.VarRunnable<T>> onSelect = new ArrayList<>();
 
         public Generic(WorldRenderer<T> renderer, List<T> instances) {
             this.instances = instances;
             this.renderer = renderer;
-            this.engine = new PooledEngine(10, 512, 10, 512);
         }
 
-        public T selected() { return selected; }
-        public Generic selected(T selected) { this.selected = selected; return this; }
+        public T selected() {
+            if(selected == null)
+                select(instances.get(0));
+            return selected;
+        }
+        public Generic select(T selected) {
+            this.selected = selected;
+            this.onSelect.forEach(s -> s.run(selected));
+            return this;
+        }
+
+        public void addOnSelect(VarRunnables.VarRunnable<T> onSelect) { this.onSelect.add(onSelect); }
+        public void removeOnSelect(VarRunnables.VarRunnable<T> onSelect) { this.onSelect.remove(onSelect); }
 
         public void addInstance(T instance) {
             this.instances.add(instance);
@@ -98,30 +108,12 @@ public class GameWorld {
         }
 
         public void render(float delta) {
-            engine.update(delta);
             renderer.render(delta);
             renderConsole();
         }
 
         public void updateBuffers(Stage stage, Table container, List<BufferWidget> widgets, Skin skin) {
-            if (showBuffers) {
-                Stack<Sprite> views = this.renderer.bufferViews();
-                int index = 0;
-                while (!views.isEmpty()) {
-                    BufferWidget widget;
-                    if (widgets.size() <= index) {
-                        widgets.add(widget = new BufferWidget("", skin));
-                        container.add(widget).row();
-                    } else {
-                        widget = widgets.get(index);
-                    }
-                    widget.setSprite(views.pop());
-                    widget.setVisible(true);
-                    index++;
-                }
-            } else {
-                widgets.forEach(w -> w.setVisible(false));
-            }
+
         }
 
         public Console console() {
@@ -132,11 +124,7 @@ public class GameWorld {
             return renderer;
         }
 
-        @Override
-        public void dispose() {
-            engine.removeAllEntities();
-            engine.clearPools();
-        }
+        @Override public void dispose() {}
     }
 
     public static class Physics<T> extends Generic<T> {
@@ -182,13 +170,13 @@ public class GameWorld {
             public int flag;
         }
 
-        public btCollisionConfiguration configuration;
-        public btCollisionDispatcher dispatcher;
-        public btDbvtBroadphase broadphase;
-        public btConstraintSolver constraintSolver;
-        public btDynamicsWorld dynamicsWorld;
+        public transient btCollisionConfiguration configuration;
+        public transient btCollisionDispatcher dispatcher;
+        public transient btDbvtBroadphase broadphase;
+        public transient btConstraintSolver constraintSolver;
+        public transient btDynamicsWorld dynamicsWorld;
 
-        private DebugRenderer debugRenderer;
+        private transient DebugRenderer debugRenderer;
 
         public Physics(WorldRenderer<T> renderer, List<T> instances) {
             super(renderer, instances);

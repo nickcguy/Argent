@@ -82,7 +82,6 @@ public class NormalTextureShader extends BaseShader {
 
     @Override
     public void render(final Renderable renderable, final Attributes combinedAttributes)  {
-
         super.render(renderable, combinedAttributes);
     }
 

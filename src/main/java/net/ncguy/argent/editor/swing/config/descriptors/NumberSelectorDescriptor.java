@@ -17,7 +17,6 @@ public class NumberSelectorDescriptor extends ControlConfigDescriptor {
         add(map, "min", Integer.class, Integer.MIN_VALUE);
         add(map, "max", Integer.class, Integer.MAX_VALUE);
         add(map, "precision", Integer.class, 0);
-        add(map, "value", Integer.class, 0);
         return map;
     }
 }

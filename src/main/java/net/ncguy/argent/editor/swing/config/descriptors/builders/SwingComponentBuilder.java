@@ -1,11 +1,11 @@
 package net.ncguy.argent.editor.swing.config.descriptors.builders;
 
-import com.badlogic.gdx.math.MathUtils;
-import net.ncguy.argent.core.BasicEntry;
+import net.ncguy.argent.editor.ConfigurableAttribute;
+import net.ncguy.argent.utils.SwingUtils;
 
 import javax.swing.*;
-import java.util.List;
-import java.util.Map;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
 /**
  * Created by Guy on 01/07/2016.
@@ -23,62 +23,89 @@ public class SwingComponentBuilder extends AbstractComponentBuilder {
 
 
     @Override
-    public JCheckBox buildCheckBox(Map<String, BasicEntry<Class<?>, Object>> params) {
+    public <T> JCheckBox buildCheckBox(ConfigurableAttribute<T> attr) {
         JCheckBox checkBox = new JCheckBox();
 
-        Boolean selected = getValue(Boolean.class, params.get("selected"));
-        String name = getValue(String.class, params.get("name"));
+        String name = getValue(String.class, attr.params().get("name"));
 
         checkBox.setText(name);
-        checkBox.setSelected(selected);
+        checkBox.setSelected((Boolean) attr.get());
+        checkBox.addActionListener(e -> attr.set((T) (checkBox.isSelected()+"")));
 
         return checkBox;
     }
 
     @Override
-    public JTextField buildTextField(Map<String, BasicEntry<Class<?>, Object>> params) {
+    public <T> JTextField buildTextField(ConfigurableAttribute<T> attr) {
         JTextField field = new JTextField();
 
-        String text = getValue(String.class, params.get("text"));
+        String text = attr.get().toString();
+        System.out.println("Attr: "+text);
         field.setText(text);
+        field.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                attr.set((T)field.getText());
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                attr.set((T)field.getText());
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                attr.set((T)field.getText());
+            }
+        });
 
         return field;
     }
 
     @Override
-    public JComboBox buildComboBox(Map<String, BasicEntry<Class<?>, Object>> params) {
+    public <T> JComboBox buildComboBox(ConfigurableAttribute<T> attr) {
         JComboBox box = new JComboBox();
         DefaultComboBoxModel model = (DefaultComboBoxModel) box.getModel();
 
-        List items = getValue(List.class, params.get("items"));
-        Integer index = getValue(Integer.class, params.get("selectedindex"));
+        Object[] items = getValue(Object[].class, attr.params().get("items"));
 
         model.removeAllElements();
-        items.forEach(model::addElement);
-        index = MathUtils.clamp(index, 0, items.size()-1);
-        model.setSelectedItem(items.get(index));
+        for (Object item : items)
+            model.addElement(item);
+
+        model.setSelectedItem(attr.get());
+        box.addActionListener(e -> attr.set((T)box.getSelectedItem()));
 
         return box;
     }
 
     @Override
-    public JSpinner buildNumberSelector(Map<String, BasicEntry<Class<?>, Object>> params) {
+    public <T> JSpinner buildNumberSelector(ConfigurableAttribute<T> attr) {
 
-        Integer min = getValue(Integer.class, params.get("min"));
-        Integer max = getValue(Integer.class, params.get("max"));
-        Integer precision = getValue(Integer.class, params.get("precision"));
-        Integer value = getValue(Integer.class, params.get("value"));
+        Integer min = getValue(Integer.class, attr.params().get("min"));
+        Integer max = getValue(Integer.class, attr.params().get("max"));
+        Integer precision = getValue(Integer.class, attr.params().get("precision"));
 
         SpinnerNumberModel model = new SpinnerNumberModel();
         model.setMinimum(min);
         model.setMaximum(max);
-        model.setValue(value);
 
         System.out.printf("min: %s, max: %s\n", min, max);
 
         JSpinner spinner = new JSpinner(model);
-//        JSpinner.NumberEditor editor = (JSpinner.NumberEditor) spinner.getEditor();
-//        editor.getFormat().setMinimumFractionDigits(precision);
+        JSpinner.NumberEditor editor = (JSpinner.NumberEditor) spinner.getEditor();
+        editor.getFormat().setMinimumFractionDigits(precision);
+        SwingUtils.getSpinnerFormatter(spinner).setCommitsOnValidEdit(true);
+
+
+        spinner.setValue(attr.get());
+        spinner.addChangeListener(e -> attr.set((T)spinner.getValue()));
+
         return spinner;
+    }
+
+    @Override
+    public <T> Object buildSelectionList(ConfigurableAttribute<T> attr) {
+        return new JLabel("Unsupported component");
     }
 }

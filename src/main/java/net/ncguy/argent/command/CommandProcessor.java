@@ -1,6 +1,6 @@
 package net.ncguy.argent.command;
 
-import com.badlogic.gdx.math.MathUtils;
+import aurelienribon.tweenengine.Tween;
 import com.strongjoshua.console.CommandExecutor;
 import com.strongjoshua.console.Console;
 import net.ncguy.argent.Argent;
@@ -27,18 +27,30 @@ public class CommandProcessor extends CommandExecutor {
         else console.log("Hiding buffers");
     }
 
+    public void exposure() {
+        console.log(String.valueOf(Argent.GlobalConfig.exposure));
+    }
+
     public void exposure(float exposure) {
-        exposure = (float) MathUtils.clamp(exposure, 0.1, 10);
-        Argent.GlobalConfig.exposure = exposure;
+        Tween.to(Argent.GlobalConfig.exposure, 0, .3f).target(exposure).start(Argent.tweenManager);
+    }
+
+    public void brightness() {
+        console.log(String.valueOf(Argent.GlobalConfig.brightness));
+    }
+
+    public void brightness(float brightness) {
+        Tween.to(Argent.GlobalConfig.brightness, 0, .3f).target(brightness).start(Argent.tweenManager);
     }
 
     public void attr(String key) {
         Object obj = gameWorld.selected();
         if(obj instanceof IConfigurable) {
             IConfigurable cfg = (IConfigurable)obj;
-            for (ConfigurableAttribute attr : cfg.getConfigurableAttributes()) {
-                if(attr.displayName().equalsIgnoreCase(key)) {
-                    console.log(attr.getter().run().toString());
+            System.out.println(key);
+            for (ConfigurableAttribute attr : cfg.getConfigAttrs()) {
+                if(attr.displayName().replace(" ", "_").equalsIgnoreCase(key)) {
+                    console.log(attr.get().toString());
                     return;
                 }
             }
@@ -49,9 +61,9 @@ public class CommandProcessor extends CommandExecutor {
         Object obj = gameWorld.selected();
         if(obj instanceof IConfigurable) {
             IConfigurable cfg = (IConfigurable)obj;
-            for (ConfigurableAttribute attr : cfg.getConfigurableAttributes()) {
-                if(attr.displayName().equalsIgnoreCase(key)) {
-                    attr.setter().run(val);
+            for (ConfigurableAttribute attr : cfg.getConfigAttrs()) {
+                if(attr.displayName().replace(" ", "_").equalsIgnoreCase(key)) {
+                    attr.set(val);
                     console.log(attr.getter().run().toString());
                     return;
                 }

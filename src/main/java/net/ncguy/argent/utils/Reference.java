@@ -3,6 +3,7 @@ package net.ncguy.argent.utils;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Renderable;
@@ -12,6 +13,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.math.Matrix4;
+import net.ncguy.argent.Argent;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -36,6 +38,7 @@ public class Reference {
 
     public static class Defaults {
         public static class Models {
+            public static final int defaultAttributes = VertexAttributes.Usage.TextureCoordinates | VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal;
             private static Material defaultMaterial;
 
             public static final Material material() {
@@ -93,6 +96,20 @@ public class Reference {
                             // No idea why this is required, the correct method doesn't work
                             shader.program.setUniformf("u_bufferSize", Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight());
 //                            shader.set(inputID, Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight());
+                        }
+                    });
+
+                    m.put(new BaseShader.Uniform("u_globalExposure"), new BaseShader.LocalSetter(){
+                        @Override
+                        public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
+                            shader.program.setUniformf("u_globalExposure", Argent.GlobalConfig.exposure.floatValue());
+                        }
+                    });
+
+                    m.put(new BaseShader.Uniform("u_globalBrightness"), new BaseShader.LocalSetter(){
+                        @Override
+                        public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
+                            shader.program.setUniformf("u_globalBrightness", Argent.GlobalConfig.brightness.floatValue());
                         }
                     });
 

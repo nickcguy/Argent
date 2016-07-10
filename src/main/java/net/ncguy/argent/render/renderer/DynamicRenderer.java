@@ -22,6 +22,8 @@ public class DynamicRenderer<T> extends BufferRenderer<T> {
         init();
     }
 
+    public DynamicShader.Info info() { return info; }
+
     @Override
     public void init() {
         ShaderProgram shaderProgram;

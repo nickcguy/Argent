@@ -30,10 +30,10 @@ import java.util.Stack;
  */
 public class VisualEditorRoot<T> implements Disposable {
 
-    private VisualEditorRootConfig<T> config;
+    private EditorRootConfig<T> config;
 
     private GameWorld.Generic<T> gameWorld;
-    private ShaderEditor<T> shaderEditor;
+    public ShaderEditor<T> shaderEditor;
     private ObjectEditor<T> objectEditor;
 
     protected int keyCode = Input.Keys.P;
@@ -46,7 +46,9 @@ public class VisualEditorRoot<T> implements Disposable {
     // TODO replace with own skinnable menubar
     MenuBar menuBar;
 
-    public VisualEditorRoot(VisualEditorRootConfig<T> config) {
+    public static VisualEditorRoot recentEditor;
+
+    public VisualEditorRoot(EditorRootConfig<T> config) {
         this.config = config;
         this.gameWorld = config.gameWorld;
         this.shaderEditor = new ShaderEditor<>(config.gameWorld);
@@ -64,6 +66,7 @@ public class VisualEditorRoot<T> implements Disposable {
             }
         };
         installLookAndFeel("Darcula", DarculaLaf.class);
+        recentEditor = this;
     }
 
     public Group uiGroup() {

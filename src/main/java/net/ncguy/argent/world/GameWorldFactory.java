@@ -14,9 +14,6 @@ import net.ncguy.argent.world.components.TransformComponent;
 import java.util.List;
 import java.util.Optional;
 
-import static net.ncguy.argent.world.GameWorldFactory.ComponentMappers.renderingComponent;
-import static net.ncguy.argent.world.GameWorldFactory.ComponentMappers.transformComponent;
-
 /**
  * Created by Guy on 21/06/2016.
  */
@@ -26,10 +23,7 @@ public class GameWorldFactory {
         WorldRenderer<WorldObject> renderer = new WorldRenderer<WorldObject>(instances) {
             @Override
             public ModelInstance getRenderable(WorldObject obj) {
-                RenderingComponent ren = renderingComponent.get(obj);
-                if (ren != null)
-                    return ren.instance();
-                return null;
+                return obj.instance;
             }
 
             @Override
@@ -43,18 +37,13 @@ public class GameWorldFactory {
         WorldRenderer<WorldObject> renderer = new WorldRenderer<WorldObject>(instances) {
             @Override
             public ModelInstance getRenderable(WorldObject obj) {
-                RenderingComponent ren = renderingComponent.get(obj);
-                if (ren != null)
-                    return ren.instance();
-                return null;
+                return obj.instance;
             }
 
             @Override
             public void buildBulletCollision(WorldObject obj, btCollisionShape shape) {
-                TransformComponent trans = transformComponent.get(obj);
-                if (trans == null) return;
                 DefaultMotionState motionState = new DefaultMotionState();
-                motionState.transform = trans.transform;
+                motionState.transform = obj.transform;
                 Vector3 inertia = new Vector3();
                 if (obj.mass > 0)
                     shape.calculateLocalInertia(obj.mass, inertia);
@@ -63,6 +52,12 @@ public class GameWorldFactory {
                 obj.body.userData = obj;
                 obj.shape = shape;
                 info.dispose();
+
+                switch(obj.physicsState()) {
+                    case STATIC:    obj.setStatic();    break;
+                    case KINEMATIC: obj.setKinematic(); break;
+                    case DYNAMIC:   obj.setDynamic();   break;
+                }
             }
 
             @Override

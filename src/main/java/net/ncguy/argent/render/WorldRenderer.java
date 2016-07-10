@@ -12,6 +12,11 @@ import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Disposable;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.core.VarRunnables;
+import net.ncguy.argent.render.renderer.DynamicRenderer;
+import net.ncguy.argent.render.sample.UberRenderer;
+import net.ncguy.argent.render.sample.light.LightRenderer;
+import net.ncguy.argent.render.shader.DynamicShader;
+import net.ncguy.argent.utils.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,7 +106,6 @@ public abstract class WorldRenderer<T> implements Disposable {
                         System.out.printf("\t%s: %s\n", s, finalBuffer.shaderProgram.getUniformLocation(s));
                     }
                 }
-
             }
 
             currentRenderer = finalBuffer;
@@ -129,16 +133,16 @@ public abstract class WorldRenderer<T> implements Disposable {
         return instances;
     }
 
-    public Stack<Sprite> bufferViews() {
+    public Stack<BufferViewPack> bufferViews() {
         return bufferViews(false);
     }
 
-    public Stack<Sprite> bufferViews(boolean includeFinal) {
-        final Stack<Sprite> stack = new Stack<>();
+    public Stack<BufferViewPack> bufferViews(boolean includeFinal) {
+        final Stack<BufferViewPack> stack = new Stack<>();
         renderPipe.stream().filter(b -> b != finalBuffer).forEach(b -> {
             Sprite s = new Sprite(b.getBufferContents());
             s.setFlip(false, true);
-            stack.push(s);
+            stack.push(new BufferViewPack(b.name(), s));
         });
         return stack;
     }
@@ -181,4 +185,47 @@ public abstract class WorldRenderer<T> implements Disposable {
         Argent.onResize.remove(resizeRunnable);
         resizeRunnable = null;
     }
+
+    public List<BufferRenderer<T>> pipe() {
+        return renderPipe;
+    }
+
+    public List<DynamicRenderer<T>> dynamicPipe() {
+        List<DynamicRenderer<T>> tmp = new ArrayList<>();
+        pipe().stream().filter(b -> b instanceof DynamicRenderer).forEach(b -> tmp.add((DynamicRenderer<T>)b));
+        return tmp;
+    }
+
+    public void compileDynamicRenderPipe(List<DynamicShader.Info> renderInfo) {
+        compileDynamicRenderPipe(renderInfo, true);
+    }
+
+    public void compileDynamicRenderPipe(List<DynamicShader.Info> renderInfo, boolean includeDefaults) {
+        Stack<DynamicShader.Info> infoStack = CollectionUtils.listToStack(renderInfo);
+        compileDynamicRenderPipe(infoStack, includeDefaults);
+    }
+
+    public void compileDynamicRenderPipe(Stack<DynamicShader.Info> infoStack, boolean includeDefaults) {
+        clearRenderPipe();
+
+        while(infoStack.size() > 1)
+            this.addBufferRenderers(new DynamicRenderer<>(this, infoStack.pop()));
+        if(includeDefaults) {
+            this.addBufferRenderers(new UberRenderer<>(this));
+//            new LightRenderer<>(this);
+            this.addBufferRenderers(new LightRenderer<>(this));
+        }
+        this.setFinalBuffer(new DynamicRenderer<>(this, infoStack.pop()));
+    }
+
+    public static class BufferViewPack {
+        public Sprite sprite;
+        public String name;
+
+        public BufferViewPack(String name, Sprite sprite) {
+            this.name = name;
+            this.sprite = sprite;
+        }
+    }
+
 }

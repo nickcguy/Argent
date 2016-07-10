@@ -19,7 +19,8 @@ public class PhysicsCore {
         if(inst == null) return;
 
         btCollisionShape shape = Bullet.obtainStaticNodeShape(inst.model.nodes);
-        renderer.buildBulletCollision(obj, shape);
+        if(shape != null)
+            renderer.buildBulletCollision(obj, shape);
     }
 
     public <T> void buildComplexCollisionMeshes(WorldRenderer<T> renderer) {

@@ -1,5 +1,8 @@
 package net.ncguy.argent.utils;
 
+
+import javax.swing.*;
+import javax.swing.text.DefaultFormatter;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +32,12 @@ public class SwingUtils {
                 list.addAll(getAllComponentsOfClass((Container) comp, cls));
         }
         return list;
+    }
+
+    public static DefaultFormatter getSpinnerFormatter(JSpinner spinner) {
+        JComponent comp = spinner.getEditor();
+        JFormattedTextField field = (JFormattedTextField)comp.getComponent(0);
+        return (DefaultFormatter)field.getFormatter();
     }
 
 }

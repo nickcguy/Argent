@@ -31,6 +31,19 @@ public class TextUtils {
         return sb.toString();
     }
 
+    public static String replaceLine(String needle, String replace, String target) {
+        String[] lines = target.split("\n");
+        for (int i = 0; i < lines.length; i++) {
+            String l = lines[i];
+            if(l.contains(needle))
+                lines[i] = replace;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (String line : lines)
+            sb.append(line).append("\n");
+        return sb.toString();
+    }
+
 //    static String getPaddedBinary(int num, int len) { return String.format("%"+len+"s", Integer.toBinaryString(num)).replace(' ', '0'); }
 
 }

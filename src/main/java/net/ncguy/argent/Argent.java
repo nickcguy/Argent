@@ -1,5 +1,7 @@
 package net.ncguy.argent;
 
+import aurelienribon.tweenengine.TweenManager;
+import aurelienribon.tweenengine.primitives.MutableFloat;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -30,6 +32,8 @@ import java.util.Set;
  * Created by Guy on 08/06/2016.
  */
 public class Argent {
+
+    public static TweenManager tweenManager = new TweenManager();
 
     public static ContentManager content;
     public static ISerializer serial;
@@ -146,6 +150,7 @@ public class Argent {
     public static void render(float delta) {
         stage().act(delta);
         stage().draw();
+        tweenManager.update(delta);
     }
 
     public static Lwjgl3ApplicationConfiguration defaultConfig() {
@@ -158,7 +163,8 @@ public class Argent {
 
     public static class GlobalConfig {
 
-        public static float exposure = 1.0f;
+        public static MutableFloat exposure = new MutableFloat(1.0f);
+        public static MutableFloat brightness = new MutableFloat(1.0f);
 
     }
 

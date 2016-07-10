@@ -1,42 +1,46 @@
 package net.ncguy.argent.editor.swing.config.descriptors.builders;
 
 import net.ncguy.argent.core.BasicEntry;
-import net.ncguy.argent.editor.swing.config.ConfigControl;
+import net.ncguy.argent.editor.ConfigurableAttribute;
 import net.ncguy.argent.editor.swing.config.descriptors.ControlConfigDescriptor;
-
-import java.util.Map;
 
 /**
  * Created by Guy on 01/07/2016.
  */
 public abstract class AbstractComponentBuilder {
 
-    public Object buildComponent(ConfigControl control, Map<String, BasicEntry<Class<?>, Object>> params) {
-        ControlConfigDescriptor descriptor = control.descriptor;
+    public <T> Object buildComponent(ConfigurableAttribute<T> attr) {
+        ControlConfigDescriptor descriptor = attr.control().descriptor;
         descriptor.attributes().forEach((k, v) -> {
-            if(!params.containsKey(k))
-                params.put(k, v);
+            if(!attr.params().containsKey(k))
+                attr.params().put(k, v);
+            else {
+                if(!v.getKey().isAssignableFrom(attr.params().get(k).getKey()))
+                    attr.params().put(k, v);
+            }
         });
 
-        switch(control) {
-            case CHECKBOX:  return buildCheckBox(params);
-            case COMBOBOX:  return buildComboBox(params);
-            case TEXTFIELD: return buildTextField(params);
-            case NUMBERSELECTOR: return buildNumberSelector(params);
+        switch(attr.control()) {
+            case CHECKBOX:  return buildCheckBox(attr);
+            case COMBOBOX:  return buildComboBox(attr);
+            case TEXTFIELD: return buildTextField(attr);
+            case NUMBERSELECTOR: return buildNumberSelector(attr);
+            case SELECTIONLIST: return buildSelectionList(attr);
         }
         return null;
     }
 
-    public abstract Object buildCheckBox(Map<String, BasicEntry<Class<?>, Object>> params);
-    public abstract Object buildTextField(Map<String, BasicEntry<Class<?>, Object>> params);
-    public abstract Object buildComboBox(Map<String, BasicEntry<Class<?>, Object>> params);
-    public abstract Object buildNumberSelector(Map<String, BasicEntry<Class<?>, Object>> params);
+    public abstract <T> Object buildCheckBox(ConfigurableAttribute<T> attr);
+    public abstract <T> Object buildTextField(ConfigurableAttribute<T> attr);
+    public abstract <T> Object buildComboBox(ConfigurableAttribute<T> attr);
+    public abstract <T> Object buildNumberSelector(ConfigurableAttribute<T> attr);
+    public abstract <T> Object buildSelectionList(ConfigurableAttribute<T> attr);
 
     public Object getValue(BasicEntry<Class<?>, Object> entry) {
         Class<?> key = entry.getKey();
         Object value = entry.getValue();
 
-        if(value.getClass().isAssignableFrom(key))
+        if(value.getClass().isAssignableFrom(key) || key.isAssignableFrom(value.getClass()))
             return value;
         return null;
     }

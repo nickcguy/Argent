@@ -54,24 +54,23 @@ public class TransformComponent implements Component, Pool.Poolable, IConfigurab
         this.transform.setFromEulerAngles(rotRoll, rotPitch, rotYaw);
         this.transform.translate(trans);
         this.transform.scale(scale.x, scale.y, scale.z);
-
     }
 
     @Override
     public List<ConfigurableAttribute<?>> getConfigurableAttributes() {
         List<ConfigurableAttribute<?>> attrs = new ArrayList<>();
 
-        attrs.add(attr("Translation X",   () -> transform.getValues()[Reference.Matrix4Alias.TranslationX],   (var) -> transform.getValues()[Reference.Matrix4Alias.TranslationX] = var, ConfigControl.NUMBERSELECTOR));
-        attrs.add(attr("Translation Y",   () -> transform.getValues()[Reference.Matrix4Alias.TranslationY],   (var) -> transform.getValues()[Reference.Matrix4Alias.TranslationY] = var, ConfigControl.NUMBERSELECTOR));
-        attrs.add(attr("Translation Z",   () -> transform.getValues()[Reference.Matrix4Alias.TranslationZ],   (var) -> transform.getValues()[Reference.Matrix4Alias.TranslationZ] = var, ConfigControl.NUMBERSELECTOR));
+        attrs.add(attr("Translation X",   () -> ((Float)transform.getValues()[Reference.Matrix4Alias.TranslationX]).intValue(),   (val) -> transform.getValues()[Reference.Matrix4Alias.TranslationX] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR));
+        attrs.add(attr("Translation Y",   () -> ((Float)transform.getValues()[Reference.Matrix4Alias.TranslationY]).intValue(),   (val) -> transform.getValues()[Reference.Matrix4Alias.TranslationY] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR));
+        attrs.add(attr("Translation Z",   () -> ((Float)transform.getValues()[Reference.Matrix4Alias.TranslationZ]).intValue(),   (val) -> transform.getValues()[Reference.Matrix4Alias.TranslationZ] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR));
 
-        attrs.add(attr("Rotation Roll",   () -> rotRoll,                                                      (val) -> { rotRoll =val; updateTransform(); }, ConfigControl.NUMBERSELECTOR));
-        attrs.add(attr("Rotation Pitch",  () -> rotPitch,                                                     (val) -> { rotPitch=val; updateTransform(); }, ConfigControl.NUMBERSELECTOR));
-        attrs.add(attr("Rotation Yaw",    () -> rotYaw,                                                       (val) -> { rotYaw  =val; updateTransform(); }, ConfigControl.NUMBERSELECTOR));
+        attrs.add(attr("Rotation Roll",   () -> ((Float)rotRoll).intValue(),                                                      (val) -> { rotRoll =Float.parseFloat(val.toString()); updateTransform(); }, ConfigControl.NUMBERSELECTOR));
+        attrs.add(attr("Rotation Pitch",  () -> ((Float)rotPitch).intValue(),                                                     (val) -> { rotPitch=Float.parseFloat(val.toString()); updateTransform(); }, ConfigControl.NUMBERSELECTOR));
+        attrs.add(attr("Rotation Yaw",    () -> ((Float)rotYaw).intValue(),                                                       (val) -> { rotYaw  =Float.parseFloat(val.toString()); updateTransform(); }, ConfigControl.NUMBERSELECTOR));
 
-        attrs.add(attr("Scale X",         () -> transform.getValues()[Reference.Matrix4Alias.ScaleX],         (var) -> transform.getValues()[Reference.Matrix4Alias.ScaleX] = var, ConfigControl.NUMBERSELECTOR));
-        attrs.add(attr("Scale Y",         () -> transform.getValues()[Reference.Matrix4Alias.ScaleY],         (var) -> transform.getValues()[Reference.Matrix4Alias.ScaleY] = var, ConfigControl.NUMBERSELECTOR));
-        attrs.add(attr("Scale Z",         () -> transform.getValues()[Reference.Matrix4Alias.ScaleZ],         (var) -> transform.getValues()[Reference.Matrix4Alias.ScaleZ] = var, ConfigControl.NUMBERSELECTOR));
+        attrs.add(attr("Scale X",         () -> ((Float)transform.getValues()[Reference.Matrix4Alias.ScaleX]).intValue(),         (val) -> transform.getValues()[Reference.Matrix4Alias.ScaleX] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR));
+        attrs.add(attr("Scale Y",         () -> ((Float)transform.getValues()[Reference.Matrix4Alias.ScaleY]).intValue(),         (val) -> transform.getValues()[Reference.Matrix4Alias.ScaleY] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR));
+        attrs.add(attr("Scale Z",         () -> ((Float)transform.getValues()[Reference.Matrix4Alias.ScaleZ]).intValue(),         (val) -> transform.getValues()[Reference.Matrix4Alias.ScaleZ] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR));
 
         return attrs;
     }

@@ -2,13 +2,18 @@ package net.ncguy.argent.editor.swing.object;
 
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import net.ncguy.argent.core.VarRunnables;
 import net.ncguy.argent.editor.ConfigurableAttribute;
 import net.ncguy.argent.editor.IConfigurable;
 import net.ncguy.argent.editor.swing.components.JDraggableTree;
 import net.ncguy.argent.editor.swing.config.descriptors.builders.SwingComponentBuilder;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.List;
 
 /**
@@ -18,36 +23,63 @@ public class ObjectForm<T> {
 
     private ObjectEditor<T> editorController;
     private JPanel panel1;
-    private JDraggableTree JDraggableTree1;
+    private JDraggableTree worldObjTree;
     private JButton addObjectBtn;
     private JTabbedPane tabbedPane1;
     private JPanel configPane;
     private JScrollPane configScroller;
-    private JTable configTable;
 
     private SwingComponentBuilder componentBuilder;
+    private VarRunnables.VarRunnable<T> onSelect;
+    private DefaultMutableTreeNode rootNode;
 
     public ObjectForm(ObjectEditor<T> objectEditor) {
         this.editorController = objectEditor;
         $$$setupUI$$$();
         this.componentBuilder = SwingComponentBuilder.instance();
+        onSelect = this::select;
         init();
     }
 
     private void init() {
-        select(editorController.gameWorld.instances().get(0));
+//        select(editorController.gameWorld.selected());
+        editorController.gameWorld.addOnSelect(onSelect);
+
+        worldObjTree.removeAll();
+        rootNode = new DefaultMutableTreeNode("World Objects");
+        reassertTree();
+        DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
+        worldObjTree.setModel(treeModel);
+        worldObjTree.addTreeSelectionListener(e -> {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) worldObjTree.getLastSelectedPathComponent();
+            Object obj = node.getUserObject();
+            T t = null;
+            try {
+                t = (T) obj;
+            } catch (Exception ignored) {
+            }
+            if (t != null)
+                editorController.gameWorld.select(t);
+        });
+    }
+
+    private void reassertTree() {
+        rootNode.removeAllChildren();
+        editorController.gameWorld.instances().forEach(i -> rootNode.add(new DefaultMutableTreeNode(i)));
     }
 
     private void select(T obj) {
         if (!(obj instanceof IConfigurable)) return;
         IConfigurable cfg = (IConfigurable) obj;
-        List<ConfigurableAttribute<?>> attrs = cfg.getConfigurableAttributes();
+        List<ConfigurableAttribute<?>> attrs = cfg.getConfigAttrs();
         configPane.removeAll();
-        configPane.setLayout(new GridLayoutManager(attrs.size() + 1, 3, new Insets(0, 0, 0, 0), -1, -1, false, true));
+        int rows = configPane.getHeight() / 30;
+        if (rows < attrs.size()) rows = attrs.size() + 1;
+        configPane.setLayout(new GridLayoutManager(rows, 3, new Insets(0, 0, 0, 0), -1, 0, false, true));
         final int[] index = new int[]{0};
         attrs.forEach(ca -> {
             System.out.println(ca.displayName());
-            Object compObj = componentBuilder.buildComponent(ca.control(), ca.params());
+            Object compObj = componentBuilder.buildComponent(ca);
             if (compObj instanceof Component) {
                 configPane.add(new JLabel(ca.displayName()), new GridConstraints(index[0], 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(200, 24), null, 0, false));
                 configPane.add((Component) compObj, new GridConstraints(index[0], 1, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(200, 24), null, 0, false));
@@ -55,12 +87,18 @@ public class ObjectForm<T> {
             }
         });
         configPane.invalidate();
+        configPane.repaint();
     }
 
     private void createUIComponents() {
-        // TODO: place custom component creation code here
         configPane = new JPanel();
-        configPane.setLayout(new GridLayoutManager(1, 3, new Insets(0, 0, 0, 0), -1, -1, false, true));
+        configPane.setLayout(new GridLayoutManager(1, 3, new Insets(0, 0, 0, 0), -1, 4, false, true));
+        configPane.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                select(editorController.gameWorld.selected());
+            }
+        });
     }
 
     /**
@@ -80,8 +118,8 @@ public class ObjectForm<T> {
         final JPanel panel2 = new JPanel();
         panel2.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
         splitPane1.setLeftComponent(panel2);
-        JDraggableTree1 = new JDraggableTree();
-        panel2.add(JDraggableTree1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        worldObjTree = new JDraggableTree();
+        panel2.add(worldObjTree, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         final JPanel panel3 = new JPanel();
         panel3.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
         panel2.add(panel3, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, true));

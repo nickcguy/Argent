@@ -2,6 +2,7 @@ package net.ncguy.argent.io.serialization;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import net.ncguy.argent.core.VarRunnables;
 
 /**
  * Created by Guy on 09/06/2016.
@@ -24,9 +25,12 @@ public class JSONSerializer implements ISerializer {
         gson = gb.create();
     }
 
+
     @Override
-    public String serialize(Object obj) {
-        return gson.toJson(obj);
+    public String serialize(Object obj, VarRunnables.VarRunnable callback) {
+        String json = gson.toJson(obj);
+        if(callback != null) callback.run(json);
+        return json;
     }
 
     @Override
