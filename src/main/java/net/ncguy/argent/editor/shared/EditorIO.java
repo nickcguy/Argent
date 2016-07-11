@@ -102,6 +102,7 @@ public class EditorIO<T> {
         String s = sb.toString();
         world.instances().clear();
         WorldObjectSaveState state = Argent.serial.deserialize(s, WorldObjectSaveState.class);
+        state.world = (GameWorld.Generic<WorldObject>) world;
         state.unpackData();
         state.instances.forEach(((GameWorld.Generic<WorldObject>)world)::addInstance);
 //        world.instances().addAll);
@@ -109,7 +110,13 @@ public class EditorIO<T> {
         world.renderer().compileDynamicRenderPipe(state.renderers);
     }
 
-    public static class WorldObjectSaveState extends GameWorldSaveState<WorldObject> {}
+    public static class WorldObjectSaveState extends GameWorldSaveState<WorldObject> {
+        @Override
+        public void unpackData() {
+            this.instances.forEach(w -> w.gameWorld = world);
+            super.unpackData();
+        }
+    }
 
     public static class GameWorldSaveState<T> implements IWritable {
         public List<T> instances;

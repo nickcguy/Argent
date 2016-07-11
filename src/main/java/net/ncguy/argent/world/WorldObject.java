@@ -68,17 +68,11 @@ public class WorldObject implements IConfigurable, IWritable {
 
         setMaterials(mtls);
 
-//        if(VisualEditorRoot.recentEditor != null) {
-//            VisualEditorRoot.recentEditor.shaderEditor.compile();
-//        }
-//        reconstructBody();
+
+        reconstructBody();
     }
 
     public void setMaterial(final int index, final Material mtl) {
-//        this.instance.materials.set(index, mtl);
-//        this.instance.model.materials.set(index, mtl);
-//        this.instance.nodes.forEach(node -> node.parts.forEach(part -> part.material = mtl));
-//        this.instance.model.nodes.forEach(node -> node.parts.forEach(part -> part.material = mtl));
         final int[] i = {0};
         this.instance.nodes.forEach(n -> n.parts.forEach(p -> {
             if(i[0] == index) p.material = mtl;
@@ -148,7 +142,7 @@ public class WorldObject implements IConfigurable, IWritable {
             gameWorld.removeInstance(this);
             body = null;
         }
-        btCollisionShape shape = Bullet.obtainStaticNodeShape(this.instance.model.nodes);
+        btCollisionShape shape = Bullet.obtainStaticNodeShape(this.instance.nodes);
         if(shape != null)
             gameWorld.renderer().buildBulletCollision(this, shape);
         gameWorld.addInstance(this);
