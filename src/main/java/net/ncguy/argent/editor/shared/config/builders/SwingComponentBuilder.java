@@ -1,11 +1,15 @@
-package net.ncguy.argent.editor.swing.config.descriptors.builders;
+package net.ncguy.argent.editor.shared.config.builders;
 
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import net.ncguy.argent.editor.ConfigurableAttribute;
 import net.ncguy.argent.utils.SwingUtils;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.List;
 
 /**
  * Created by Guy on 01/07/2016.
@@ -104,8 +108,34 @@ public class SwingComponentBuilder extends AbstractComponentBuilder {
         return spinner;
     }
 
+    @Override public <T> Object buildSelectionList(ConfigurableAttribute<T> attr) { return buildUnsupportedWidget(attr); }
+
+    @Override public <T> Object buildColourPicker(ConfigurableAttribute<T> attr) { return buildUnsupportedWidget(attr); }
+
     @Override
-    public <T> Object buildSelectionList(ConfigurableAttribute<T> attr) {
+    public <T> Object buildUnsupportedWidget(ConfigurableAttribute<T> attr) {
         return new JLabel("Unsupported component");
+    }
+
+    @Override
+    public void compileSet(Object table, List<ConfigurableAttribute<?>> attrs) {
+        if(!(table instanceof JPanel)) return;
+        JPanel configPane = (JPanel)table;
+        configPane.removeAll();
+        int rows = configPane.getHeight() / 30;
+        if (rows < attrs.size()) rows = attrs.size() + 1;
+        configPane.setLayout(new GridLayoutManager(rows, 3, new Insets(0, 0, 0, 0), -1, 0, false, true));
+        final int[] index = new int[]{0};
+        attrs.forEach(ca -> {
+            System.out.println(ca.displayName());
+            Object compObj = buildComponent(ca);
+            if (compObj instanceof Component) {
+                configPane.add(new JLabel(ca.displayName()), new GridConstraints(index[0], 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(200, 24), null, 0, false));
+                configPane.add((Component) compObj, new GridConstraints(index[0], 1, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(200, 24), null, 0, false));
+                index[0]++;
+            }
+        });
+        configPane.invalidate();
+        configPane.repaint();
     }
 }

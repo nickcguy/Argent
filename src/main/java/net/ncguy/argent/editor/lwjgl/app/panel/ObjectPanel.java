@@ -1,6 +1,7 @@
 package net.ncguy.argent.editor.lwjgl.app.panel;
 
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.SnapshotArray;
@@ -17,15 +18,15 @@ public class ObjectPanel<T> extends RootPanel<T> {
 
     private ArgentList<T> objList;
 
-    public ObjectPanel(GameWorld.Generic<T> gameWorld) {
-        super(gameWorld);
+    public ObjectPanel(Stage stage, GameWorld.Generic<T> gameWorld) {
+        super(stage, gameWorld);
     }
 
     @Override
     protected void init() {
         panels = new ArrayList<>();
-        panels.add(new DataPanel<>(gameWorld));
-        panels.add(new MaterialPanel<>(gameWorld));
+        panels.add(new DataPanel<>(stage, gameWorld));
+        panels.add(new MaterialPanel<>(stage, gameWorld));
         ui().listeners();
         sizeChanged();
     }

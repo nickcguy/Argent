@@ -23,4 +23,11 @@ public class CollectionUtils {
         return list;
     }
 
+    public static <T> void flipStack(Stack<T> stack) {
+        ArrayList<T> tmp = new ArrayList<>(stack);
+        stack.clear();
+        for (int i = tmp.size()-1; i >= 0; i--)
+            stack.push(tmp.get(i));
+    }
+
 }

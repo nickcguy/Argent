@@ -1,6 +1,7 @@
 package net.ncguy.argent.editor.lwjgl.app.panel;
 
 import com.badlogic.gdx.scenes.scene2d.Group;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.kotcrab.vis.ui.VisUI;
@@ -13,10 +14,11 @@ import net.ncguy.argent.world.GameWorld;
 public abstract class AbstractPanel<T> extends Group {
 
     protected static Skin skin;
+    protected Stage stage;
     protected GameWorld.Generic<T> gameWorld;
-    protected T selected;
 
-    public AbstractPanel(GameWorld.Generic<T> gameWorld) {
+    public AbstractPanel(Stage stage, GameWorld.Generic<T> gameWorld) {
+        this.stage = stage;
         this.gameWorld = gameWorld;
         skin = VisUI.getSkin();
         init();
@@ -35,7 +37,11 @@ public abstract class AbstractPanel<T> extends Group {
     protected abstract AbstractPanel select(T obj);
 
     protected AbstractPanel reselect() {
-        return select(selected);
+        return select(selected());
+    }
+
+    public T selected() {
+        return gameWorld.selected();
     }
 
     public PackedPanel packToTab() {

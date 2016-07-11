@@ -1,6 +1,6 @@
 package net.ncguy.argent.editor;
 
-import net.ncguy.argent.editor.swing.config.ConfigControl;
+import net.ncguy.argent.editor.shared.config.ConfigControl;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

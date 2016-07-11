@@ -43,7 +43,11 @@ public class ArgentList<T> extends List<ArgentList.ArgentListElement<T>> {
     }
 
     public void addItem(T obj, VarRunnables.VarRunnable<T> onSelect) {
-        getItems().add(new ArgentListElement<>(obj, onSelect));
+        addItem(new ArgentListElement<>(obj, onSelect));
+    }
+
+    public void addItem(ArgentListElement<T> element) {
+        getItems().add(element);
     }
 
     public boolean containsItem(T obj) {
@@ -63,6 +67,7 @@ public class ArgentList<T> extends List<ArgentList.ArgentListElement<T>> {
     public static class ArgentListElement<T> {
         public T obj;
         VarRunnables.VarRunnable<T> onSelect;
+        public VarRunnables.ReturnRunnable<String> getString;
 
         public ArgentListElement(T obj) {
             this.obj = obj;
@@ -90,6 +95,7 @@ public class ArgentList<T> extends List<ArgentList.ArgentListElement<T>> {
 
         @Override
         public String toString() {
+            if(getString != null) return getString.run();
             return obj.toString();
         }
     }

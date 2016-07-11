@@ -44,6 +44,4 @@ public class TextUtils {
         return sb.toString();
     }
 
-//    static String getPaddedBinary(int num, int len) { return String.format("%"+len+"s", Integer.toBinaryString(num)).replace(' ', '0'); }
-
 }

@@ -3,7 +3,7 @@ package net.ncguy.argent.editor;
 import net.ncguy.argent.core.BasicEntry;
 import net.ncguy.argent.core.Meta;
 import net.ncguy.argent.core.VarRunnables;
-import net.ncguy.argent.editor.swing.config.ConfigControl;
+import net.ncguy.argent.editor.shared.config.ConfigControl;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -67,6 +67,12 @@ public class ConfigurableAttribute<T> {
         if(castTunnel != null)
             return castTunnel.run(s);
         return (T)s;
+    }
+
+    public String category() {
+        if(meta.isPresent())
+            return meta.get().category();
+        return "";
     }
 
 }

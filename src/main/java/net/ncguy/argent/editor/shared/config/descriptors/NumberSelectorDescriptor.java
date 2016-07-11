@@ -1,4 +1,4 @@
-package net.ncguy.argent.editor.swing.config.descriptors;
+package net.ncguy.argent.editor.shared.config.descriptors;
 
 import net.ncguy.argent.core.BasicEntry;
 

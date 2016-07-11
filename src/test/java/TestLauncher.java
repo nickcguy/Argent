@@ -30,7 +30,7 @@ public class TestLauncher extends Game {
 
     @Override
     public void setScreen(Screen screen) {
-        Gdx.graphics.setTitle(screen.getClass().getSimpleName());
+        Argent.setScreen(screen);
         super.setScreen(screen);
     }
 

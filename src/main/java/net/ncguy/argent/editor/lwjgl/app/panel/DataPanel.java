@@ -1,13 +1,12 @@
 package net.ncguy.argent.editor.lwjgl.app.panel;
 
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.Tree;
 import net.ncguy.argent.editor.ConfigurableAttribute;
 import net.ncguy.argent.editor.IConfigurable;
-import net.ncguy.argent.editor.swing.config.descriptors.builders.AbstractComponentBuilder;
-import net.ncguy.argent.editor.swing.config.descriptors.builders.GDXComponentBuilder;
+import net.ncguy.argent.editor.shared.config.builders.AbstractComponentBuilder;
+import net.ncguy.argent.editor.shared.config.builders.GDXComponentBuilder;
 import net.ncguy.argent.world.GameWorld;
 
 import java.util.List;
@@ -17,19 +16,18 @@ import java.util.List;
  */
 public class DataPanel<T> extends AbstractPanel<T> {
 
-    protected Table configTable;
+    protected Tree configTree;
     protected AbstractComponentBuilder builder = GDXComponentBuilder.instance();
     protected ScrollPane configScroller;
 
-    public DataPanel(GameWorld.Generic<T> gameWorld) {
-        super(gameWorld);
+    public DataPanel(Stage stage, GameWorld.Generic<T> gameWorld) {
+        super(stage, gameWorld);
     }
 
     @Override
     protected AbstractPanel ui() {
-        configTable = new Table();
-        configTable.defaults().spaceBottom(2);
-        configScroller = new ScrollPane(configTable, skin);
+        configTree = new Tree(skin);
+        configScroller = new ScrollPane(configTree, skin);
         addActor(configScroller);
         return this;
     }
@@ -41,20 +39,13 @@ public class DataPanel<T> extends AbstractPanel<T> {
 
     @Override
     protected AbstractPanel select(T obj) {
-        configTable.clearChildren();
+        gameWorld.select(obj);
+        configTree.clearChildren();
         if(obj instanceof IConfigurable) {
             List<ConfigurableAttribute<?>> attrs = ((IConfigurable) obj).getConfigAttrs();
-            attrs.forEach(ca -> {
-                System.out.println(ca.displayName());
-                Object compObj = builder.buildComponent(ca);
-                if (compObj instanceof Actor) {
-                    float compWidth = getWidth()-192;
-                    configTable.add(new Label(ca.displayName(), skin)).width(192);
-                    configTable.add((Actor) compObj).width(compWidth-10);
-                    configTable.row();
-                }
-            });
+            builder.compileSet(configTree, attrs);
         }
+        configTree.getRootNodes().forEach(node -> node.setExpanded(true));
         return this;
     }
 
@@ -71,12 +62,12 @@ public class DataPanel<T> extends AbstractPanel<T> {
             configScroller.setBounds(0, 0, getWidth(), getHeight());
         }
 
-        if(configTable != null) {
-            configTable.pack();
-            configTable.setX(5);
-            configTable.setWidth(configScroller.getWidth()-10);
-            configTable.setY(configTable.getHeight());
-            reselect();
+        if(configTree != null) {
+            configTree.pack();
+            configTree.setX(5);
+            configTree.setWidth(configScroller.getWidth()-10);
+            configTree.setY(configTree.getHeight());
+//            reselect();
         }
     }
 

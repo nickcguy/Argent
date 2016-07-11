@@ -1,6 +1,6 @@
-package net.ncguy.argent.editor.swing.config;
+package net.ncguy.argent.editor.shared.config;
 
-import net.ncguy.argent.editor.swing.config.descriptors.*;
+import net.ncguy.argent.editor.shared.config.descriptors.*;
 
 /**
  * Created by Guy on 01/07/2016.
@@ -10,7 +10,8 @@ public enum ConfigControl {
     CHECKBOX(new CheckBoxDescriptor()),
     COMBOBOX(new ComboBoxDescriptor()),
     NUMBERSELECTOR(new NumberSelectorDescriptor()),
-    SELECTIONLIST(new SelectionListDescriptor())
+    SELECTIONLIST(new SelectionListDescriptor()),
+    COLOURPICKER(new ColourPickerDescriptor()),
     ;
 
     ConfigControl(ControlConfigDescriptor descriptor) {

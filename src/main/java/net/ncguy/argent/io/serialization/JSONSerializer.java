@@ -1,8 +1,14 @@
 package net.ncguy.argent.io.serialization;
 
+import com.badlogic.gdx.graphics.g3d.Material;
+import com.badlogic.gdx.graphics.g3d.utils.TextureDescriptor;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.ncguy.argent.core.VarRunnables;
+import net.ncguy.argent.io.serialization.adapter.MaterialTypeAdapter;
+import net.ncguy.argent.io.serialization.adapter.TextureDescriptorTypeAdapter;
+import net.ncguy.argent.io.serialization.adapter.factory.MaterialTypeAdapterFactory;
+import net.ncguy.argent.io.serialization.adapter.factory.TextureDescriptorTypeAdapterFactory;
 
 /**
  * Created by Guy on 09/06/2016.
@@ -21,7 +27,14 @@ public class JSONSerializer implements ISerializer {
 
     private JSONSerializer() {
         GsonBuilder gb = new GsonBuilder();
+        // TextureDescriptor
+        gb.registerTypeAdapter(TextureDescriptor.class, new TextureDescriptorTypeAdapter());
+        gb.registerTypeAdapterFactory(new TextureDescriptorTypeAdapterFactory());
+        // Material
+        gb.registerTypeAdapter(Material.class, new MaterialTypeAdapter());
+        gb.registerTypeAdapterFactory(new MaterialTypeAdapterFactory());
 //        gb.registerTypeAdapter(DynamicShader.Info.class, new DynamicShaderInfoTypeAdapter());
+        gb.setPrettyPrinting();
         gson = gb.create();
     }
 

@@ -3,6 +3,9 @@ package net.ncguy.argent;
 import aurelienribon.tweenengine.TweenManager;
 import aurelienribon.tweenengine.primitives.MutableFloat;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputMultiplexer;
+import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.MathUtils;
@@ -12,6 +15,9 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.kotcrab.vis.ui.VisUI;
 import net.ncguy.argent.asset.ContentManager;
 import net.ncguy.argent.core.VarRunnables;
+import net.ncguy.argent.editor.lwjgl.LwjglEditorRoot;
+import net.ncguy.argent.editor.swing.EditorRootConfig;
+import net.ncguy.argent.editor.swing.VisualEditorRoot;
 import net.ncguy.argent.exception.ArgentInitialisationException;
 import net.ncguy.argent.io.serialization.ISerializer;
 import net.ncguy.argent.io.serialization.JSONSerializer;
@@ -159,6 +165,46 @@ public class Argent {
         cfg.setWindowedMode(1600, 900);
         cfg.useOpenGL3(true, 4, 2);
         return cfg;
+    }
+
+    private static boolean editorAllowed = false;
+    private static VisualEditorRoot swingEditor;
+    private static LwjglEditorRoot glEditor;
+    public static <T> void attachEditor(EditorRootConfig<T> cfg) {
+        editorAllowed = true;
+        swingEditor = new VisualEditorRoot<>(cfg);
+        glEditor = new LwjglEditorRoot<>(cfg);
+        swingEditor.addToStage(stage);
+        glEditor.addToStage(stage);
+        attachInputProcessor(stage);
+    }
+
+    public static void detatchEditor() {
+        editorAllowed = false;
+        if(swingEditor != null) {
+            swingEditor.removeFromStage(stage);
+            swingEditor.dispose();
+        }
+        if(glEditor != null) {
+            glEditor.removeFromStage(stage);
+            glEditor.dispose();
+        }
+    }
+
+    public static void setScreen(Screen screen) {
+        detatchEditor();
+    }
+
+    public static void attachInputProcessor(InputProcessor proc) {
+        InputProcessor processor = Gdx.input.getInputProcessor();
+        if(processor.equals(proc)) return;
+        if(processor instanceof InputMultiplexer) {
+            if(!((InputMultiplexer) processor).getProcessors().contains(proc, true))
+                ((InputMultiplexer) processor).addProcessor(proc);
+        }else{
+            InputMultiplexer multiplexer = new InputMultiplexer(processor, proc);
+            Gdx.input.setInputProcessor(multiplexer);
+        }
     }
 
     public static class GlobalConfig {

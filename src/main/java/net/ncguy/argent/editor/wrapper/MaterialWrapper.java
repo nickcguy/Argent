@@ -1,17 +1,19 @@
 package net.ncguy.argent.editor.wrapper;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.core.Meta;
 import net.ncguy.argent.editor.ConfigurableAttribute;
 import net.ncguy.argent.editor.IConfigurable;
-import net.ncguy.argent.editor.swing.config.ConfigControl;
+import net.ncguy.argent.editor.shared.config.ConfigControl;
 import net.ncguy.argent.ui.SearchableList;
 import net.ncguy.argent.utils.SpriteCache;
 
@@ -32,7 +34,7 @@ public class MaterialWrapper implements IConfigurable {
     @Override
     public List<ConfigurableAttribute<?>> getConfigurableAttributes() {
         List<ConfigurableAttribute<?>> attrs = new ArrayList<>();
-        attr(attrs, "ID", () -> mtl.id, (var) -> mtl.id = var, ConfigControl.TEXTFIELD);
+        attr(attrs, new Meta.Object("ID", "Data"), () -> mtl.id, (var) -> mtl.id = var, ConfigControl.TEXTFIELD);
         // Blending attribute
         ConfigurableAttribute blendingAttr = attr(attrs, new Meta.Object("Alpha", "Blending"), () -> {
             BlendingAttribute attr = getBlendingAttribute();
@@ -46,32 +48,76 @@ public class MaterialWrapper implements IConfigurable {
         blendingAttr.addParam("min", Float.class, 0);
         blendingAttr.addParam("max", Float.class, 1);
         blendingAttr.addParam("precision", Integer.class, 2);
+        // Colour Attributes
+        generateColourAttrs(attrs,  ColorAttribute.Diffuse);
+        generateColourAttrs(attrs,  ColorAttribute.Specular);
+        generateColourAttrs(attrs,  ColorAttribute.Ambient);
+        generateColourAttrs(attrs,  ColorAttribute.Emissive);
+        generateColourAttrs(attrs,  ColorAttribute.Reflection);
+        generateColourAttrs(attrs,  ColorAttribute.AmbientLight);
+        generateColourAttrs(attrs,  ColorAttribute.Fog);
         // Texture Attributes
-        generateAttrs(attrs, TextureAttribute.DiffuseAlias, TextureAttribute.Diffuse);
-        generateAttrs(attrs, TextureAttribute.SpecularAlias, TextureAttribute.Specular);
-        generateAttrs(attrs, TextureAttribute.BumpAlias, TextureAttribute.Bump);
-        generateAttrs(attrs, TextureAttribute.NormalAlias, TextureAttribute.Normal);
-        generateAttrs(attrs, TextureAttribute.AmbientAlias, TextureAttribute.Ambient);
-        generateAttrs(attrs, TextureAttribute.EmissiveAlias, TextureAttribute.Emissive);
-        generateAttrs(attrs, TextureAttribute.ReflectionAlias, TextureAttribute.Reflection);
+        generateTextureAttrs(attrs, TextureAttribute.Diffuse);
+        generateTextureAttrs(attrs, TextureAttribute.Specular);
+        generateTextureAttrs(attrs, TextureAttribute.Bump);
+        generateTextureAttrs(attrs, TextureAttribute.Normal);
+        generateTextureAttrs(attrs, TextureAttribute.Ambient);
+        generateTextureAttrs(attrs, TextureAttribute.Emissive);
+        generateTextureAttrs(attrs, TextureAttribute.Reflection);
 
         return attrs;
     }
 
     private <T extends Attribute> T getAttribute(long type, Class<T> cls) {
+        String alias = TextureAttribute.getAttributeAlias(type);
         Attribute attr = mtl.get(type);
-        if(attr == null) {
-            Attribute a = createAttribute(type);
-            if(a == null) return null;
-            mtl.set(a);
-        }
+        if(attr == null)
+            return null;
         return cls.cast(attr);
+    }
+
+    private TextureAttribute createTextureAttribute(long type) {
+        TextureAttribute attr = new TextureAttribute(type, SpriteCache.pixel());
+        mtl.set(attr);
+        return attr;
+    }
+
+    private ColorAttribute createColourAttribute(long type) {
+        ColorAttribute attr =new ColorAttribute(type, Color.WHITE.cpy());
+        mtl.set(attr);
+        return attr;
     }
 
     // COLOUR ATTRIBUTES
 
     private BlendingAttribute getBlendingAttribute() {
         return getAttribute(BlendingAttribute.Type, BlendingAttribute.class);
+    }
+
+    private ColorAttribute getColourAttribute(long type) {
+        return getAttribute(type, ColorAttribute.class);
+    }
+
+    private ColorAttribute getDiffuseColourAttribute() {
+        return getColourAttribute(ColorAttribute.Diffuse);
+    }
+    private ColorAttribute getSpecularColourAttribute() {
+        return getColourAttribute(ColorAttribute.Specular);
+    }
+    private ColorAttribute getAmbientColourAttribute() {
+        return getColourAttribute(ColorAttribute.Ambient);
+    }
+    private ColorAttribute getEmissiveColourAttribute() {
+        return getColourAttribute(ColorAttribute.Emissive);
+    }
+    private ColorAttribute getReflectionColourAttribute() {
+        return getColourAttribute(ColorAttribute.Reflection);
+    }
+    private ColorAttribute getAmbientLightColourAttribute() {
+        return getColourAttribute(ColorAttribute.AmbientLight);
+    }
+    private ColorAttribute getFogColourAttribute() {
+        return getColourAttribute(ColorAttribute.Fog);
     }
 
     // TEXTURE ATTRIBUTES
@@ -102,15 +148,47 @@ public class MaterialWrapper implements IConfigurable {
         return getTextureAttribute(TextureAttribute.Reflection);
     }
 
-    private void generateAttrs(List<ConfigurableAttribute<?>> attrs, String alias, long type) {
+    private void generateColourAttrs(List<ConfigurableAttribute<?>> attrs, String alias) {
+        generateColourAttrs(attrs, alias, ColorAttribute.getAttributeType(alias));
+    }
+
+    private void generateColourAttrs(List<ConfigurableAttribute<?>> attrs, long type) {
+        generateColourAttrs(attrs, ColorAttribute.getAttributeAlias(type), type);
+    }
+
+    private void generateColourAttrs(List<ConfigurableAttribute<?>> attrs, String alias, long type) {
+        alias = alias.replace("Color", "");
+        alias = (alias.charAt(0)+"").toUpperCase() + alias.substring(1).toLowerCase();
+        attr(attrs, new Meta.Object("Colour", "Colour|"+alias), () -> {
+            ColorAttribute attr = getColourAttribute(type);
+            if(attr == null) return Color.BLACK;
+            return attr.color;
+        }, (val) -> {
+            ColorAttribute attr = getColourAttribute(type);
+            if(attr == null) attr = createColourAttribute(type);
+            attr.color.set(val);
+        }, ConfigControl.COLOURPICKER, Color::valueOf);
+    }
+
+    private void generateTextureAttrs(List<ConfigurableAttribute<?>> attrs, String alias) {
+        generateTextureAttrs(attrs, alias, TextureAttribute.getAttributeType(alias));
+    }
+
+    private void generateTextureAttrs(List<ConfigurableAttribute<?>> attrs, long type) {
+        generateTextureAttrs(attrs, TextureAttribute.getAttributeAlias(type), type);
+    }
+
+    private void generateTextureAttrs(List<ConfigurableAttribute<?>> attrs, String alias, long type) {
+        alias = alias.replace("Texture", "");
+        alias = (alias.charAt(0)+"").toUpperCase() + alias.substring(1).toLowerCase();
         ConfigurableAttribute texAttr = attr(attrs, new Meta.Object("Texture", "Texture|"+alias), () -> {
             TextureAttribute attr = getTextureAttribute(type);
             if(attr == null) return "";
             return "";
         }, (val) -> {
             TextureAttribute attr = getTextureAttribute(type);
-            if(attr != null)
-                attr.textureDescription.texture = (Texture)val;
+            if(attr == null) attr = createTextureAttribute(type);
+            attr.textureDescription.texture = (Texture)val;
         }, ConfigControl.SELECTIONLIST, this::stringToTex);
 
         ConfigurableAttribute minFilterAttr = attr(attrs, new Meta.Object("Min Filter", "Texture|"+alias), () -> {
@@ -119,8 +197,8 @@ public class MaterialWrapper implements IConfigurable {
             return attr.textureDescription.minFilter;
         }, (val) -> {
             TextureAttribute attr = getTextureAttribute(type);
-            if(attr != null)
-                attr.textureDescription.minFilter = (Texture.TextureFilter) val;
+            if(attr == null) attr = createTextureAttribute(type);
+            attr.textureDescription.minFilter = (Texture.TextureFilter) val;
         }, ConfigControl.COMBOBOX, Texture.TextureFilter::valueOf);
 
         ConfigurableAttribute magFilterAttr = attr(attrs, new Meta.Object("Mag Filter", "Texture|"+alias), () -> {
@@ -129,8 +207,8 @@ public class MaterialWrapper implements IConfigurable {
             return attr.textureDescription.magFilter;
         }, (val) -> {
             TextureAttribute attr = getTextureAttribute(type);
-            if(attr != null)
-                attr.textureDescription.magFilter = (Texture.TextureFilter) val;
+            if(attr == null) attr = createTextureAttribute(type);
+            attr.textureDescription.magFilter = (Texture.TextureFilter) val;
         }, ConfigControl.COMBOBOX, Texture.TextureFilter::valueOf);
 
         ConfigurableAttribute uWrapAttr = attr(attrs, new Meta.Object("U Wrap", "Texture|"+alias), () -> {
@@ -139,8 +217,8 @@ public class MaterialWrapper implements IConfigurable {
             return attr.textureDescription.uWrap;
         }, (val) -> {
             TextureAttribute attr = getTextureAttribute(type);
-            if(attr != null)
-                attr.textureDescription.uWrap = (Texture.TextureWrap) val;
+            if(attr == null) attr = createTextureAttribute(type);
+            attr.textureDescription.uWrap = (Texture.TextureWrap) val;
         }, ConfigControl.COMBOBOX, Texture.TextureWrap::valueOf);
 
         ConfigurableAttribute vWrapAttr = attr(attrs, new Meta.Object("V Wrap", "Texture|"+alias), () -> {
@@ -149,8 +227,8 @@ public class MaterialWrapper implements IConfigurable {
             return attr.textureDescription.vWrap;
         }, (val) -> {
             TextureAttribute attr = getTextureAttribute(type);
-            if(attr != null)
-                attr.textureDescription.vWrap = (Texture.TextureWrap) val;
+            if(attr == null) attr = createTextureAttribute(type);
+            attr.textureDescription.vWrap = (Texture.TextureWrap) val;
         }, ConfigControl.COMBOBOX, Texture.TextureWrap::valueOf);
 
         String[] texRefs = Argent.content.getAllRefs(Texture.class);
@@ -178,7 +256,8 @@ public class MaterialWrapper implements IConfigurable {
             return attr.offsetU;
         }, (val) -> {
             TextureAttribute attr = getTextureAttribute(type);
-            if(attr != null) attr.offsetU = (Float)val;
+            if(attr == null) attr = createTextureAttribute(type);
+            attr.offsetU = (Float)val;
         }, ConfigControl.NUMBERSELECTOR, Float::parseFloat);
 
         ConfigurableAttribute vOffsetAttr = attr(attrs, new Meta.Object("V Offset", "Texture|"+alias), () -> {
@@ -187,7 +266,8 @@ public class MaterialWrapper implements IConfigurable {
             return attr.offsetV;
         }, (val) -> {
             TextureAttribute attr = getTextureAttribute(type);
-            if(attr != null) attr.offsetV = (Float)val;
+            if(attr == null) attr = createTextureAttribute(type);
+            attr.offsetV = (Float)val;
         }, ConfigControl.NUMBERSELECTOR, Float::parseFloat);
 
         ConfigurableAttribute uScaleAttr = attr(attrs, new Meta.Object("U Scale", "Texture|"+alias), () -> {
@@ -196,7 +276,8 @@ public class MaterialWrapper implements IConfigurable {
             return attr.scaleU;
         }, (val) -> {
             TextureAttribute attr = getTextureAttribute(type);
-            if(attr != null) attr.scaleU = (Float)val;
+            if(attr == null) attr = createTextureAttribute(type);
+            attr.scaleU = (Float)val;
         }, ConfigControl.NUMBERSELECTOR, Float::parseFloat);
 
         ConfigurableAttribute vScaleAttr = attr(attrs, new Meta.Object("V Scale", "Texture|"+alias), () -> {
@@ -205,7 +286,8 @@ public class MaterialWrapper implements IConfigurable {
             return attr.scaleV;
         }, (val) -> {
             TextureAttribute attr = getTextureAttribute(type);
-            if(attr != null) attr.scaleV= (Float)val;
+            if(attr == null) attr = createTextureAttribute(type);
+            attr.scaleV= (Float)val;
         }, ConfigControl.NUMBERSELECTOR, Float::parseFloat);
 
         uOffsetAttr.addParam("min", Float.class, 0);
@@ -221,18 +303,6 @@ public class MaterialWrapper implements IConfigurable {
         uScaleAttr.addParam("precision", Integer.class, 2);
         vScaleAttr.addParam("precision", Integer.class, 2);
 
-    }
-
-    private Attribute createAttribute(long type) {
-        if(type == BlendingAttribute.Type) return new BlendingAttribute();
-        if(type == TextureAttribute.Diffuse) return TextureAttribute.createDiffuse(SpriteCache.pixel());
-        if(type == TextureAttribute.Specular) return TextureAttribute.createSpecular(SpriteCache.pixel());
-        if(type == TextureAttribute.Bump) return TextureAttribute.createBump(SpriteCache.pixel());
-        if(type == TextureAttribute.Normal) return TextureAttribute.createNormal(SpriteCache.pixel());
-        if(type == TextureAttribute.Ambient) return TextureAttribute.createAmbient(SpriteCache.pixel());
-        if(type == TextureAttribute.Emissive) return TextureAttribute.createEmissive(SpriteCache.pixel());
-        if(type == TextureAttribute.Reflection) return TextureAttribute.createReflection(SpriteCache.pixel());
-        return null;
     }
 
     // Cast Tunnels

@@ -116,6 +116,15 @@ public class ContentManager {
 
     public Map<String, String> assetMap() { return assetMap; }
 
+    public String getRef(Object asset) {
+        Class cls = asset.getClass();
+        String[] allRefs = getAllRefs(cls);
+        for(String ref : allRefs) {
+            if(get(ref, cls).equals(asset)) return ref;
+        }
+        return "Unable to find ref";
+    }
+
     public interface LoaderCallback {
         void done(AssetManager manager);
     }

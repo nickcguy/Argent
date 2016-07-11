@@ -1,8 +1,8 @@
-package net.ncguy.argent.editor.swing.config.descriptors;
+package net.ncguy.argent.editor.shared.config.descriptors;
 
 import net.ncguy.argent.core.BasicEntry;
-import net.ncguy.argent.editor.swing.config.descriptors.builders.AbstractComponentBuilder;
-import net.ncguy.argent.editor.swing.config.descriptors.builders.SwingComponentBuilder;
+import net.ncguy.argent.editor.shared.config.builders.AbstractComponentBuilder;
+import net.ncguy.argent.editor.shared.config.builders.SwingComponentBuilder;
 
 import java.util.Map;
 

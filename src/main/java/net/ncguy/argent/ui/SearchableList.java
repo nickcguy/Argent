@@ -17,6 +17,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import net.ncguy.argent.core.VarRunnables;
 import net.ncguy.argent.utils.AppUtils;
+import net.ncguy.argent.utils.GdxUtils;
 import net.ncguy.argent.utils.SpriteCache;
 
 import java.util.ArrayList;
@@ -133,6 +134,7 @@ public class SearchableList<T> extends Group {
         stage.addListener(stageClickListener);
         setPosition(x, y);
         setSize(300, getDesiredHeight(350));
+        GdxUtils.keepWithinStage(this);
         addAction(Actions.fadeIn(.3f));
     }
 

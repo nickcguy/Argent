@@ -30,7 +30,7 @@ public class LwjglEditorScreen implements Screen {
         viewport = new ScreenViewport(camera);
         stage = new Stage(viewport);
 
-        rootPanel = new RootPanel(ObjectPipe.get("active.gameworld.generic", GameWorld.Generic.class));
+        rootPanel = new RootPanel(stage, ObjectPipe.get("active.gameworld.generic", GameWorld.Generic.class));
 
         stage.addActor(rootPanel);
         Gdx.input.setInputProcessor(stage);

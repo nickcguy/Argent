@@ -2,6 +2,7 @@ package net.ncguy.argent.editor.lwjgl.app.panel;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import net.ncguy.argent.render.WorldRenderer;
@@ -18,8 +19,8 @@ import java.util.Stack;
  */
 public class ShaderBufferPanel<T> extends AbstractPanel<T> {
 
-    public ShaderBufferPanel(GameWorld.Generic<T> gameWorld) {
-        super(gameWorld);
+    public ShaderBufferPanel(Stage stage, GameWorld.Generic<T> gameWorld) {
+        super(stage, gameWorld);
     }
 
     private List<BufferWidget> widgetList;

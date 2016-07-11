@@ -2,7 +2,7 @@ package net.ncguy.argent.editor;
 
 import net.ncguy.argent.core.Meta;
 import net.ncguy.argent.core.VarRunnables;
-import net.ncguy.argent.editor.swing.config.ConfigControl;
+import net.ncguy.argent.editor.shared.config.ConfigControl;
 import net.ncguy.argent.utils.ReflectionUtils;
 
 import java.util.List;

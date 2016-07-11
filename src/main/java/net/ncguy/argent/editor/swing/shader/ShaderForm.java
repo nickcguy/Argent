@@ -186,7 +186,7 @@ public class ShaderForm {
             primitiveModel.addElement(type);
         shaderPrimitiveSelect.setModel(primitiveModel);
 
-        readFromDisk();
+//        readFromDisk();
 
         finalRendererText.setText(getFinalShader().name);
 

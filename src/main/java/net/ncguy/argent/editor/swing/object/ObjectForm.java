@@ -6,7 +6,7 @@ import net.ncguy.argent.core.VarRunnables;
 import net.ncguy.argent.editor.ConfigurableAttribute;
 import net.ncguy.argent.editor.IConfigurable;
 import net.ncguy.argent.editor.swing.components.JDraggableTree;
-import net.ncguy.argent.editor.swing.config.descriptors.builders.SwingComponentBuilder;
+import net.ncguy.argent.editor.shared.config.builders.SwingComponentBuilder;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -72,22 +72,23 @@ public class ObjectForm<T> {
         if (!(obj instanceof IConfigurable)) return;
         IConfigurable cfg = (IConfigurable) obj;
         List<ConfigurableAttribute<?>> attrs = cfg.getConfigAttrs();
-        configPane.removeAll();
-        int rows = configPane.getHeight() / 30;
-        if (rows < attrs.size()) rows = attrs.size() + 1;
-        configPane.setLayout(new GridLayoutManager(rows, 3, new Insets(0, 0, 0, 0), -1, 0, false, true));
-        final int[] index = new int[]{0};
-        attrs.forEach(ca -> {
-            System.out.println(ca.displayName());
-            Object compObj = componentBuilder.buildComponent(ca);
-            if (compObj instanceof Component) {
-                configPane.add(new JLabel(ca.displayName()), new GridConstraints(index[0], 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(200, 24), null, 0, false));
-                configPane.add((Component) compObj, new GridConstraints(index[0], 1, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(200, 24), null, 0, false));
-                index[0]++;
-            }
-        });
-        configPane.invalidate();
-        configPane.repaint();
+        componentBuilder.compileSet(configPane, attrs);
+//        configPane.removeAll();
+//        int rows = configPane.getHeight() / 30;
+//        if (rows < attrs.size()) rows = attrs.size() + 1;
+//        configPane.setLayout(new GridLayoutManager(rows, 3, new Insets(0, 0, 0, 0), -1, 0, false, true));
+//        final int[] index = new int[]{0};
+//        attrs.forEach(ca -> {
+//            System.out.println(ca.displayName());
+//            Object compObj = componentBuilder.buildComponent(ca);
+//            if (compObj instanceof Component) {
+//                configPane.add(new JLabel(ca.displayName()), new GridConstraints(index[0], 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(200, 24), null, 0, false));
+//                configPane.add((Component) compObj, new GridConstraints(index[0], 1, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(200, 24), null, 0, false));
+//                index[0]++;
+//            }
+//        });
+//        configPane.invalidate();
+//        configPane.repaint();
     }
 
     private void createUIComponents() {

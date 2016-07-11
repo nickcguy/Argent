@@ -14,7 +14,6 @@ import net.ncguy.argent.Argent;
 import net.ncguy.argent.core.VarRunnables;
 import net.ncguy.argent.render.renderer.DynamicRenderer;
 import net.ncguy.argent.render.sample.UberRenderer;
-import net.ncguy.argent.render.sample.light.LightRenderer;
 import net.ncguy.argent.render.shader.DynamicShader;
 import net.ncguy.argent.utils.CollectionUtils;
 
@@ -193,6 +192,10 @@ public abstract class WorldRenderer<T> implements Disposable {
     public List<DynamicRenderer<T>> dynamicPipe() {
         List<DynamicRenderer<T>> tmp = new ArrayList<>();
         pipe().stream().filter(b -> b instanceof DynamicRenderer).forEach(b -> tmp.add((DynamicRenderer<T>)b));
+        if(finalBuffer instanceof DynamicRenderer) {
+            if (!tmp.contains(finalBuffer))
+                tmp.add((DynamicRenderer<T>) finalBuffer);
+        }
         return tmp;
     }
 
@@ -202,6 +205,7 @@ public abstract class WorldRenderer<T> implements Disposable {
 
     public void compileDynamicRenderPipe(List<DynamicShader.Info> renderInfo, boolean includeDefaults) {
         Stack<DynamicShader.Info> infoStack = CollectionUtils.listToStack(renderInfo);
+        CollectionUtils.flipStack(infoStack);
         compileDynamicRenderPipe(infoStack, includeDefaults);
     }
 
@@ -212,10 +216,9 @@ public abstract class WorldRenderer<T> implements Disposable {
             this.addBufferRenderers(new DynamicRenderer<>(this, infoStack.pop()));
         if(includeDefaults) {
             this.addBufferRenderers(new UberRenderer<>(this));
-//            new LightRenderer<>(this);
-            this.addBufferRenderers(new LightRenderer<>(this));
         }
-        this.setFinalBuffer(new DynamicRenderer<>(this, infoStack.pop()));
+        DynamicShader.Info finalInfo = infoStack.pop();
+        this.setFinalBuffer(new DynamicRenderer<>(this, finalInfo));
     }
 
     public static class BufferViewPack {

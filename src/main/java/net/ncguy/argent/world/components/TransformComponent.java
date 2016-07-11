@@ -6,7 +6,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Pool;
 import net.ncguy.argent.editor.ConfigurableAttribute;
 import net.ncguy.argent.editor.IConfigurable;
-import net.ncguy.argent.editor.swing.config.ConfigControl;
+import net.ncguy.argent.editor.shared.config.ConfigControl;
 import net.ncguy.argent.utils.Reference;
 
 import java.util.ArrayList;

@@ -16,8 +16,9 @@ import net.ncguy.argent.core.Meta;
 import net.ncguy.argent.editor.ConfigAttr;
 import net.ncguy.argent.editor.ConfigurableAttribute;
 import net.ncguy.argent.editor.IConfigurable;
+import net.ncguy.argent.editor.shared.config.ConfigControl;
 import net.ncguy.argent.editor.swing.VisualEditorRoot;
-import net.ncguy.argent.editor.swing.config.ConfigControl;
+import net.ncguy.argent.io.IWritable;
 import net.ncguy.argent.ui.SearchableList;
 import net.ncguy.argent.utils.Reference;
 
@@ -25,28 +26,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.badlogic.gdx.physics.bullet.collision.btCollisionObject.CollisionFlags.*;
-import static net.ncguy.argent.editor.swing.config.ConfigControl.TEXTFIELD;
+import static net.ncguy.argent.editor.shared.config.ConfigControl.TEXTFIELD;
 import static net.ncguy.argent.world.WorldObject.PhysicsState.*;
 
 /**
  * Created by Guy on 20/06/2016.
  */
-public class WorldObject implements IConfigurable {
+public class WorldObject implements IConfigurable, IWritable {
+
+    public transient GameWorld.Generic<WorldObject> gameWorld;
+    public transient ModelInstance instance;
 
     @ConfigAttr(control = TEXTFIELD)
-    @Meta(displayName = "Display Name")
+    @Meta(displayName = "Display Name", category = "Data")
     public String displayName = "Test";
-
     public Matrix4 transform;
-
     public float rotRoll = 0;
     public float rotPitch = 0;
     public float rotYaw = 0;
-
-    public transient ModelInstance instance;
+    public List<Material> materials;
     public String modelRef;
-
-    public transient GameWorld.Generic<WorldObject> gameWorld;
+    public float mass = 1;
+    private PhysicsState physicsState = STATIC;
 
     public void setModel(String ref) {
         Model model = Argent.content.get(ref, Model.class);
@@ -67,18 +68,24 @@ public class WorldObject implements IConfigurable {
 
         setMaterials(mtls);
 
-        if(VisualEditorRoot.recentEditor != null) {
-            VisualEditorRoot.recentEditor.shaderEditor.compile();
-        }
+//        if(VisualEditorRoot.recentEditor != null) {
+//            VisualEditorRoot.recentEditor.shaderEditor.compile();
+//        }
 //        reconstructBody();
     }
 
     public void setMaterial(final int index, final Material mtl) {
-        this.instance.materials.set(index, mtl);
-        this.instance.model.materials.set(index, mtl);
-        this.instance.nodes.forEach(node -> node.parts.forEach(part -> part.material = mtl));
-        this.instance.model.nodes.forEach(node -> node.parts.forEach(part -> part.material = mtl));
+//        this.instance.materials.set(index, mtl);
+//        this.instance.model.materials.set(index, mtl);
+//        this.instance.nodes.forEach(node -> node.parts.forEach(part -> part.material = mtl));
+//        this.instance.model.nodes.forEach(node -> node.parts.forEach(part -> part.material = mtl));
+        final int[] i = {0};
+        this.instance.nodes.forEach(n -> n.parts.forEach(p -> {
+            if(i[0] == index) p.material = mtl;
+            i[0]++;
+        }));
     }
+
     public void setMaterials(Material... mtls) {
         int index = 0;
         for (Material mtl : mtls)
@@ -150,10 +157,6 @@ public class WorldObject implements IConfigurable {
     public transient btRigidBody body;
     public transient btCollisionShape shape;
 
-    public float mass = 1;
-
-    private PhysicsState physicsState = STATIC;
-
     public void setStatic() {
         if(body == null) return;
         body.setCollisionFlags(CF_STATIC_OBJECT);
@@ -196,19 +199,19 @@ public class WorldObject implements IConfigurable {
     public List<ConfigurableAttribute<?>> getConfigurableAttributes() {
         List<ConfigurableAttribute<?>> attrs = new ArrayList<>();
 
-        attrs.add(attr("Translation X",   () -> ((Float)transform.getValues()[Reference.Matrix4Alias.TranslationX]).intValue(),   (val) -> transform.getValues()[Reference.Matrix4Alias.TranslationX] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR, Float::parseFloat));
-        attrs.add(attr("Translation Y",   () -> ((Float)transform.getValues()[Reference.Matrix4Alias.TranslationY]).intValue(),   (val) -> transform.getValues()[Reference.Matrix4Alias.TranslationY] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR, Float::parseFloat));
-        attrs.add(attr("Translation Z",   () -> ((Float)transform.getValues()[Reference.Matrix4Alias.TranslationZ]).intValue(),   (val) -> transform.getValues()[Reference.Matrix4Alias.TranslationZ] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR, Float::parseFloat));
+        attr(attrs, new Meta.Object("Translation X", "Transform"),   () -> ((Float)transform.getValues()[Reference.Matrix4Alias.TranslationX]).intValue(),   (val) -> transform.getValues()[Reference.Matrix4Alias.TranslationX] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR, Float::parseFloat);
+        attr(attrs, new Meta.Object("Translation Y", "Transform"),   () -> ((Float)transform.getValues()[Reference.Matrix4Alias.TranslationY]).intValue(),   (val) -> transform.getValues()[Reference.Matrix4Alias.TranslationY] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR, Float::parseFloat);
+        attr(attrs, new Meta.Object("Translation Z", "Transform"),   () -> ((Float)transform.getValues()[Reference.Matrix4Alias.TranslationZ]).intValue(),   (val) -> transform.getValues()[Reference.Matrix4Alias.TranslationZ] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR, Float::parseFloat);
 
-        attrs.add(attr("Rotation Roll",   () -> ((Float)rotRoll).intValue(),                                                      (val) -> { rotRoll =Float.parseFloat(val.toString()); updateTransform(); }, ConfigControl.NUMBERSELECTOR, Float::parseFloat));
-        attrs.add(attr("Rotation Pitch",  () -> ((Float)rotPitch).intValue(),                                                     (val) -> { rotPitch=Float.parseFloat(val.toString()); updateTransform(); }, ConfigControl.NUMBERSELECTOR, Float::parseFloat));
-        attrs.add(attr("Rotation Yaw",    () -> ((Float)rotYaw).intValue(),                                                       (val) -> { rotYaw  =Float.parseFloat(val.toString()); updateTransform(); }, ConfigControl.NUMBERSELECTOR, Float::parseFloat));
+        attr(attrs, new Meta.Object("Rotation Roll", "Transform"),   () -> ((Float)rotRoll).intValue(),                                                      (val) -> { rotRoll =Float.parseFloat(val.toString()); updateTransform(); }, ConfigControl.NUMBERSELECTOR, Float::parseFloat);
+        attr(attrs, new Meta.Object("Rotation Pitch", "Transform"),  () -> ((Float)rotPitch).intValue(),                                                     (val) -> { rotPitch=Float.parseFloat(val.toString()); updateTransform(); }, ConfigControl.NUMBERSELECTOR, Float::parseFloat);
+        attr(attrs, new Meta.Object("Rotation Yaw", "Transform"),    () -> ((Float)rotYaw).intValue(),                                                       (val) -> { rotYaw  =Float.parseFloat(val.toString()); updateTransform(); }, ConfigControl.NUMBERSELECTOR, Float::parseFloat);
 
-        attrs.add(attr("Scale X",         () -> ((Float)transform.getValues()[Reference.Matrix4Alias.ScaleX]).intValue(),         (val) -> transform.getValues()[Reference.Matrix4Alias.ScaleX] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR, Float::parseFloat));
-        attrs.add(attr("Scale Y",         () -> ((Float)transform.getValues()[Reference.Matrix4Alias.ScaleY]).intValue(),         (val) -> transform.getValues()[Reference.Matrix4Alias.ScaleY] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR, Float::parseFloat));
-        attrs.add(attr("Scale Z",         () -> ((Float)transform.getValues()[Reference.Matrix4Alias.ScaleZ]).intValue(),         (val) -> transform.getValues()[Reference.Matrix4Alias.ScaleZ] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR, Float::parseFloat));
+        attr(attrs, new Meta.Object("Scale X", "Transform"),         () -> ((Float)transform.getValues()[Reference.Matrix4Alias.ScaleX]).intValue(),         (val) -> transform.getValues()[Reference.Matrix4Alias.ScaleX] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR, Float::parseFloat);
+        attr(attrs, new Meta.Object("Scale Y", "Transform"),         () -> ((Float)transform.getValues()[Reference.Matrix4Alias.ScaleY]).intValue(),         (val) -> transform.getValues()[Reference.Matrix4Alias.ScaleY] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR, Float::parseFloat);
+        attr(attrs, new Meta.Object("Scale Z", "Transform"),         () -> ((Float)transform.getValues()[Reference.Matrix4Alias.ScaleZ]).intValue(),         (val) -> transform.getValues()[Reference.Matrix4Alias.ScaleZ] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR, Float::parseFloat);
 
-        ConfigurableAttribute<PhysicsState> physicsStateAttr = attr("Physics State", () -> physicsState, (var) -> {
+        ConfigurableAttribute<PhysicsState> physicsStateAttr = attr(attrs, new Meta.Object("Physics State", "Physics"), () -> physicsState, (var) -> {
             switch(var) {
                 case STATIC: setStatic(); return;
                 case KINEMATIC: setKinematic(); return;
@@ -216,24 +219,46 @@ public class WorldObject implements IConfigurable {
             }
         }, ConfigControl.COMBOBOX, PhysicsState::valueOf);
         physicsStateAttr.addParam("items", PhysicsState[].class, PhysicsState.values());
-        attrs.add(physicsStateAttr);
 
-        ConfigurableAttribute modelAttr = attr("Model", this::getModelRef, this::setModel, ConfigControl.SELECTIONLIST);
+        ConfigurableAttribute modelAttr = attr(attrs, new Meta.Object("Model", "Rendering"), this::getModelRef, this::setModel, ConfigControl.SELECTIONLIST);
         String[] modelRefs = Argent.content.getAllRefs(Model.class);
         SearchableList.Item.Data[] modelItems = new SearchableList.Item.Data[modelRefs.length];
         int index = 0;
         for (String ref : modelRefs)
-            modelItems[index++] = new SearchableList.Item.Data(new TextureRegionDrawable(new TextureRegion(net.ncguy.argent.utils.SpriteCache.pixel())), ref, ref);
+            modelItems[index++] = new SearchableList.Item.Data<>(new TextureRegionDrawable(new TextureRegion(net.ncguy.argent.utils.SpriteCache.pixel())), ref, ref);
         modelAttr.addParam("items", SearchableList.Item.Data[].class, modelItems);
-        attrs.add(modelAttr);
 
-        attrs.add(attr("Mass", () -> mass, (val) -> mass = val, ConfigControl.NUMBERSELECTOR, Float::parseFloat));
+        attr(attrs, new Meta.Object("Mass", "Physics"), () -> mass, (val) -> mass = val, ConfigControl.NUMBERSELECTOR, Float::parseFloat);
 
         return attrs;
     }
 
     public PhysicsState physicsState() {
         return physicsState;
+    }
+
+    @Override
+    public void packData() {
+        this.materials = new ArrayList<>();
+        this.instance.nodes.forEach(n -> n.parts.forEach(p -> {
+            if(p.material != null) this.materials.add(p.material);
+        }));
+    }
+
+    @Override
+    public void unpackData() {
+        final int[] index = {0};
+
+        if(this.instance == null) this.instance = new ModelInstance(new Model());
+
+        setModel(modelRef);
+
+        this.instance.nodes.forEach(n -> n.parts.forEach(p -> {
+            if(this.materials.size() < index[0]) p.material = this.materials.get(index[0]);
+            index[0]++;
+        }));
+        this.materials.clear();
+        this.materials = null;
     }
 
     public enum PhysicsState {

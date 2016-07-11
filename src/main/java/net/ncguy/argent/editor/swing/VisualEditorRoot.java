@@ -13,6 +13,7 @@ import com.kotcrab.vis.ui.widget.MenuBar;
 import com.kotcrab.vis.ui.widget.MenuItem;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.core.VarRunnables;
+import net.ncguy.argent.editor.IEditorRoot;
 import net.ncguy.argent.editor.swing.object.ObjectEditor;
 import net.ncguy.argent.editor.swing.shader.ShaderEditor;
 import net.ncguy.argent.render.shader.DynamicShader;
@@ -28,7 +29,7 @@ import java.util.Stack;
 /**
  * Created by Guy on 27/06/2016.
  */
-public class VisualEditorRoot<T> implements Disposable {
+public class VisualEditorRoot<T> implements IEditorRoot, Disposable {
 
     private EditorRootConfig<T> config;
 
@@ -36,7 +37,7 @@ public class VisualEditorRoot<T> implements Disposable {
     public ShaderEditor<T> shaderEditor;
     private ObjectEditor<T> objectEditor;
 
-    protected int keyCode = Input.Keys.P;
+    protected int keyCode = Input.Keys.O;
     protected int requiredModifier = Input.Keys.SHIFT_LEFT;
 
     protected VarRunnables.Var2Runnable<Integer> onResize;
