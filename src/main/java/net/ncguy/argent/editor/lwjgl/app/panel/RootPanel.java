@@ -13,6 +13,7 @@ import com.kotcrab.vis.ui.widget.MenuItem;
 import com.kotcrab.vis.ui.widget.tabbedpane.Tab;
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPane;
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPaneAdapter;
+import net.ncguy.argent.editor.lwjgl.app.panel.landscape.LandscapePanel;
 import net.ncguy.argent.editor.shared.EditorIO;
 import net.ncguy.argent.world.GameWorld;
 
@@ -29,6 +30,7 @@ public class RootPanel<T> extends AbstractPanel<T> {
     List<AbstractPanel<T>> panels;
     MenuBar menuBar;
     private EditorIO<T> editorIO;
+    ObjectPanel<T> objPanel;
 
     private boolean internalChange = false;
 
@@ -39,8 +41,9 @@ public class RootPanel<T> extends AbstractPanel<T> {
     @Override
     protected void init() {
         panels = new ArrayList<>();
-        panels.add(new ObjectPanel<>(stage, gameWorld));
+        panels.add(objPanel = new ObjectPanel<>(stage, gameWorld));
         panels.add(new ShaderBufferPanel<>(stage, gameWorld));
+        panels.add(new LandscapePanel<>(stage, gameWorld));
         editorIO = new EditorIO<>(stage, gameWorld);
         addMenuBar();
         super.init();
@@ -53,13 +56,16 @@ public class RootPanel<T> extends AbstractPanel<T> {
         fileMenu.addItem(new MenuItem("Save", new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                editorIO.save();
+                editorIO.save(gameWorld::onSave);
             }
         }));
         fileMenu.addItem(new MenuItem("Load", new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                editorIO.load();
+                editorIO.load(() -> {
+                    gameWorld.onLoad();
+                    objPanel.populateList();
+                });
             }
         }));
         menuBar.addMenu(fileMenu);

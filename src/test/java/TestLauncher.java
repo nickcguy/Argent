@@ -35,6 +35,7 @@ public class TestLauncher extends Game {
     }
 
     public static void main(String[] args) {
+//        ReflectionUtils.generateReflectionMethods(ShaderProgram.class);
         new Lwjgl3Application(new TestLauncher(), Argent.defaultConfig());
     }
 

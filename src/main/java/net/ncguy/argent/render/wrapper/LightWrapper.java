@@ -47,6 +47,7 @@ public abstract class LightWrapper<T extends BaseLight<T>> implements Disposable
     protected ShaderProgram shaderProgram;
     protected ModelBatch batch;
     protected Camera lightMapper;
+    protected ModelInstance shadowVolume;
 
     public LightWrapper(T light) {
         this.light = light;

@@ -33,6 +33,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.Stack;
 
 /**
  * Created by Guy on 08/06/2016.
@@ -83,6 +84,12 @@ public class Argent {
         initNetworkManager();
         initPhysics();
         stage();
+    }
+
+    private static Stack<Runnable> mainThreadRunnables = new Stack<>();
+
+    public static void postRunnable(Runnable runnable) {
+        mainThreadRunnables.push(runnable);
     }
 
     public static boolean useHMD() {
@@ -154,6 +161,8 @@ public class Argent {
     }
 
     public static void render(float delta) {
+        while(!mainThreadRunnables.isEmpty())
+            mainThreadRunnables.pop().run();
         stage().act(delta);
         stage().draw();
         tweenManager.update(delta);
@@ -164,14 +173,13 @@ public class Argent {
         cfg.setTitle("Argent game");
         cfg.setWindowedMode(1600, 900);
         cfg.useOpenGL3(true, 4, 2);
+        cfg.useVsync(false);
         return cfg;
     }
 
-    private static boolean editorAllowed = false;
     private static VisualEditorRoot swingEditor;
     private static LwjglEditorRoot glEditor;
     public static <T> void attachEditor(EditorRootConfig<T> cfg) {
-        editorAllowed = true;
         swingEditor = new VisualEditorRoot<>(cfg);
         glEditor = new LwjglEditorRoot<>(cfg);
         swingEditor.addToStage(stage);
@@ -180,7 +188,6 @@ public class Argent {
     }
 
     public static void detatchEditor() {
-        editorAllowed = false;
         if(swingEditor != null) {
             swingEditor.removeFromStage(stage);
             swingEditor.dispose();
@@ -210,6 +217,7 @@ public class Argent {
     public static class GlobalConfig {
 
         public static MutableFloat exposure = new MutableFloat(1.0f);
+        public static MutableFloat ambient = new MutableFloat(1.0f);
         public static MutableFloat brightness = new MutableFloat(1.0f);
 
     }

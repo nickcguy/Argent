@@ -48,9 +48,11 @@ public class DynamicRenderer<T> extends BufferRenderer<T> {
     @Override
     public void setSceneUniforms(ShaderProgram program, int[] mutableId) {
         final int texNum = mutableId[0]++;
-        getBufferContents().bind(texNum);
         String uniformName = uniformName();
-        program.setUniformi(uniformName, texNum);
+        if(program.hasUniform(uniformName)) {
+            getBufferContents().bind(texNum);
+            program.setUniformi(uniformName, texNum);
+        }
     }
 
     @Override

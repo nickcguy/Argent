@@ -6,10 +6,6 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.bullet.Bullet;
-import com.badlogic.gdx.physics.bullet.collision.Collision;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
-import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.core.Meta;
@@ -25,9 +21,7 @@ import net.ncguy.argent.utils.Reference;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.badlogic.gdx.physics.bullet.collision.btCollisionObject.CollisionFlags.*;
 import static net.ncguy.argent.editor.shared.config.ConfigControl.TEXTFIELD;
-import static net.ncguy.argent.world.WorldObject.PhysicsState.*;
 
 /**
  * Created by Guy on 20/06/2016.
@@ -46,8 +40,6 @@ public class WorldObject implements IConfigurable, IWritable {
     public float rotYaw = 0;
     public List<Material> materials;
     public String modelRef;
-    public float mass = 1;
-    private PhysicsState physicsState = STATIC;
 
     public void setModel(String ref) {
         Model model = Argent.content.get(ref, Model.class);
@@ -69,7 +61,6 @@ public class WorldObject implements IConfigurable, IWritable {
         setMaterials(mtls);
 
 
-        reconstructBody();
     }
 
     public void setMaterial(final int index, final Material mtl) {
@@ -96,7 +87,6 @@ public class WorldObject implements IConfigurable, IWritable {
         if(VisualEditorRoot.recentEditor != null) {
             VisualEditorRoot.recentEditor.shaderEditor.compile();
         }
-        reconstructBody();
     }
 
     public String getModelRef() {
@@ -111,16 +101,15 @@ public class WorldObject implements IConfigurable, IWritable {
     public void updateTransform() {
         Vector3 trans = new Vector3();
         Vector3 scale = new Vector3();
-        this.transform.getTranslation(trans);
-        this.transform.getScale(scale);
+        this.transform().getTranslation(trans);
+        this.transform().getScale(scale);
 
-        this.transform.setToScaling(1, 1, 1);
-        this.transform.setToTranslation(0, 0, 0);
+        this.transform().setToScaling(1, 1, 1);
+        this.transform().setToTranslation(0, 0, 0);
 
-        this.transform.setFromEulerAngles(rotRoll, rotPitch, rotYaw);
-        this.transform.translate(trans);
-        this.transform.scale(scale.x, scale.y, scale.z);
-        reconstructBody();
+        this.transform().setFromEulerAngles(rotRoll, rotPitch, rotYaw);
+        this.transform().translate(trans);
+        this.transform().scale(scale.x, scale.y, scale.z);
     }
 
     public WorldObject(GameWorld.Generic<WorldObject> gameWorld, ModelInstance inst, String modelRef) {
@@ -135,84 +124,35 @@ public class WorldObject implements IConfigurable, IWritable {
         this.transform = inst.transform;
     }
 
-    // BULLET
 
-    public void reconstructBody() {
-        if(body != null) {
-            gameWorld.removeInstance(this);
-            body = null;
+
+    public void translate(Vector3 offset) {
+        transform.translate(offset);
+        instance.transform = this.transform;
+    }
+
+    public Matrix4 transform() {
+        if(instance != null) {
+            instance.transform = transform;
         }
-        btCollisionShape shape = Bullet.obtainStaticNodeShape(this.instance.nodes);
-        if(shape != null)
-            gameWorld.renderer().buildBulletCollision(this, shape);
-        gameWorld.addInstance(this);
-    }
-
-    public transient btRigidBody body;
-    public transient btCollisionShape shape;
-
-    public void setStatic() {
-        if(body == null) return;
-        body.setCollisionFlags(CF_STATIC_OBJECT);
-        body.setActivationState(Collision.ISLAND_SLEEPING);
-        physicsState = STATIC;
-    }
-
-    public void setKinematic() {
-        if(body == null) return;
-        body.setCollisionFlags(CF_KINEMATIC_OBJECT);
-        body.setActivationState(Collision.ACTIVE_TAG);
-        physicsState = KINEMATIC;
-    }
-
-    public void setDynamic() {
-        if(body == null) return;
-        body.setCollisionFlags(CF_CUSTOM_MATERIAL_CALLBACK);
-        body.activate(true);
-        body.setActivationState(Collision.ACTIVE_TAG);
-        physicsState = DYNAMIC;
-    }
-
-    public void setWorldFlag(GameWorld.Physics.WorldFlags flag) {
-        body.setContactCallbackFlag(flag.flag);
-    }
-
-    public void setWorldFilters(int filters) {
-        if(body == null) return;
-        body.setContactCallbackFilter(filters);
-    }
-    public void setWorldFilters(GameWorld.Physics.WorldFlags... filters) {
-        if(body == null) return;
-        int flag = 0;
-        for (GameWorld.Physics.WorldFlags filter : filters)
-            flag = flag | filter.flag;
-        setWorldFilters(flag);
+        return this.transform;
     }
 
     @Override
     public List<ConfigurableAttribute<?>> getConfigurableAttributes() {
         List<ConfigurableAttribute<?>> attrs = new ArrayList<>();
 
-        attr(attrs, new Meta.Object("Translation X", "Transform"),   () -> ((Float)transform.getValues()[Reference.Matrix4Alias.TranslationX]).intValue(),   (val) -> transform.getValues()[Reference.Matrix4Alias.TranslationX] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR, Float::parseFloat);
-        attr(attrs, new Meta.Object("Translation Y", "Transform"),   () -> ((Float)transform.getValues()[Reference.Matrix4Alias.TranslationY]).intValue(),   (val) -> transform.getValues()[Reference.Matrix4Alias.TranslationY] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR, Float::parseFloat);
-        attr(attrs, new Meta.Object("Translation Z", "Transform"),   () -> ((Float)transform.getValues()[Reference.Matrix4Alias.TranslationZ]).intValue(),   (val) -> transform.getValues()[Reference.Matrix4Alias.TranslationZ] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR, Float::parseFloat);
+        attr(attrs, new Meta.Object("Translation X", "Transform"),   () -> ((Float)transform().getValues()[Reference.Matrix4Alias.TranslationX]).intValue(),   (val) -> { transform().getValues()[Reference.Matrix4Alias.TranslationX] = Float.parseFloat(val.toString()); }, ConfigControl.NUMBERSELECTOR, Float::parseFloat);
+        attr(attrs, new Meta.Object("Translation Y", "Transform"),   () -> ((Float)transform().getValues()[Reference.Matrix4Alias.TranslationY]).intValue(),   (val) -> { transform().getValues()[Reference.Matrix4Alias.TranslationY] = Float.parseFloat(val.toString()); }, ConfigControl.NUMBERSELECTOR, Float::parseFloat);
+        attr(attrs, new Meta.Object("Translation Z", "Transform"),   () -> ((Float)transform().getValues()[Reference.Matrix4Alias.TranslationZ]).intValue(),   (val) -> { transform().getValues()[Reference.Matrix4Alias.TranslationZ] = Float.parseFloat(val.toString()); }, ConfigControl.NUMBERSELECTOR, Float::parseFloat);
 
         attr(attrs, new Meta.Object("Rotation Roll", "Transform"),   () -> ((Float)rotRoll).intValue(),                                                      (val) -> { rotRoll =Float.parseFloat(val.toString()); updateTransform(); }, ConfigControl.NUMBERSELECTOR, Float::parseFloat);
         attr(attrs, new Meta.Object("Rotation Pitch", "Transform"),  () -> ((Float)rotPitch).intValue(),                                                     (val) -> { rotPitch=Float.parseFloat(val.toString()); updateTransform(); }, ConfigControl.NUMBERSELECTOR, Float::parseFloat);
         attr(attrs, new Meta.Object("Rotation Yaw", "Transform"),    () -> ((Float)rotYaw).intValue(),                                                       (val) -> { rotYaw  =Float.parseFloat(val.toString()); updateTransform(); }, ConfigControl.NUMBERSELECTOR, Float::parseFloat);
 
-        attr(attrs, new Meta.Object("Scale X", "Transform"),         () -> ((Float)transform.getValues()[Reference.Matrix4Alias.ScaleX]).intValue(),         (val) -> transform.getValues()[Reference.Matrix4Alias.ScaleX] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR, Float::parseFloat);
-        attr(attrs, new Meta.Object("Scale Y", "Transform"),         () -> ((Float)transform.getValues()[Reference.Matrix4Alias.ScaleY]).intValue(),         (val) -> transform.getValues()[Reference.Matrix4Alias.ScaleY] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR, Float::parseFloat);
-        attr(attrs, new Meta.Object("Scale Z", "Transform"),         () -> ((Float)transform.getValues()[Reference.Matrix4Alias.ScaleZ]).intValue(),         (val) -> transform.getValues()[Reference.Matrix4Alias.ScaleZ] = Float.parseFloat(val.toString()), ConfigControl.NUMBERSELECTOR, Float::parseFloat);
-
-        ConfigurableAttribute<PhysicsState> physicsStateAttr = attr(attrs, new Meta.Object("Physics State", "Physics"), () -> physicsState, (var) -> {
-            switch(var) {
-                case STATIC: setStatic(); return;
-                case KINEMATIC: setKinematic(); return;
-                case DYNAMIC: setDynamic(); return;
-            }
-        }, ConfigControl.COMBOBOX, PhysicsState::valueOf);
-        physicsStateAttr.addParam("items", PhysicsState[].class, PhysicsState.values());
+        attr(attrs, new Meta.Object("Scale X", "Transform"),         () -> ((Float)transform().getValues()[Reference.Matrix4Alias.ScaleX]).intValue(),         (val) -> { transform().getValues()[Reference.Matrix4Alias.ScaleX] = Float.parseFloat(val.toString()); }, ConfigControl.NUMBERSELECTOR, Float::parseFloat);
+        attr(attrs, new Meta.Object("Scale Y", "Transform"),         () -> ((Float)transform().getValues()[Reference.Matrix4Alias.ScaleY]).intValue(),         (val) -> { transform().getValues()[Reference.Matrix4Alias.ScaleY] = Float.parseFloat(val.toString()); }, ConfigControl.NUMBERSELECTOR, Float::parseFloat);
+        attr(attrs, new Meta.Object("Scale Z", "Transform"),         () -> ((Float)transform().getValues()[Reference.Matrix4Alias.ScaleZ]).intValue(),         (val) -> { transform().getValues()[Reference.Matrix4Alias.ScaleZ] = Float.parseFloat(val.toString()); }, ConfigControl.NUMBERSELECTOR, Float::parseFloat);
 
         ConfigurableAttribute modelAttr = attr(attrs, new Meta.Object("Model", "Rendering"), this::getModelRef, this::setModel, ConfigControl.SELECTIONLIST);
         String[] modelRefs = Argent.content.getAllRefs(Model.class);
@@ -222,14 +162,9 @@ public class WorldObject implements IConfigurable, IWritable {
             modelItems[index++] = new SearchableList.Item.Data<>(new TextureRegionDrawable(new TextureRegion(net.ncguy.argent.utils.SpriteCache.pixel())), ref, ref);
         modelAttr.addParam("items", SearchableList.Item.Data[].class, modelItems);
 
-        attr(attrs, new Meta.Object("Mass", "Physics"), () -> mass, (val) -> mass = val, ConfigControl.NUMBERSELECTOR, Float::parseFloat);
-
         return attrs;
     }
 
-    public PhysicsState physicsState() {
-        return physicsState;
-    }
 
     @Override
     public void packData() {
@@ -255,10 +190,16 @@ public class WorldObject implements IConfigurable, IWritable {
         this.materials = null;
     }
 
-    public enum PhysicsState {
-        STATIC,
-        KINEMATIC,
-        DYNAMIC
+    public Vector3 getTranslation() {
+        Vector3 trans = new Vector3();
+        transform.getTranslation(trans);
+        return trans;
     }
+
+    public void rotateTo(Vector3 flatForwardVector) {
+
+    }
+
+
 
 }

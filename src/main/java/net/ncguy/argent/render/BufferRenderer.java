@@ -6,11 +6,14 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.graphics.g3d.RenderableProvider;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector2;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.utils.TextUtils;
+
+import java.util.List;
 
 /**
  * Created by Guy on 13/06/2016.
@@ -75,8 +78,8 @@ public abstract class BufferRenderer<T> {
     }
 
     public void renderToScreen(float delta) {
-        Gdx.gl.glClearColor(0, 0, 0, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+//        Gdx.gl.glClearColor(0, 0, 0, 1);
+//        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
         renderIntoBatch();
     }
 
@@ -90,7 +93,8 @@ public abstract class BufferRenderer<T> {
 
     public void renderIntoBatch() {
         modelBatch.begin(renderer.camera());
-        renderer.renderables().forEach(modelBatch::render);
+        List<RenderableProvider> providers = renderer.renderableProviders();
+        providers.forEach(modelBatch::render);
         modelBatch.end();
     }
 

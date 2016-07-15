@@ -67,12 +67,18 @@ public class ShaderEditor<T> implements IEditorPane<T> {
                 t.apply(shaderForm.fragmentShaderArea());
             }
         })));
-
         shaderMenu.add(themeMenu);
 
         JCheckBoxMenuItem realtimeCheck = new JCheckBoxMenuItem("Realtime update");
         realtimeCheck.addActionListener(e -> shaderForm.realtime(realtimeCheck.isSelected()));
         shaderMenu.add(realtimeCheck);
+
+        shaderMenu.add(new JMenuItem(new AbstractAction("Refresh") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                shaderForm.readFromWorld();
+            }
+        }));
 
         menuBar.add(shaderMenu);
         return this;

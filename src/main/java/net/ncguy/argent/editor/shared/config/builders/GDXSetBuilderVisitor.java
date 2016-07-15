@@ -37,8 +37,8 @@ public class GDXSetBuilderVisitor implements Visitor<GDXComponentBuilder.Attribu
             Object compObj = GDXComponentBuilder.instance().buildComponent(data.attr);
             if(compObj instanceof Actor) {
                 LabeledActor nodeActor = new LabeledActor(skin, data.name, (Actor)compObj);
-                float compWidth = tree.getWidth() - 192;
-                nodeActor.labelCell().width(192);
+                float compWidth = tree.getWidth() - 128;
+                nodeActor.labelCell().width(128);
                 nodeActor.actorCell().width(compWidth-50);
                 node = new Tree.Node(nodeActor);
             }

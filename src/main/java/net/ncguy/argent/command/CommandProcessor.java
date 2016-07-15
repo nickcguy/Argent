@@ -28,7 +28,7 @@ public class CommandProcessor extends CommandExecutor {
     }
 
     public void exposure() {
-        console.log(String.valueOf(Argent.GlobalConfig.exposure));
+        console.log(String.valueOf(Argent.GlobalConfig.exposure.floatValue()));
     }
 
     public void exposure(float exposure) {
@@ -36,11 +36,18 @@ public class CommandProcessor extends CommandExecutor {
     }
 
     public void brightness() {
-        console.log(String.valueOf(Argent.GlobalConfig.brightness));
+        console.log(String.valueOf(Argent.GlobalConfig.brightness.floatValue()));
     }
 
     public void brightness(float brightness) {
         Tween.to(Argent.GlobalConfig.brightness, 0, .3f).target(brightness).start(Argent.tweenManager);
+    }
+
+    public void ambient() {
+        console.log(String.valueOf(Argent.GlobalConfig.ambient.floatValue()));
+    }
+    public void ambient(float ambient) {
+        Tween.to(Argent.GlobalConfig.ambient, 0, .3f).target(ambient).start(Argent.tweenManager);
     }
 
     public void attr(String key) {

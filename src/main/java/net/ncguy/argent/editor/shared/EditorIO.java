@@ -7,6 +7,7 @@ import com.kotcrab.vis.ui.widget.file.FileChooser;
 import com.kotcrab.vis.ui.widget.file.FileChooserAdapter;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.io.IWritable;
+import net.ncguy.argent.physics.BulletEntity;
 import net.ncguy.argent.render.shader.DynamicShader;
 import net.ncguy.argent.world.GameWorld;
 import net.ncguy.argent.world.WorldObject;
@@ -35,7 +36,7 @@ public class EditorIO<T> {
         this.chooser.setMultiSelectionEnabled(false);
     }
 
-    public void save() {
+    public void save(Runnable callback) {
         chooser.setMode(FileChooser.Mode.SAVE);
         chooser.setDirectory(new File(""));
         chooser.setListener(new FileChooserAdapter(){
@@ -43,14 +44,14 @@ public class EditorIO<T> {
             public void selected(Array<FileHandle> files) {
                 FileHandle first = files.first();
                 if(first != null)
-                    save(first.file());
+                    save(first.file(), callback);
             }
         });
         this.chooser.centerWindow();
         this.stage.addActor(this.chooser.fadeIn());
     }
 
-    public void load() {
+    public void load(Runnable callback) {
         chooser.setMode(FileChooser.Mode.OPEN);
         chooser.setDirectory(new File(""));
         chooser.setListener(new FileChooserAdapter(){
@@ -58,7 +59,7 @@ public class EditorIO<T> {
             public void selected(Array<FileHandle> files) {
                 FileHandle first = files.first();
                 if(first != null) try {
-                    load(first.file());
+                    load(first.file(), callback);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -68,7 +69,7 @@ public class EditorIO<T> {
         this.stage.addActor(this.chooser.fadeIn());
     }
 
-    public void save(File file) {
+    public void save(File file, Runnable callback) {
         if(file.isDirectory()) {
             System.out.println("Not a file");
             return;
@@ -88,9 +89,10 @@ public class EditorIO<T> {
                 e.printStackTrace();
             }
         });
+        if(callback != null) callback.run();
     }
 
-    public void load(File file) throws IOException {
+    public void load(File file, Runnable callback) throws IOException {
         if(file.isDirectory()) {
             System.out.println("Not a file");
             return;
@@ -100,14 +102,23 @@ public class EditorIO<T> {
         StringBuilder sb = new StringBuilder();
         lines.forEach(s -> sb.append(s).append("\n"));
         String s = sb.toString();
-        world.instances().clear();
+        world.clear();
         WorldObjectSaveState state = Argent.serial.deserialize(s, WorldObjectSaveState.class);
         state.world = (GameWorld.Generic<WorldObject>) world;
         state.unpackData();
-        state.instances.forEach(((GameWorld.Generic<WorldObject>)world)::addInstance);
-//        world.instances().addAll);
+
+        if(state.world instanceof GameWorld.Physics) {
+            state.instances.forEach(i -> {
+                GameWorld.Physics<BulletEntity<WorldObject>> physWorld = (GameWorld.Physics<BulletEntity<WorldObject>>)world;
+                physWorld.addInstance(new BulletEntity<>(physWorld, i.transform(), i));
+            });
+        }else{
+            state.instances.forEach(((GameWorld.Generic<WorldObject>)world)::addInstance);
+        }
+
         world.renderer().clearRenderPipe();
         world.renderer().compileDynamicRenderPipe(state.renderers);
+        if(callback != null) callback.run();
     }
 
     public static class WorldObjectSaveState extends GameWorldSaveState<WorldObject> {

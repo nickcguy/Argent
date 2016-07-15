@@ -1,12 +1,12 @@
 package net.ncguy.argent.physics;
 
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.physics.bullet.linearmath.btMotionState;
+import com.badlogic.gdx.physics.bullet.linearmath.btDefaultMotionState;
 
 /**
  * Created by Guy on 21/06/2016.
  */
-public class DefaultMotionState extends btMotionState {
+public class DefaultMotionState extends btDefaultMotionState {
 
     public Matrix4 transform;
 

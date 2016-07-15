@@ -2,6 +2,7 @@ package net.ncguy.argent.editor.lwjgl.app.panel;
 
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.SnapshotArray;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
  */
 public class ObjectPanel<T> extends RootPanel<T> {
 
+    private ScrollPane scroller;
     private ArgentList<T> objList;
 
     public ObjectPanel(Stage stage, GameWorld.Generic<T> gameWorld) {
@@ -34,7 +36,8 @@ public class ObjectPanel<T> extends RootPanel<T> {
     @Override
     protected ObjectPanel ui() {
         objList = new ArgentList<>(VisUI.getSkin());
-        addActor(objList);
+        scroller = new ScrollPane(objList);
+        addActor(scroller);
         populateList();
         super.ui();
         return this;
@@ -68,8 +71,14 @@ public class ObjectPanel<T> extends RootPanel<T> {
 
     @Override
     protected void resizeElements() {
+        if(scroller != null) {
+            scroller.setBounds(0, 0, getWidth()*0.15f, getHeight());
+            scroller.setScrollBarPositions(true, true);
+        }
         if(objList != null) {
-            objList.setBounds(0, 0, getWidth()*0.15f, getHeight());
+            objList.pack();
+            objList.setPosition(0, 0);
+            objList.setWidth(scroller.getWidth()-30);
         }
         Table table = tabControl.getTable();
         table.setSize(getWidth()*0.85f, 24);

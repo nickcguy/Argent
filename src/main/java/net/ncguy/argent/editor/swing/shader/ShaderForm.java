@@ -188,7 +188,9 @@ public class ShaderForm {
 
 //        readFromDisk();
 
-        finalRendererText.setText(getFinalShader().name);
+
+
+        finalRendererText.setText(getFinalShader() != null ? getFinalShader().name : "");
 
         collectionTree.addTreeSelectionListener(e -> {
             DynamicShader.Info info = getFinalShader();
@@ -473,6 +475,19 @@ public class ShaderForm {
         DynamicShader.Info info = Argent.serial.deserialize(json, DynamicShader.Info.class);
         System.out.println(info);
         return info;
+    }
+
+    public void readFromWorld() {
+        shaderNode.removeAllChildren();
+        world().renderer().dynamicPipe().forEach(r -> {
+            DynamicShader.Info info = r.info();
+            if (info != null) {
+                shaderNode.add(info.treeNode = new DraggableTreeNode(info));
+                shaderInfo.add(info);
+                updateSelectionElement();
+            }
+        });
+        collectionTree.updateUI();
     }
 
     public void createUIComponents() {

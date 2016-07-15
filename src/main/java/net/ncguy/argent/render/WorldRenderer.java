@@ -6,6 +6,7 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.RenderableProvider;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
@@ -14,6 +15,7 @@ import net.ncguy.argent.Argent;
 import net.ncguy.argent.core.VarRunnables;
 import net.ncguy.argent.render.renderer.DynamicRenderer;
 import net.ncguy.argent.render.sample.UberRenderer;
+import net.ncguy.argent.render.sample.light.volumetric.VolumetricDepthRenderer;
 import net.ncguy.argent.render.shader.DynamicShader;
 import net.ncguy.argent.utils.CollectionUtils;
 
@@ -32,6 +34,7 @@ public abstract class WorldRenderer<T> implements Disposable {
     public List<T> objects() { return objects; }
 
     protected List<T> objects;
+    protected List<RenderableProvider> directModelProviders;
     protected PerspectiveCamera camera;
     protected List<BufferRenderer<T>> renderPipe;
     protected BufferRenderer<T> finalBuffer;
@@ -42,9 +45,14 @@ public abstract class WorldRenderer<T> implements Disposable {
 
     public WorldRenderer(List<T> objList) {
         this.objects = objList;
+        this.directModelProviders = new ArrayList<>();
         this.renderPipe = new ArrayList<>();
         resizeRunnable = this::resize;
         Argent.onResize.add(resizeRunnable);
+    }
+
+    public void addDirectInstance(RenderableProvider inst) {
+        this.directModelProviders.add(inst);
     }
 
     public PerspectiveCamera camera() {
@@ -216,9 +224,17 @@ public abstract class WorldRenderer<T> implements Disposable {
             this.addBufferRenderers(new DynamicRenderer<>(this, infoStack.pop()));
         if(includeDefaults) {
             this.addBufferRenderers(new UberRenderer<>(this));
+            this.addBufferRenderers(new VolumetricDepthRenderer<>(this));
         }
         DynamicShader.Info finalInfo = infoStack.pop();
         this.setFinalBuffer(new DynamicRenderer<>(this, finalInfo));
+    }
+
+    public List<RenderableProvider> renderableProviders() {
+        List<RenderableProvider> providers = new ArrayList<>();
+        providers.addAll(renderables());
+        providers.addAll(directModelProviders);
+        return providers;
     }
 
     public static class BufferViewPack {

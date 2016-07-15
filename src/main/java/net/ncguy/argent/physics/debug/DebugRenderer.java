@@ -16,11 +16,12 @@ public class DebugRenderer {
     public DebugRenderer(btCollisionWorld world) {
         this.world = world;
         this.drawer = new DebugDrawer();
-        this.drawer.setDebugMode(btIDebugDraw.DebugDrawModes.DBG_MAX_DEBUG_DRAW_MODE);
+        this.drawer.setDebugMode(btIDebugDraw.DebugDrawModes.DBG_DrawNormals);
         this.world.setDebugDrawer(this.drawer);
     }
 
     public void update(Camera camera) {
+        this.drawer.setDebugMode(btIDebugDraw.DebugDrawModes.DBG_DrawAabb);
         this.drawer.begin(camera);
         world.debugDrawWorld();
         this.drawer.end();

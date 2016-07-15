@@ -44,18 +44,18 @@ public class Reference {
             public static final Material material() {
                 if (defaultMaterial == null) {
                     defaultMaterial = new Material(ColorAttribute.createDiffuse(Color.WHITE), new BlendingAttribute());
-                    defaultMaterial.set(TextureAttribute.createDiffuse(SpriteCache.pixel()));
+//                    defaultMaterial.set(TextureAttribute.createDiffuse(SpriteCache.pixel()));
                     defaultMaterial.set(TextureAttribute.createNormal(SpriteCache.pixel()));
-                    ((TextureAttribute)defaultMaterial.get(TextureAttribute.Diffuse)).textureDescription.uWrap = Texture.TextureWrap.Repeat;
-                    ((TextureAttribute)defaultMaterial.get(TextureAttribute.Diffuse)).textureDescription.vWrap = Texture.TextureWrap.Repeat;
-                    ((TextureAttribute)defaultMaterial.get(TextureAttribute.Diffuse)).textureDescription.minFilter = Texture.TextureFilter.Linear;
-                    ((TextureAttribute)defaultMaterial.get(TextureAttribute.Diffuse)).textureDescription.magFilter = Texture.TextureFilter.Linear;
+//                    ((TextureAttribute)defaultMaterial.get(TextureAttribute.Diffuse)).textureDescription.uWrap = Texture.TextureWrap.Repeat;
+//                    ((TextureAttribute)defaultMaterial.get(TextureAttribute.Diffuse)).textureDescription.vWrap = Texture.TextureWrap.Repeat;
+//                    ((TextureAttribute)defaultMaterial.get(TextureAttribute.Diffuse)).textureDescription.minFilter = Texture.TextureFilter.Linear;
+//                    ((TextureAttribute)defaultMaterial.get(TextureAttribute.Diffuse)).textureDescription.magFilter = Texture.TextureFilter.Linear;
                     ((TextureAttribute)defaultMaterial.get(TextureAttribute.Normal)).textureDescription.uWrap = Texture.TextureWrap.Repeat;
                     ((TextureAttribute)defaultMaterial.get(TextureAttribute.Normal)).textureDescription.vWrap = Texture.TextureWrap.Repeat;
                     ((TextureAttribute)defaultMaterial.get(TextureAttribute.Normal)).textureDescription.minFilter = Texture.TextureFilter.Linear;
                     ((TextureAttribute)defaultMaterial.get(TextureAttribute.Normal)).textureDescription.magFilter = Texture.TextureFilter.Linear;
                 }
-                return defaultMaterial;
+                return defaultMaterial.copy();
             }
         }
         public static class Shaders {
@@ -96,6 +96,13 @@ public class Reference {
                             // No idea why this is required, the correct method doesn't work
                             shader.program.setUniformf("u_bufferSize", Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight());
 //                            shader.set(inputID, Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight());
+                        }
+                    });
+
+                    m.put(new BaseShader.Uniform("u_globalAmbient"), new BaseShader.LocalSetter() {
+                        @Override
+                        public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
+                            shader.program.setUniformf("u_globalAmbient", Argent.GlobalConfig.ambient.floatValue());
                         }
                     });
 
