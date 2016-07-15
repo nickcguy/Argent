@@ -2,33 +2,36 @@ package net.ncguy.argent;
 
 import com.badlogic.gdx.utils.StringBuilder;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
 /**
  * Created by Guy on 15/07/2016.
  */
-public interface IModule {
+public abstract class IModule {
 
-    default String moduleName() {
-        return getClass().getSimpleName();
+    public abstract String moduleName();
+
+    public Class<IModule>[] dependencies() {
+        return new Class[0];
     }
 
-    default Class<IModule>[] dependencies() {
-        Class<IModule>[] deps = new Class[0];
-        return deps;
-    }
-
-    default void log(String text) {
+    public void log(String text) {
         try {
             this.logStream().write(text.getBytes());
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    OutputStream logStream();
 
-    default String log() {
+    protected OutputStream logStream = new ByteArrayOutputStream();
+
+    public OutputStream logStream() {
+        return logStream;
+    }
+
+    public String log() {
         StringBuilder sb = new StringBuilder();
         sb.append(logStream().toString());
         return sb.toString();
