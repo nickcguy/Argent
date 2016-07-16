@@ -29,6 +29,9 @@ public class CustomWorldRenderer<T extends RenderableProvider> extends AbstractW
         while(!stack.isEmpty())
             stack.pop().prepare().render().attachBufferToShader(finalRenderer.shaderProgram, mutableId);
         finalRenderer.render(false);
+        batch().begin(camera());
+        additionalRenderers.forEach(r -> r.render(batch(), delta));
+        batch().end();
     }
 
     public Stack<BufferRenderer<T>> toStack() {

@@ -25,6 +25,7 @@ public class AdvancedWorldRenderer<T extends RenderableProvider> extends BasicWo
     public void render(float delta) {
         batch().begin(camera());
         batch().render(world.instances(), getEnv(camera().position));
+        additionalRenderers.forEach(r -> r.render(batch(), delta));
         batch().end();
     }
 

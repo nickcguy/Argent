@@ -6,6 +6,9 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.RenderableProvider;
 import net.ncguy.argent.world.GameWorld;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 /**
  * Created by Guy on 15/07/2016.
  */
@@ -15,8 +18,18 @@ public abstract class AbstractWorldRenderer<T extends RenderableProvider> {
     protected PerspectiveCamera camera;
     protected ModelBatch modelBatch;
 
+    protected Set<IRenderAddon> additionalRenderers;
+
     public AbstractWorldRenderer(GameWorld<T> world) {
         this.world = world;
+        this.additionalRenderers = new LinkedHashSet<>();
+    }
+
+    public void addRenderer(IRenderAddon addon) {
+        this.additionalRenderers.add(addon);
+    }
+    public void removeRenderer(IRenderAddon addon) {
+        this.additionalRenderers.remove(addon);
     }
 
     public GameWorld<T> world() { return world; }

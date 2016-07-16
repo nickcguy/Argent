@@ -30,6 +30,7 @@ public class BasicWorldRenderer<T extends RenderableProvider> extends AbstractWo
     public void render(float delta) {
         batch().begin(camera());
         batch().render(world.instances(), environment());
+        additionalRenderers.forEach(r -> r.render(batch(), delta));
         batch().end();
     }
 
