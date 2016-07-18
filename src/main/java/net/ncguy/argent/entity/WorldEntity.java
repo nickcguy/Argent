@@ -32,7 +32,8 @@ public class WorldEntity extends Entity implements RenderableProvider, IConfigur
     @Override
     public void getRenderables(Array<Renderable> renderables, Pool<Renderable> pool) {
         RenderableComponent ren = renderableMapper.get(this);
-        if(ren != null) ren.instance().getRenderables(renderables, pool);
+        if(ren != null)
+            ren.instance().getRenderables(renderables, pool);
     }
 
     @Override

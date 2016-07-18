@@ -21,6 +21,10 @@ public class TransformComponent implements Component, IConfigurable {
     public Matrix4 transform;
     public float roll, pitch, yaw;
 
+    public TransformComponent() {
+        this.transform = new Matrix4();
+    }
+
     @Override
     public List<ConfigurableAttribute<?>> getConfigurableAttributes() {
         List<ConfigurableAttribute<?>> attrs = new ArrayList<>();

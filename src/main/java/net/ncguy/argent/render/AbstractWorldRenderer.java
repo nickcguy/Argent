@@ -39,19 +39,23 @@ public abstract class AbstractWorldRenderer<T extends RenderableProvider> {
             camera = new PerspectiveCamera(90, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
             camera.near = .1f;
             camera.far = 1000;
-            camera.position.set(10, 0, 0);
+            camera.position.set(3, 3, 3);
             camera.lookAt(0, 0, 0);
         }
+        camera.update(true);
         return camera;
     }
 
     public ModelBatch batch() {
-        if(modelBatch == null) {
-            modelBatch = new ModelBatch();
-        }
+        if(modelBatch == null) modelBatch = new ModelBatch();
         return modelBatch;
     }
 
     public abstract void render(float delta);
 
+    public void resize(int width, int height) {
+        camera().viewportWidth = width;
+        camera().viewportHeight = height;
+        camera().update(true);
+    }
 }
