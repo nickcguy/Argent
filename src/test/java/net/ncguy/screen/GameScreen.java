@@ -20,8 +20,8 @@ import net.ncguy.argent.editor.EditorModule;
 import net.ncguy.argent.editor.EditorRoot;
 import net.ncguy.argent.entity.EntityModule;
 import net.ncguy.argent.entity.WorldEntity;
+import net.ncguy.argent.entity.components.NameComponent;
 import net.ncguy.argent.entity.components.RenderableComponent;
-import net.ncguy.argent.entity.components.TransformComponent;
 import net.ncguy.argent.render.AbstractWorldRenderer;
 import net.ncguy.argent.render.BasicRenderModule;
 import net.ncguy.argent.render.BasicWorldRenderer;
@@ -49,7 +49,12 @@ public class GameScreen implements Screen {
         Argent.loadModule(new EntityModule());
 
         stage = new Stage(new ScreenViewport(new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight())));
-        world = new GameWorld<>();
+        world = new GameWorld<WorldEntity>() {
+            @Override
+            public WorldEntity buildInstance() {
+                return new WorldEntity();
+            }
+        };
         renderer = new BasicWorldRenderer<>(world);
         editorRoot = new EditorRoot<>(world, stage, renderer::camera);
 
@@ -59,7 +64,7 @@ public class GameScreen implements Screen {
         Model model = new ModelBuilder().createBox(1, 1, 1, new Material(ColorAttribute.createDiffuse(Color.GREEN)), Position | Normal | TextureCoordinates);
         ModelInstance inst = new ModelInstance(model);
         e.add(new RenderableComponent(inst));
-        e.add(new TransformComponent());
+        e.add(new NameComponent("test"));
 
         e.invalidate();
 

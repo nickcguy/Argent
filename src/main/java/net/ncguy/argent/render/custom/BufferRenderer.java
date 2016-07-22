@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.Renderable;
-import com.badlogic.gdx.graphics.g3d.RenderableProvider;
 import com.badlogic.gdx.graphics.g3d.Shader;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
@@ -15,11 +14,12 @@ import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.utils.Disposable;
 import net.ncguy.argent.Argent;
+import net.ncguy.argent.entity.WorldEntity;
 
 /**
  * Created by Guy on 15/07/2016.
  */
-public abstract class BufferRenderer<T extends RenderableProvider> implements Disposable {
+public abstract class BufferRenderer<T extends WorldEntity> implements Disposable {
 
     protected Color clearColour;
 

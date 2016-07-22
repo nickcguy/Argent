@@ -12,7 +12,7 @@ import java.util.function.Supplier;
  */
 public interface IConfigurable {
 
-    List<ConfigurableAttribute<?>> getConfigurableAttributes();
+    void getConfigurableAttributes(List<ConfigurableAttribute<?>> attrs);
 
     /**
      * Create a basic {@link ConfigurableAttribute} with the provided accessors

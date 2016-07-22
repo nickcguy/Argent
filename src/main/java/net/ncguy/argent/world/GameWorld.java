@@ -1,7 +1,7 @@
 package net.ncguy.argent.world;
 
+import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.utils.Disposable;
-import com.sun.istack.internal.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Created by Guy on 15/07/2016.
  */
-public class GameWorld<T> implements Disposable {
+public abstract class GameWorld<T extends Entity> implements Disposable {
 
     protected List<T> instances;
 
@@ -17,7 +17,7 @@ public class GameWorld<T> implements Disposable {
         this(new ArrayList<>());
     }
 
-    public GameWorld(@NotNull List<T> instances) {
+    public GameWorld(List<T> instances) {
         this.instances = instances;
     }
 
@@ -43,4 +43,6 @@ public class GameWorld<T> implements Disposable {
             if(i instanceof Disposable) ((Disposable)i).dispose();
         });
     }
+
+    public abstract T buildInstance();
 }

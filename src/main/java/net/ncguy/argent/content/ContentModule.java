@@ -9,6 +9,10 @@ import net.ncguy.argent.IModule;
 public class ContentModule extends IModule {
 
     public ContentModule() {
+    }
+
+    @Override
+    public void init() {
         Argent.content = new ContentManager();
     }
 

@@ -7,7 +7,6 @@ import net.ncguy.argent.data.config.ConfigControl;
 import net.ncguy.argent.data.config.ConfigurableAttribute;
 import net.ncguy.argent.data.config.IConfigurable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,8 +21,7 @@ public class ParticleEffectWrapper implements IConfigurable {
     }
 
     @Override
-    public List<ConfigurableAttribute<?>> getConfigurableAttributes() {
-        List<ConfigurableAttribute<?>> attrs = new ArrayList<>();
+    public void getConfigurableAttributes(List<ConfigurableAttribute<?>> attrs) {
         attr(attrs, new Meta.Object("X", "Bounds|Min"), this::minX, this::minX, ConfigControl.NUMBERSELECTOR, Float::valueOf);
         attr(attrs, new Meta.Object("Y", "Bounds|Min"), this::minY, this::minY, ConfigControl.NUMBERSELECTOR, Float::valueOf);
         attr(attrs, new Meta.Object("Z", "Bounds|Min"), this::minZ, this::minZ, ConfigControl.NUMBERSELECTOR, Float::valueOf);
@@ -31,7 +29,6 @@ public class ParticleEffectWrapper implements IConfigurable {
         attr(attrs, new Meta.Object("X", "Bounds|Max"), this::maxX, this::maxX, ConfigControl.NUMBERSELECTOR, Float::valueOf);
         attr(attrs, new Meta.Object("Y", "Bounds|Max"), this::maxY, this::maxY, ConfigControl.NUMBERSELECTOR, Float::valueOf);
         attr(attrs, new Meta.Object("Z", "Bounds|Max"), this::maxZ, this::maxZ, ConfigControl.NUMBERSELECTOR, Float::valueOf);
-        return attrs;
     }
 
     public float minX() { return effect.getBoundingBox().min.x; }
@@ -60,12 +57,7 @@ public class ParticleEffectWrapper implements IConfigurable {
         }
 
         @Override
-        public List<ConfigurableAttribute<?>> getConfigurableAttributes() {
-            List<ConfigurableAttribute<?>> attrs = new ArrayList<>();
-
-
-
-            return attrs;
+        public void getConfigurableAttributes(List<ConfigurableAttribute<?>> attrs) {
         }
 
         public String name() { return controller.name; }

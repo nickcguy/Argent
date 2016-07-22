@@ -1,8 +1,8 @@
 package net.ncguy.argent.render.advanced;
 
 import com.badlogic.gdx.graphics.g3d.Environment;
-import com.badlogic.gdx.graphics.g3d.RenderableProvider;
 import com.badlogic.gdx.math.Vector3;
+import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.render.BasicWorldRenderer;
 import net.ncguy.argent.world.GameWorld;
 
@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Created by Guy on 15/07/2016.
  */
-public class AdvancedWorldRenderer<T extends RenderableProvider> extends BasicWorldRenderer<T> {
+public class AdvancedWorldRenderer<T extends WorldEntity> extends BasicWorldRenderer<T> {
 
     List<EnvironmentWrapper> environments;
 

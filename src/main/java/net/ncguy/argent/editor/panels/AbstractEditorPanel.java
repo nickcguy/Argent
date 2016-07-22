@@ -1,11 +1,12 @@
 package net.ncguy.argent.editor.panels;
 
 import net.ncguy.argent.editor.EditorRoot;
+import net.ncguy.argent.entity.WorldEntity;
 
 /**
  * Created by Guy on 17/07/2016.
  */
-public abstract class AbstractEditorPanel<T> extends EditorRoot.PackedTab {
+public abstract class AbstractEditorPanel<T extends WorldEntity> extends EditorRoot.PackedTab {
 
     EditorRoot<T> editorRoot;
 

@@ -17,6 +17,7 @@ public class UIModule extends IModule {
 
     public UIModule() {
         VisUI.load(handle);
+        Icons.init();
     }
 
     @Override

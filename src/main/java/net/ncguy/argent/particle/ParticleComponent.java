@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.g3d.particles.ParticleSystem;
 import net.ncguy.argent.data.config.ConfigurableAttribute;
 import net.ncguy.argent.data.config.IConfigurable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,10 +18,10 @@ public class ParticleComponent implements Component, IConfigurable {
         this.system = new ParticleSystem();
     }
 
+    public ParticleComponent(ParticleSystem system) { this.system = system;}
+
     @Override
-    public List<ConfigurableAttribute<?>> getConfigurableAttributes() {
-        List<ConfigurableAttribute<?>> attrs = new ArrayList<>();
-        return attrs;
+    public void getConfigurableAttributes(List<ConfigurableAttribute<?>> attrs) {
     }
 
 }

@@ -11,6 +11,8 @@ import java.io.OutputStream;
  */
 public abstract class IModule {
 
+    public void init() {}
+
     public abstract String moduleName();
 
     public Class<IModule>[] dependencies() {

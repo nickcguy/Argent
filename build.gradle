@@ -56,7 +56,7 @@ task testFatJar(type: Jar) {
     manifest {
         attributes 'Implementation-Title': 'Gradle Jar File Example',
                 'Implementation-Version': version,
-                "Main-Class": 'TestLauncher'
+                "Main-Class": 'net.ncguy.ArgentSample'
     }
     baseName = project.name + '-test-fat'
     from { configurations.provided.collect { it.isDirectory() ? it : zipTree(it) } }

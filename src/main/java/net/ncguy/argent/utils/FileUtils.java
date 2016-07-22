@@ -2,6 +2,7 @@ package net.ncguy.argent.utils;
 
 import com.badlogic.gdx.files.FileHandle;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +22,21 @@ public class FileUtils {
             list.add(root);
         }
         return list;
+    }
+
+    public static List<File> getAllFilesInDirectory(File root) {
+        List<File> files = new ArrayList<>();
+        getAllFilesInDirectory(root, files);
+        return files;
+    }
+    public static void getAllFilesInDirectory(File root, List<File> files) {
+        if(root.isDirectory()) {
+            File[] children = root.listFiles();
+            if(children != null)
+                for(File child : children) getAllFilesInDirectory(child, files);
+        }else{
+            files.add(root);
+        }
     }
 
 }

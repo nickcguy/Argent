@@ -5,6 +5,19 @@ import java.util.Set;
 
 /**
  * Created by Guy on 15/07/2016.
+ * <br>
+ * sample:<br/>
+ * <pre>
+ *     {@code
+ *
+ *      VisitableTree<TreeObjectWrapper<TreeTest>> forest = new VisitableTree<>(new TreeObjectWrapper<>("Root"));
+ *      TreePopulator.populate(forest, testList, "\\|",
+ *          (d) -> d.cat+"|"+d.name,
+ *          (d, s) -> {
+ *              if(s.equals(d.cat+"|"+d.name)) return new TreeObjectWrapper<>(d, s);
+ *              return new TreeObjectWrapper<>(s);
+ *          });
+ *      forest.accept(new PrintIndentedVisitor<>(0));
  */
 public class VisitableTree<T> implements Visitable<T> {
 

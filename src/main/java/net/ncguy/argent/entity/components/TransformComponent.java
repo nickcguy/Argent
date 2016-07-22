@@ -8,7 +8,6 @@ import net.ncguy.argent.data.config.ConfigControl;
 import net.ncguy.argent.data.config.ConfigurableAttribute;
 import net.ncguy.argent.data.config.IConfigurable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.badlogic.gdx.math.Matrix4.*;
@@ -26,20 +25,25 @@ public class TransformComponent implements Component, IConfigurable {
     }
 
     @Override
-    public List<ConfigurableAttribute<?>> getConfigurableAttributes() {
-        List<ConfigurableAttribute<?>> attrs = new ArrayList<>();
+    public void getConfigurableAttributes(List<ConfigurableAttribute<?>> attrs) {
         attr(attrs, new Meta.Object("X", "Components|Transform|Translation"),  this::transX, this::transX, ConfigControl.NUMBERSELECTOR, Float::valueOf);
         attr(attrs, new Meta.Object("Y", "Components|Transform|Translation"),  this::transY, this::transY, ConfigControl.NUMBERSELECTOR, Float::valueOf);
         attr(attrs, new Meta.Object("Z", "Components|Transform|Translation"),  this::transZ, this::transZ, ConfigControl.NUMBERSELECTOR, Float::valueOf);
 
-        attr(attrs, new Meta.Object("Roll",  "Components|Transform|Rotation"), this::roll,   this::roll,   ConfigControl.NUMBERSELECTOR, Float::valueOf);
-        attr(attrs, new Meta.Object("Pitch", "Components|Transform|Rotation"), this::pitch,  this::pitch,  ConfigControl.NUMBERSELECTOR, Float::valueOf);
-        attr(attrs, new Meta.Object("Yaw",   "Components|Transform|Rotation"), this::yaw,    this::yaw,    ConfigControl.NUMBERSELECTOR, Float::valueOf);
+        attr(attrs, new Meta.Object("Roll",  "Components|Transform|Rotation"), this::roll,   this::roll,   ConfigControl.NUMBERSELECTOR, this::rotationTunnel);
+        attr(attrs, new Meta.Object("Pitch", "Components|Transform|Rotation"), this::pitch,  this::pitch,  ConfigControl.NUMBERSELECTOR, this::rotationTunnel);
+        attr(attrs, new Meta.Object("Yaw",   "Components|Transform|Rotation"), this::yaw,    this::yaw,    ConfigControl.NUMBERSELECTOR, this::rotationTunnel);
 
         attr(attrs, new Meta.Object("X", "Components|Transform|Scale"),        this::scaleX, this::scaleX, ConfigControl.NUMBERSELECTOR, Float::valueOf);
         attr(attrs, new Meta.Object("Y", "Components|Transform|Scale"),        this::scaleY, this::scaleY, ConfigControl.NUMBERSELECTOR, Float::valueOf);
         attr(attrs, new Meta.Object("Z", "Components|Transform|Scale"),        this::scaleZ, this::scaleZ, ConfigControl.NUMBERSELECTOR, Float::valueOf);
-        return attrs;
+    }
+
+    public float rotationTunnel(String s) {
+        float r = Float.valueOf(s);
+        r += 360;
+        r %= 360;
+        return r;
     }
 
     public Vector3 trans() { return transform.getTranslation(new Vector3()); }

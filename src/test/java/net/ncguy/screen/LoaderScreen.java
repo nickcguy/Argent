@@ -2,9 +2,14 @@ package net.ncguy.screen;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g3d.Model;
 import net.ncguy.ArgentSample;
 import net.ncguy.argent.Argent;
+import net.ncguy.argent.utils.FileUtils;
+
+import java.util.List;
 
 /**
  * Created by Guy on 15/07/2016.
@@ -21,10 +26,14 @@ public class LoaderScreen implements Screen {
     public void show() {
         Argent.content.setOnFinish((manager) -> {
             System.out.println("Loaded assets");
-            Argent.content.assetMap().forEach((k, v) -> System.out.printf("\t%s: %s", k, v));
+            Argent.content.assetMap().forEach((k, v) -> System.out.printf("\t%s: %s\n", k, v));
             this.game.setScreen(new GameScreen());
         });
-        Argent.content.addDirectoryRoot(Gdx.files.internal("assets"), Texture.class, "png");
+        List<FileHandle> handles = FileUtils.getAllHandlesInDirectory(Gdx.files.internal("assets"));
+        System.out.println("All file handles");
+        handles.stream().filter(h -> !h.isDirectory()).forEach(h -> System.out.println("\t"+h.path()));
+        Argent.content.addDirectoryRoot("assets", Texture.class, "png", "jpg");
+        Argent.content.addDirectoryRoot("assets", Model.class, "g3db");
         Argent.content.start();
     }
 

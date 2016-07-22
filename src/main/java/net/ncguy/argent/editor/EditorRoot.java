@@ -1,28 +1,35 @@
 package net.ncguy.argent.editor;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.Group;
-import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.*;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.kotcrab.vis.ui.widget.tabbedpane.Tab;
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPane;
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPaneAdapter;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.editor.panels.ObjectDataPanel;
+import net.ncguy.argent.entity.WorldEntity;
+import net.ncguy.argent.entity.components.factory.ArgentComponentFactory;
 import net.ncguy.argent.world.GameWorld;
+import org.reflections.Reflections;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
  * Created by Guy on 17/07/2016.
  */
-public class EditorRoot<T> {
+public class EditorRoot<T extends WorldEntity> {
 
     protected TabbedPane tabbedPane;
     protected Stage stage;
@@ -30,13 +37,37 @@ public class EditorRoot<T> {
     protected boolean attached;
     protected PackedTab selectedTab;
     protected GameWorld<T> world;
+    protected T selectedObject;
     protected Vector3 camDirection;
     protected Vector3 camPosition;
+    protected Vector3 camUp;
     protected Vector2 camSize;
     protected Supplier<Camera> cameraSupplier;
     protected Supplier<Texture> wrappedView;
+    protected InputListener stageFocusManager;
     protected Actor dummyActor;
     protected boolean cameraCached = false;
+
+    private static List<ArgentComponentFactory> componentFactoryList;
+    public static List<ArgentComponentFactory> componentFactoryList() {
+        if(componentFactoryList == null) {
+            componentFactoryList = new ArrayList<>();
+            String pkg = ArgentComponentFactory.class.getPackage().getName();
+            Set<Class<? extends ArgentComponentFactory>> clsSet = new Reflections(pkg).getSubTypesOf(ArgentComponentFactory.class);
+            clsSet.forEach(cls -> {
+                try {
+                    ArgentComponentFactory factory = cls.getConstructor().newInstance();
+                    componentFactoryList.add(factory);
+                } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+        return componentFactoryList;
+    }
+
+    // Panel cache
+    public ObjectDataPanel objDataPanel;
 
     public EditorRoot(GameWorld<T> world, Stage stage, Supplier<Camera> cameraSupplier) {
         this.world = world;
@@ -44,6 +75,7 @@ public class EditorRoot<T> {
         this.cameraSupplier = cameraSupplier;
         this.camDirection = new Vector3();
         this.camPosition = new Vector3();
+        this.camUp = new Vector3();
         this.camSize = new Vector2();
         this.dummyActor = new Actor() {
             @Override
@@ -57,8 +89,22 @@ public class EditorRoot<T> {
             }
         };
         stage.addActor(this.dummyActor);
-        stage.setDebugAll(true);
+        this.stageFocusManager = new InputListener() {
+            @Override
+            public boolean keyDown(InputEvent event, int keycode) {
+                if(keycode == Input.Keys.ESCAPE)
+                    stageFocus();
+                return super.keyDown(event, keycode);
+            }
+        };
     }
+
+    public void stageFocus() {
+        this.stage.unfocusAll();
+    }
+
+    public T selected() { return selectedObject; }
+    public void select(T obj) { selectedObject = obj; }
 
     public Supplier<Texture> wrappedView() { return wrappedView; }
     public void wrappedView(Supplier<Texture> wrappedView) { this.wrappedView = wrappedView; }
@@ -81,11 +127,14 @@ public class EditorRoot<T> {
     }
     public boolean attached() { return this.attached; }
 
+    public Supplier<Camera> cameraSupplier() { return cameraSupplier; }
+
     public void cacheCamera() {
         if(this.cameraCached) return;
         Camera camera = this.cameraSupplier.get();
         this.camDirection.set(camera.direction);
         this.camPosition.set(camera.position);
+        this.camUp.set(camera.up);
         this.camSize.set(camera.viewportWidth, camera.viewportHeight);
         this.cameraCached = true;
     }
@@ -118,11 +167,14 @@ public class EditorRoot<T> {
         Camera camera = this.cameraSupplier.get();
         camera.direction.set(this.camDirection);
         camera.position.set(this.camPosition);
+        camera.up.set(this.camUp);
         camera.viewportWidth = this.camSize.x;
         camera.viewportHeight = this.camSize.y;
         camera.update(true);
         this.cameraCached = false;
     }
+
+    public Stage stage() { return stage; }
 
     public void act(float delta) {
         if(this.selectedTab != null) this.selectedTab.act(delta);
@@ -154,7 +206,7 @@ public class EditorRoot<T> {
         });
         Tab tab;
         this.tabbedPane.add(tab = new EmptyTab(false, false, "Main"));
-        this.tabbedPane.add(new ObjectDataPanel<>(this));
+        this.tabbedPane.add(objDataPanel = new ObjectDataPanel<>(this));
 
         this.tabbedPane.switchTab(tab);
 
@@ -163,6 +215,9 @@ public class EditorRoot<T> {
         this.stage.addActor(this.activePane);
         this.attached = true;
         this.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        this.tabbedPane.getTable().setY(Gdx.graphics.getHeight());
+        this.tabbedPane.getTable().addAction(Actions.moveTo(0, Gdx.graphics.getHeight()-this.tabbedPane.getTable().getHeight(), .3f));
+        this.stage.addListener(stageFocusManager);
     }
 
     public void remove() {
@@ -170,7 +225,9 @@ public class EditorRoot<T> {
             this.tabbedPane.getTable().remove();
             this.activePane.remove();
             Argent.removeOnResize(this::resize);
+            this.stage.removeListener(stageFocusManager);
             this.attached = false;
+            this.objDataPanel = null;
         }
     }
 
@@ -189,6 +246,12 @@ public class EditorRoot<T> {
     public void resizeTab(int w, int h) {
         if(this.selectedTab != null) this.selectedTab.resize(w, h);
     }
+
+    public boolean cached() {
+        return this.cameraCached;
+    }
+
+    public GameWorld<T> world() { return world; }
 
     public static class PackedTab extends Tab {
 

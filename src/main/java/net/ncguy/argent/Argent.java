@@ -30,6 +30,7 @@ public class Argent {
                 }
             }
             loadedModules.put(module.getClass(), module);
+            module.init();
         }
     }
 

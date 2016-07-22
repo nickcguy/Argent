@@ -1,6 +1,6 @@
 package net.ncguy.argent.render.custom;
 
-import com.badlogic.gdx.graphics.g3d.RenderableProvider;
+import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.render.AbstractWorldRenderer;
 import net.ncguy.argent.world.GameWorld;
 
@@ -11,7 +11,7 @@ import java.util.Stack;
 /**
  * Created by Guy on 15/07/2016.
  */
-public class CustomWorldRenderer<T extends RenderableProvider> extends AbstractWorldRenderer<T> {
+public class CustomWorldRenderer<T extends WorldEntity> extends AbstractWorldRenderer<T> {
 
     List<BufferRenderer<T>> bufferRenderers;
     transient BufferRenderer<T> finalRenderer;
