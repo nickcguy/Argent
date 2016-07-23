@@ -3,15 +3,9 @@ package net.ncguy.screen;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.g3d.Material;
-import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -20,15 +14,11 @@ import net.ncguy.argent.editor.EditorModule;
 import net.ncguy.argent.editor.EditorRoot;
 import net.ncguy.argent.entity.EntityModule;
 import net.ncguy.argent.entity.WorldEntity;
-import net.ncguy.argent.entity.components.NameComponent;
-import net.ncguy.argent.entity.components.RenderableComponent;
 import net.ncguy.argent.render.AbstractWorldRenderer;
 import net.ncguy.argent.render.BasicRenderModule;
 import net.ncguy.argent.render.BasicWorldRenderer;
 import net.ncguy.argent.utils.ScreenshotUtils;
 import net.ncguy.argent.world.GameWorld;
-
-import static com.badlogic.gdx.graphics.VertexAttributes.Usage.*;
 
 /**
  * Created by Guy on 15/07/2016.
@@ -58,15 +48,6 @@ public class GameScreen implements Screen {
         renderer = new BasicWorldRenderer<>(world);
         editorRoot = new EditorRoot<>(world, stage, renderer::camera);
 
-        WorldEntity e = new WorldEntity();
-        world.addInstance(e);
-
-        Model model = new ModelBuilder().createBox(1, 1, 1, new Material(ColorAttribute.createDiffuse(Color.GREEN)), Position | Normal | TextureCoordinates);
-        ModelInstance inst = new ModelInstance(model);
-        e.add(new RenderableComponent(inst));
-        e.add(new NameComponent("test"));
-
-        e.invalidate();
 
         editorRoot.wrappedView(() -> fbo().getColorBufferTexture());
 

@@ -1,6 +1,7 @@
 package net.ncguy.argent.entity.components.factory;
 
 import com.badlogic.ashley.core.Component;
+import net.ncguy.argent.data.Meta;
 import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.utils.StringUtils;
 
@@ -14,10 +15,6 @@ import java.util.function.Supplier;
 public abstract class ArgentComponentFactory<T extends Component> {
 
     public abstract Class<T> componentClass();
-
-    public String name() {
-        return StringUtils.splitCamelCase(getClass().getSimpleName());
-    }
 
     public abstract ArrayList<String> errors(WorldEntity entity);
     public abstract String meta();
@@ -36,6 +33,21 @@ public abstract class ArgentComponentFactory<T extends Component> {
      */
     public void error(List<String> errors, String text, Supplier<Boolean> criteria) {
         if(criteria.get()) errors.add(text);
+    }
+
+
+    public String name() {
+        if(getClass().isAnnotationPresent(Meta.class)) {
+            return getClass().getAnnotation(Meta.class).displayName();
+        }
+        return StringUtils.splitCamelCase(getClass().getSimpleName());
+    }
+
+    public String category() {
+        if(getClass().isAnnotationPresent(Meta.class)) {
+            return getClass().getAnnotation(Meta.class).category();
+        }
+        return "Component";
     }
 
 }

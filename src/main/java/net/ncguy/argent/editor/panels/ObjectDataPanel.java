@@ -236,7 +236,7 @@ public class ObjectDataPanel<T extends WorldEntity> extends AbstractEditorPanel<
         if(entity == null) return;
         Component c = entity.getComponent(factory.componentClass());
         if(c != null) return;
-        entity.add(factory.build());
+        entity.add(factory.build(entity));
         reloadAllLists(entity);
     }
     public void removeComponent(ArgentComponentFactory<?> factory) {

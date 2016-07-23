@@ -1,8 +1,10 @@
 package net.ncguy.argent.entity.components;
 
-import com.badlogic.ashley.core.Component;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.*;
+import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
@@ -16,13 +18,21 @@ import net.ncguy.argent.utils.TextureCache;
 
 import java.util.List;
 
+import static com.badlogic.gdx.math.Matrix4.*;
+import static com.badlogic.gdx.math.Matrix4.M11;
+import static com.badlogic.gdx.math.Matrix4.M22;
+
 /**
  * Created by Guy on 15/07/2016.
  */
-public class RenderableComponent implements RenderableProvider, Component, IConfigurable {
+public class RenderableComponent extends ArgentComponent implements RenderableProvider, IConfigurable {
 
-    private ModelInstance instance;
-    private String modelRef;
+    protected ModelInstance instance;
+    protected String modelRef;
+    protected transient Matrix4 worldTransform;
+    protected Matrix4 localTransform;
+
+    protected float roll, pitch, yaw;
 
     public RenderableComponent() {
         this(new ModelInstance(new Model()));
@@ -31,11 +41,15 @@ public class RenderableComponent implements RenderableProvider, Component, IConf
     public RenderableComponent(ModelInstance instance) {
         this.instance = instance;
         this.modelRef = "N/A";
+        this.worldTransform = this.instance.transform;
+        this.localTransform = new Matrix4();
     }
 
     public RenderableComponent(String modelRef) {
         this.instance = new ModelInstance(new Model());
         this.modelRef = modelRef;
+        this.worldTransform = this.instance.transform;
+        this.localTransform = new Matrix4();
         setModel(modelRef);
     }
 
@@ -79,7 +93,34 @@ public class RenderableComponent implements RenderableProvider, Component, IConf
 
     @Override
     public void getRenderables(Array<Renderable> renderables, Pool<Renderable> pool) {
+        this.worldTransform.set(parent().transform().cpy());
+
+        Vector3 trn     = this.localTransform.getTranslation(new Vector3());
+        Quaternion rot  = this.localTransform.getRotation(new Quaternion());
+        Vector3 scl     = this.localTransform.getScale(new Vector3());
+
+        roll = rot.getRoll();
+        pitch = rot.getPitch();
+        yaw = rot.getYaw();
+
+        this.worldTransform.translate(trn).scale(scl.x, scl.y, scl.z);
+//        this.worldTransform.mul(this.localTransform);
+
         instance().getRenderables(renderables, pool);
+    }
+
+    protected void addRenderableTransformAttributes(String path, List<ConfigurableAttribute<?>> attrs) {
+        attr(attrs, new Meta.Object("X", "Components|"+path+"|Transform|Translation"),  this::transX, this::transX, ConfigControl.NUMBERSELECTOR, Float::valueOf);
+        attr(attrs, new Meta.Object("Y", "Components|"+path+"|Transform|Translation"),  this::transY, this::transY, ConfigControl.NUMBERSELECTOR, Float::valueOf);
+        attr(attrs, new Meta.Object("Z", "Components|"+path+"|Transform|Translation"),  this::transZ, this::transZ, ConfigControl.NUMBERSELECTOR, Float::valueOf);
+
+//        attr(attrs, new Meta.Object("Roll",  "Components|"+path+"|Transform|Rotation"), this::roll,   this::roll,   ConfigControl.NUMBERSELECTOR, this::rotationTunnel);
+//        attr(attrs, new Meta.Object("Pitch", "Components|"+path+"|Transform|Rotation"), this::pitch,  this::pitch,  ConfigControl.NUMBERSELECTOR, this::rotationTunnel);
+//        attr(attrs, new Meta.Object("Yaw",   "Components|"+path+"|Transform|Rotation"), this::yaw,    this::yaw,    ConfigControl.NUMBERSELECTOR, this::rotationTunnel);
+
+        attr(attrs, new Meta.Object("X", "Components|"+path+"|Transform|Scale"),        this::scaleX, this::scaleX, ConfigControl.NUMBERSELECTOR, Float::valueOf);
+        attr(attrs, new Meta.Object("Y", "Components|"+path+"|Transform|Scale"),        this::scaleY, this::scaleY, ConfigControl.NUMBERSELECTOR, Float::valueOf);
+        attr(attrs, new Meta.Object("Z", "Components|"+path+"|Transform|Scale"),        this::scaleZ, this::scaleZ, ConfigControl.NUMBERSELECTOR, Float::valueOf);
     }
 
     @Override
@@ -92,6 +133,9 @@ public class RenderableComponent implements RenderableProvider, Component, IConf
             items[index++] = new SearchableList.Item<>(new TextureRegionDrawable(new TextureRegion(TextureCache.pixel())), ref, ref, ref);
         }
         modelRefAttr.addParam("items", SearchableList.Item[].class, items);
+
+        addRenderableTransformAttributes("Renderable", attrs);
+
     }
 
     public String modelRef() { return this.modelRef; }
@@ -99,5 +143,57 @@ public class RenderableComponent implements RenderableProvider, Component, IConf
         setModel(modelRef);
     }
 
+
+    protected float positiveTunnel(String s) {
+        return Math.abs(Float.parseFloat(s));
+    }
+
+
+    public float rotationTunnel(String s) {
+        float r = Float.valueOf(s);
+        r += 360;
+        r %= 360;
+        return r;
+    }
+
+    public Vector3 trans() { return localTransform.getTranslation(new Vector3()); }
+
+    public float transX() { return trans().x; }
+    public float transY() { return trans().y; }
+    public float transZ() { return trans().z; }
+
+    public float roll()   { return roll; }
+    public float pitch()  { return pitch; }
+    public float yaw()    { return yaw; }
+
+    public float scaleX() { return localTransform.getScaleX(); }
+    public float scaleY() { return localTransform.getScaleY(); }
+    public float scaleZ() { return localTransform.getScaleZ(); }
+
+    public void transX(float val) { localTransform.getValues()[M03] = val; }
+    public void transY(float val) { localTransform.getValues()[M13] = val; }
+    public void transZ(float val) { localTransform.getValues()[M23] = val; }
+
+    public void roll(float val)   { val %= 360; roll = val;  updateTransform(); }
+    public void pitch(float val)  { val %= 360; pitch = val; updateTransform(); }
+    public void yaw(float val)    { val %= 360; yaw = val;   updateTransform(); }
+
+    public void scaleX(float val) { localTransform.getValues()[M00] = val; }
+    public void scaleY(float val) { localTransform.getValues()[M11] = val; }
+    public void scaleZ(float val) { localTransform.getValues()[M22] = val; }
+
+    private void updateTransform() {
+        Vector3 trans = trans();
+        Vector3 scale = new Vector3();
+
+        this.localTransform.getScale(scale);
+
+        this.localTransform.setToScaling(1, 1, 1);
+        this.localTransform.setToTranslation(0, 0, 0);
+
+        this.localTransform.setFromEulerAngles(roll, pitch, yaw);
+        this.localTransform.translate(trans);
+        this.localTransform.scale(scale.x, scale.y, scale.z);
+    }
 
 }

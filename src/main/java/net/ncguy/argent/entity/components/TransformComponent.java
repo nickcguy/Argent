@@ -1,6 +1,5 @@
 package net.ncguy.argent.entity.components;
 
-import com.badlogic.ashley.core.Component;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import net.ncguy.argent.data.Meta;
@@ -15,7 +14,7 @@ import static com.badlogic.gdx.math.Matrix4.*;
 /**
  * Created by Guy on 15/07/2016.
  */
-public class TransformComponent implements Component, IConfigurable {
+public class TransformComponent extends ArgentComponent implements IConfigurable {
 
     public Matrix4 transform;
     public float roll, pitch, yaw;

@@ -1,5 +1,6 @@
 package net.ncguy.argent.entity.components.factory;
 
+import net.ncguy.argent.data.Meta;
 import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.entity.components.TransformComponent;
 
@@ -8,6 +9,7 @@ import java.util.ArrayList;
 /**
  * Created by Guy on 22/07/2016.
  */
+@Meta(displayName = "Transform", category = "Component")
 public class TransformFactory extends ArgentComponentFactory<TransformComponent> {
 
     @Override

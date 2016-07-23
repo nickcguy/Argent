@@ -1,5 +1,6 @@
 package net.ncguy.argent.entity.components.factory;
 
+import net.ncguy.argent.data.Meta;
 import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.entity.components.RenderableComponent;
 
@@ -8,6 +9,7 @@ import java.util.ArrayList;
 /**
  * Created by Guy on 22/07/2016.
  */
+@Meta(displayName = "Renderable", category = "Component")
 public class RenderableFactory extends ArgentComponentFactory<RenderableComponent> {
 
     @Override
@@ -18,7 +20,7 @@ public class RenderableFactory extends ArgentComponentFactory<RenderableComponen
     @Override
     public ArrayList<String> errors(WorldEntity entity) {
         ArrayList<String> errors = new ArrayList<>();
-        error(errors, "Renderable component already exists in selected entity", () -> entity.getComponent(RenderableComponent.class) != null);
+        error(errors, name()+" component already exists in selected entity", () -> entity.getComponent(componentClass()) != null);
         return errors;
     }
 
@@ -31,7 +33,7 @@ public class RenderableFactory extends ArgentComponentFactory<RenderableComponen
     @Override
     public RenderableComponent build(WorldEntity entity) {
         RenderableComponent renderable = new RenderableComponent();
-        renderable.instance().transform = entity.transform();
+        renderable.parent(entity);
         return renderable;
     }
 }

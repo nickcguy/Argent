@@ -22,6 +22,7 @@ public class WorldEntity extends Entity implements RenderableProvider, IConfigur
 
     public WorldEntity() {
         add(this.transform = new TransformComponent());
+        this.transform.parent(this);
     }
 
     public TransformComponent transformComponent() { return transform; }
