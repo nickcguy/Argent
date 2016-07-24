@@ -1,6 +1,7 @@
 package net.ncguy.argent.render.advanced;
 
 import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.math.Vector3;
 import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.render.BasicWorldRenderer;
@@ -22,11 +23,11 @@ public class AdvancedWorldRenderer<T extends WorldEntity> extends BasicWorldRend
     }
 
     @Override
-    public void render(float delta) {
-        batch().begin(camera());
-        batch().render(world.instances(), getEnv(camera().position));
-        additionalRenderers.forEach(r -> r.render(batch(), delta));
-        batch().end();
+    public void render(ModelBatch batch, float delta) {
+        batch.begin(camera());
+        batch.render(world.instances(), getEnv(camera().position));
+        additionalRenderers.forEach(r -> r.render(batch, delta));
+        batch.end();
     }
 
     public Environment getEnv(Vector3 point) {

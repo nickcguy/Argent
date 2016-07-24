@@ -15,9 +15,8 @@ import net.ncguy.argent.editor.EditorRoot;
 import net.ncguy.argent.entity.EntityModule;
 import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.render.AbstractWorldRenderer;
-import net.ncguy.argent.render.BasicRenderModule;
-import net.ncguy.argent.render.BasicWorldRenderer;
-import net.ncguy.argent.utils.ScreenshotUtils;
+import net.ncguy.argent.render.argent.ArgentRenderer;
+import net.ncguy.argent.render.argent.ArgentRendererModule;
 import net.ncguy.argent.world.GameWorld;
 
 /**
@@ -35,7 +34,7 @@ public class GameScreen implements Screen {
     public void show() {
 //        UIModule.handle(Gdx.files.internal("ui/uiskin.json"));
         Argent.loadModule(new EditorModule());
-        Argent.loadModule(new BasicRenderModule());
+        Argent.loadModule(new ArgentRendererModule());
         Argent.loadModule(new EntityModule());
 
         stage = new Stage(new ScreenViewport(new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight())));
@@ -45,7 +44,7 @@ public class GameScreen implements Screen {
                 return new WorldEntity();
             }
         };
-        renderer = new BasicWorldRenderer<>(world);
+        renderer = new ArgentRenderer<>(world);
         editorRoot = new EditorRoot<>(world, stage, renderer::camera);
 
 
@@ -79,8 +78,7 @@ public class GameScreen implements Screen {
                 Gdx.gl.glClearColor(0, 0, 0, 1);
                 Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
                 renderer.render(delta);
-                if(Gdx.input.isKeyJustPressed(Input.Keys.F2))
-                    ScreenshotUtils.saveScreenshot(fbo().getWidth(), fbo().getHeight(), "Main");
+
                 fbo().end();
             }else{
                 renderer.render(delta);

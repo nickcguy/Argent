@@ -1,5 +1,6 @@
 package net.ncguy.argent.render.custom;
 
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.render.AbstractWorldRenderer;
 import net.ncguy.argent.world.GameWorld;
@@ -23,15 +24,15 @@ public class CustomWorldRenderer<T extends WorldEntity> extends AbstractWorldRen
     }
 
     @Override
-    public void render(float delta) {
+    public void render(ModelBatch batch, float delta) {
         Stack<BufferRenderer<T>> stack = toStack();
         final int[] mutableId = new int[]{firstId};
         while(!stack.isEmpty())
             stack.pop().prepare().render().attachBufferToShader(finalRenderer.shaderProgram, mutableId);
         finalRenderer.render(false);
-        batch().begin(camera());
-        additionalRenderers.forEach(r -> r.render(batch(), delta));
-        batch().end();
+        batch.begin(camera());
+        additionalRenderers.forEach(r -> r.render(batch, delta));
+        batch.end();
     }
 
     public Stack<BufferRenderer<T>> toStack() {

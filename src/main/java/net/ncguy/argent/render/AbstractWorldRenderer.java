@@ -51,7 +51,11 @@ public abstract class AbstractWorldRenderer<T extends WorldEntity> {
         return modelBatch;
     }
 
-    public abstract void render(float delta);
+    public abstract void render(ModelBatch batch, float delta);
+
+    public void render(float delta) {
+        render(batch(), delta);
+    }
 
     public void resize(int width, int height) {
         camera().viewportWidth = width;

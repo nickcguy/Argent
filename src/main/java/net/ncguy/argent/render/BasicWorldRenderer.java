@@ -1,6 +1,7 @@
 package net.ncguy.argent.render;
 
 import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import net.ncguy.argent.entity.WorldEntity;
@@ -27,11 +28,14 @@ public class BasicWorldRenderer<T extends WorldEntity> extends AbstractWorldRend
     }
 
     @Override
-    public void render(float delta) {
-        batch().begin(camera());
-        batch().render(world.instances(), environment());
-        additionalRenderers.forEach(r -> r.render(batch(), delta));
-        batch().end();
+    public void render(ModelBatch batch, float delta) {
+        batch.begin(camera());
+        if(environment() != null)
+            batch.render(world.instances(), environment());
+        else
+            batch.render(world.instances());
+        additionalRenderers.forEach(r -> r.render(batch, delta));
+        batch.end();
     }
 
 }
