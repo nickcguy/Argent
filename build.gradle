@@ -76,6 +76,7 @@ dependencies {
     provided "com.badlogicgames.gdx:gdx:$gdxVersion"
     provided "com.badlogicgames.gdx:gdx-bullet:$gdxVersion"
     provided "com.badlogicgames.ashley:ashley:$ashleyVersion"
+    provided "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
 
     provided "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
     provided "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"

@@ -1,5 +1,10 @@
 package net.ncguy.argent.utils;
 
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.StringBuilder;
+
+import java.util.Locale;
+
 /**
  * Created by Guy on 22/07/2016.
  */
@@ -14,6 +19,20 @@ public class StringUtils {
                 ),
                 " "
         );
+    }
+
+    public static String formatFloat(float f, int digits) {
+        return String.format(Locale.US, "%."+ digits + "f", f);
+    }
+
+    public static String formatVector3(Vector3 vec, int digits, boolean brace) {
+        StringBuilder sb = new StringBuilder();
+        if(brace) sb.append("[");
+        sb.append(formatFloat(vec.x, digits)).append(", ");
+        sb.append(formatFloat(vec.y, digits)).append(", ");
+        sb.append(formatFloat(vec.z, digits));
+        if(brace) sb.append("]");
+        return sb.toString();
     }
 
 }

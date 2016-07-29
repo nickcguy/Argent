@@ -19,6 +19,10 @@ public abstract class IModule {
         return new Class[0];
     }
 
+    public void log(String format, String... args) {
+        log(String.format(format, (Object[]) args));
+    }
+
     public void log(String text) {
         try {
             this.logStream().write(text.getBytes());

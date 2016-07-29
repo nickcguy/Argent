@@ -7,16 +7,18 @@ attribute vec2 a_texCoord0;
 
 uniform mat4 u_projViewTrans;
 uniform mat4 u_worldTrans;
+uniform vec4 u_smartDiffuseCol;
+uniform mat4 u_normalMatrix;
 
 varying out vec4 Position;
-varying out vec3 Normal;
+varying out vec4 Normal;
 varying out vec3 Colour;
 varying out vec2 TexCoords;
 
 void main() {
-    Colour = a_color.rgb;
+    Colour = u_smartDiffuseCol.rgb;
     TexCoords = a_texCoord0;
     Position = (u_worldTrans * a_position);
-    Normal = a_normal;
+    Normal = vec4(a_normal, 1.0);
 	gl_Position = u_projViewTrans * Position;
 }

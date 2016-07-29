@@ -2,6 +2,9 @@ package net.ncguy.argent.editor;
 
 import net.ncguy.argent.IModule;
 import net.ncguy.argent.entity.EntityModule;
+import net.ncguy.argent.event.EventModule;
+import net.ncguy.argent.injector.InjectionModule;
+import net.ncguy.argent.injector.InjectionStore;
 import net.ncguy.argent.ui.UIModule;
 import net.ncguy.argent.world.WorldModule;
 
@@ -11,12 +14,29 @@ import net.ncguy.argent.world.WorldModule;
 public class EditorModule extends IModule {
 
     @Override
+    public void init() {
+                CommandHistory commandHistory = new CommandHistory();
+        try {
+            InjectionStore.setGlobal(commandHistory);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        EditorUI editorUI = new EditorUI();
+        try {
+            InjectionStore.setGlobal(editorUI);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
     public String moduleName() {
         return "Editor";
     }
 
     @Override
     public Class<IModule>[] dependencies() {
-        return new Class[]{WorldModule.class, EntityModule.class, UIModule.class};
+        return new Class[]{EventModule.class, InjectionModule.class, WorldModule.class, EntityModule.class, UIModule.class};
     }
 }

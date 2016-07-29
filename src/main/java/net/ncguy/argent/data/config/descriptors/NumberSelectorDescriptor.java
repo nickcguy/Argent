@@ -15,7 +15,8 @@ public class NumberSelectorDescriptor extends ConfigControlDescriptor {
         Map<String, AbstractMap.SimpleEntry<Class<?>, Object>> map = new HashMap<>();
         add(map, "min", Integer.class, Integer.MIN_VALUE);
         add(map, "max", Integer.class, Integer.MAX_VALUE);
-        add(map, "precision", Integer.class, 0);
+        add(map, "step", Float.class, 1);
+        add(map, "precision", Integer.class, 1);
         return map;
     }
 }

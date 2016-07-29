@@ -1,7 +1,7 @@
 package net.ncguy.argent.world;
 
-import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.utils.Disposable;
+import net.ncguy.argent.entity.WorldEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Created by Guy on 15/07/2016.
  */
-public abstract class GameWorld<T extends Entity> implements Disposable {
+public abstract class GameWorld<T extends WorldEntity> implements Disposable {
 
     protected List<T> instances;
 
@@ -45,4 +45,8 @@ public abstract class GameWorld<T extends Entity> implements Disposable {
     }
 
     public abstract T buildInstance();
+
+    public void update(float delta) {
+        instances.forEach(i -> i.update(delta));
+    }
 }

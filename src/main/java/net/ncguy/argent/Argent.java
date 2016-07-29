@@ -1,8 +1,13 @@
 package net.ncguy.argent;
 
 import net.ncguy.argent.content.ContentManager;
+import net.ncguy.argent.event.EventBus;
+import net.ncguy.argent.injector.InjectionModule;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 
 /**
@@ -13,6 +18,9 @@ public class Argent {
     // Global module references
 
     public static ContentManager content;
+    public static EventBus event;
+    @Deprecated
+    public static InjectionModule injector;
 
     // Module loading
 
@@ -21,7 +29,7 @@ public class Argent {
     public static Map<Class<? extends IModule>, IModule> loadedModules() { return loadedModules; }
 
     public static void loadModule(IModule module) {
-        if(!loadedModules.containsKey(module.getClass())) {
+        if(!isModuleLoaded(module.getClass())) {
             for (Class<IModule> dep : module.dependencies()) {
                 try {
                     loadModule(dep.newInstance());
@@ -32,6 +40,18 @@ public class Argent {
             loadedModules.put(module.getClass(), module);
             module.init();
         }
+    }
+
+    public static boolean isModuleLoaded(IModule module) {
+        return isModuleLoaded(module.getClass());
+    }
+    public static boolean isModuleLoaded(Class<? extends IModule> moduleCls) {
+        return loadedModules.containsKey(moduleCls);
+    }
+
+    public static IModule getModule(Class<? extends IModule> cls) {
+        if(isModuleLoaded(cls)) return loadedModules.get(cls);
+        return null;
     }
 
     // Callbacks

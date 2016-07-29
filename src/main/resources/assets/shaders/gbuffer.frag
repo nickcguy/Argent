@@ -2,28 +2,31 @@
 
 layout (location = 0) out vec4 gPosition;
 layout (location = 1) out vec4 gNormal;
-layout (location = 2) out vec4 gAlbedoSpec;
-layout (location = 3) out vec4 gButts;
+layout (location = 2) out vec4 gDiffuse;
+layout (location = 3) out vec4 gSpecular;
 
 in vec2 TexCoords;
 in vec4 Position;
-in vec3 Normal;
+in vec4 Normal;
 in vec3 Colour;
 
-uniform sampler2D texture_diffuse1;
-uniform sampler2D texture_specular1;
+uniform sampler2D u_smartDiffuse;
+uniform sampler2D u_smartSpecular;
+uniform sampler2D u_smartNormal;
 
-void main()
-{
+void main() {
+
+    vec4 normal = texture(u_smartNormal, TexCoords);
+    normal = Normal * normal;
+
     // Store the fragment position vector in the first gbuffer texture
     gPosition = Position;
     // Also store the per-fragment normals into the gbuffer
-    gNormal = vec4(normalize(Normal), 1.0);
+    gNormal = vec4(normalize(normal).rgb, 1.0);
     // And the diffuse per-fragment color
-    gAlbedoSpec.rgb = texture(texture_diffuse1, TexCoords).rgb;
-    gAlbedoSpec.rgb *= Colour;
+    gDiffuse = texture(u_smartDiffuse, TexCoords);
+    gDiffuse.rgb *= Colour;
     // Store specular intensity in gAlbedoSpec's alpha component
-    gAlbedoSpec.a = texture(texture_specular1, TexCoords).r;
+    gSpecular = vec4(vec3(texture(u_smartSpecular, TexCoords).r), 1.0);
 
-    gButts = vec4(1.0, 0.0, 1.0, 1.0);
 }

@@ -88,9 +88,11 @@ public class GDXComponentBuilder extends AbstractComponentBuilder {
         Integer min = getValue(Integer.class, attr.params().get("min"));
         Integer max = getValue(Integer.class, attr.params().get("max"));
         Integer precision = getValue(Integer.class, attr.params().get("precision"));
+        Float step = getValue(Float.class, attr.params().get("step"));
 
-        SimpleFloatSpinnerModel model = new SimpleFloatSpinnerModel(Float.parseFloat(attr.get().toString()), min, max, 1, precision);
+        step = .1f;
 
+        SimpleFloatSpinnerModel model = new SimpleFloatSpinnerModel(Float.parseFloat(attr.get().toString()), min, max, step, precision);
         Spinner spinner = new Spinner("", model);
 
         fixVisSpinners(spinner);
@@ -98,8 +100,10 @@ public class GDXComponentBuilder extends AbstractComponentBuilder {
         spinner.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                attr.setSafe(model.getValue()+"");
-                model.setValue(Float.parseFloat(attr.get().toString()), false);
+                float newVal = model.getValue();
+                attr.setSafe(newVal+"");
+                float oldVal = Float.parseFloat(attr.get().toString());
+                model.setValue(oldVal, false);
             }
         });
 

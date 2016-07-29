@@ -3,7 +3,11 @@ package net.ncguy.argent.render;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import net.ncguy.argent.Argent;
 import net.ncguy.argent.entity.WorldEntity;
+import net.ncguy.argent.injector.InjectionModule;
+import net.ncguy.argent.injector.InjectionStore;
+import net.ncguy.argent.misc.FreeCamController;
 import net.ncguy.argent.world.GameWorld;
 
 import java.util.LinkedHashSet;
@@ -20,9 +24,19 @@ public abstract class AbstractWorldRenderer<T extends WorldEntity> {
 
     protected Set<IRenderAddon> additionalRenderers;
 
+    protected FreeCamController freeCamController;
+
     public AbstractWorldRenderer(GameWorld<T> world) {
         this.world = world;
         this.additionalRenderers = new LinkedHashSet<>();
+        this.freeCamController = new FreeCamController(camera());
+        if(Argent.isModuleLoaded(InjectionModule.class)) {
+            try {
+                InjectionStore.setGlobal(this.freeCamController);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void addRenderer(IRenderAddon addon) {
@@ -55,6 +69,10 @@ public abstract class AbstractWorldRenderer<T extends WorldEntity> {
 
     public void render(float delta) {
         render(batch(), delta);
+    }
+
+    public void setSize(int width, int height) {
+        resize(width, height);
     }
 
     public void resize(int width, int height) {

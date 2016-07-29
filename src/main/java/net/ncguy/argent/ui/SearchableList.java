@@ -187,6 +187,11 @@ public class SearchableList<T> extends Group {
         this.changeListener = changeListener;
     }
 
+    public void clearItems() {
+        items.clear();
+        itemTree.clearChildren();
+    }
+
     public static class Item<T> extends Group {
 
         private Drawable icon;
@@ -199,6 +204,7 @@ public class SearchableList<T> extends Group {
         public final T value;
 
         public Item(Drawable icon, String text, T value, String... keywords) {
+            if(icon == null) icon = new TextureRegionDrawable(new TextureRegion(TextureCache.pixel()));
             this.icon = icon;
             this.label = new Label(text, VisUI.getSkin());
             this.image = new Image(icon);

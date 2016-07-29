@@ -1,15 +1,24 @@
 package net.ncguy.argent.entity.components;
 
-import com.badlogic.ashley.core.Component;
+import com.badlogic.gdx.graphics.g3d.RenderableProvider;
+import net.ncguy.argent.editor.widgets.component.ComponentWidget;
 import net.ncguy.argent.entity.WorldEntity;
 
 /**
  * Created by Guy on 23/07/2016.
  */
-public abstract class ArgentComponent implements Component {
+public interface ArgentComponent extends RenderableProvider {
 
-    protected WorldEntity parent;
+    public static enum Type {
+        MODEL, TERRAIN, LIGHT, PARTICLE_SYSTEM,
+    }
 
-    public WorldEntity parent() { return parent; }
-    public ArgentComponent parent(WorldEntity parent) { this.parent = parent; return this; }
+    WorldEntity getWorldEntity();
+    void update(float delta);
+    Type getType();
+    void setType(Type type);
+    void remove();
+
+    Class<? extends ComponentWidget> widgetClass();
+
 }

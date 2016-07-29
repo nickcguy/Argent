@@ -14,7 +14,7 @@ import com.kotcrab.vis.ui.widget.tabbedpane.Tab;
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPane;
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPaneAdapter;
 import net.ncguy.argent.Argent;
-import net.ncguy.argent.editor.panels.ObjectDataPanel;
+import net.ncguy.argent.editorOld.panels.ObjectDataPanel;
 import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.entity.components.factory.ArgentComponentFactory;
 import net.ncguy.argent.world.GameWorld;

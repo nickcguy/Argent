@@ -1,34 +1,34 @@
 package net.ncguy.screen;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.glutils.FrameBuffer;
-import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g3d.Material;
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.editor.EditorModule;
-import net.ncguy.argent.editor.EditorRoot;
+import net.ncguy.argent.editor.EditorUI;
+import net.ncguy.argent.editor.project.ProjectManager;
 import net.ncguy.argent.entity.EntityModule;
 import net.ncguy.argent.entity.WorldEntity;
-import net.ncguy.argent.render.AbstractWorldRenderer;
-import net.ncguy.argent.render.argent.ArgentRenderer;
+import net.ncguy.argent.entity.components.LightComponent;
+import net.ncguy.argent.injector.ArgentInjector;
+import net.ncguy.argent.injector.Inject;
+import net.ncguy.argent.injector.InjectionModule;
 import net.ncguy.argent.render.argent.ArgentRendererModule;
-import net.ncguy.argent.world.GameWorld;
+
+import static com.badlogic.gdx.graphics.GL30.GL_COLOR_BUFFER_BIT;
+import static com.badlogic.gdx.graphics.GL30.GL_DEPTH_BUFFER_BIT;
 
 /**
  * Created by Guy on 15/07/2016.
  */
 public class GameScreen implements Screen {
 
-    EditorRoot<WorldEntity> editorRoot;
-    Stage stage;
-    GameWorld<WorldEntity> world;
-    AbstractWorldRenderer<WorldEntity> renderer;
-    FrameBuffer fbo;
+
+    @Inject ProjectManager projectManager;
+    @Inject EditorUI editorUI;
 
     @Override
     public void show() {
@@ -36,72 +36,52 @@ public class GameScreen implements Screen {
         Argent.loadModule(new EditorModule());
         Argent.loadModule(new ArgentRendererModule());
         Argent.loadModule(new EntityModule());
+        Argent.loadModule(new InjectionModule());
 
-        stage = new Stage(new ScreenViewport(new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight())));
-        world = new GameWorld<WorldEntity>() {
-            @Override
-            public WorldEntity buildInstance() {
-                return new WorldEntity();
-            }
-        };
-        renderer = new ArgentRenderer<>(world);
-        editorRoot = new EditorRoot<>(world, stage, renderer::camera);
+        ArgentInjector.inject(this);
 
+//        renderer = new ArgentRenderer<>(world);
 
-        editorRoot.wrappedView(() -> fbo().getColorBufferTexture());
+        Material mtl = new Material();
+        mtl.set(TextureAttribute.createDiffuse(Argent.content.get("Texture_testDiffuse", Texture.class)));
+        mtl.set(TextureAttribute.createNormal(Argent.content.get("Texture_testNormal", Texture.class)));
+        mtl.set(TextureAttribute.createSpecular(Argent.content.get("Texture_testSpecular", Texture.class)));
 
-        Gdx.input.setInputProcessor(stage);
-    }
+        WorldEntity worldEntity = new WorldEntity();
+        worldEntity.add(new LightComponent(worldEntity));
 
-    public FrameBuffer fbo() {
-        if(this.fbo == null)
-            fbo(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        return fbo;
-    }
+        projectManager.current().currScene.sceneGraph.addWorldEntity(worldEntity);
 
-    public void fbo(int w, int h) {
-        if(this.fbo != null) {
-            this.fbo.dispose();
-            this.fbo = null;
-        }
-        this.fbo = new FrameBuffer(Pixmap.Format.RGBA8888, w, h, true);
+        editorUI.setRenderer(projectManager.current().currScene.sceneGraph.renderer);
+
+        projectManager.current().currScene.select(worldEntity);
+
+        Gdx.input.setInputProcessor(new InputMultiplexer(editorUI, editorUI.getFreeCamController()));
     }
 
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+        Gdx.gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        if(editorRoot.renderMain()) {
-            if(editorRoot.wrapMainRender()) {
-                fbo().begin();
-                Gdx.gl.glClearColor(0, 0, 0, 1);
-                Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
-                renderer.render(delta);
 
-                fbo().end();
-            }else{
-                renderer.render(delta);
-            }
-        }
+        projectManager.current().currScene.sceneGraph.update(delta);
+        projectManager.current().currScene.sceneGraph.render(delta);
 
-        stage.act(delta);
-        stage.draw();
 
-        if(Gdx.input.isKeyJustPressed(Input.Keys.P)) {
-            if(Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
-                if(editorRoot.attached()) editorRoot.remove();
-                else editorRoot.attach();
-            }
-        }
+//        editorUI.act(delta);
+//        editorUI.draw();
+
+//        renderer.render(delta);
+
+//        stage.act(delta);
+//        stage.draw();
+
     }
 
     @Override
     public void resize(int width, int height) {
-        this.renderer.resize(width, height);
-        this.stage.getViewport().update(width, height, true);
-        this.stage.getCamera().update(true);
-        fbo(width, height);
+        editorUI.getViewport().update(width, height, true);
     }
 
     @Override
@@ -124,3 +104,4 @@ public class GameScreen implements Screen {
 
     }
 }
+

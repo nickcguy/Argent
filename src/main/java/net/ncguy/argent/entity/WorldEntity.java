@@ -1,55 +1,165 @@
 package net.ncguy.argent.entity;
 
-import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.RenderableProvider;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
-import net.ncguy.argent.data.config.ConfigurableAttribute;
-import net.ncguy.argent.data.config.IConfigurable;
-import net.ncguy.argent.entity.components.RenderableComponent;
-import net.ncguy.argent.entity.components.TransformComponent;
+import net.ncguy.argent.entity.components.ArgentComponent;
+import net.ncguy.argent.entity.components.ComponentData;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by Guy on 15/07/2016.
  */
-public class WorldEntity extends Entity implements RenderableProvider, IConfigurable {
+public class WorldEntity implements RenderableProvider {
 
-    private TransformComponent transform;
+    public boolean active = true;
+    public String name = "";
+
+    public Vector3 localPosition;
+    public Quaternion localRotation;
+    public Vector3 localScale;
+
+    public Matrix4 transform;
+
+    List<ArgentComponent> components;
+
 
     public WorldEntity() {
-        add(this.transform = new TransformComponent());
-        this.transform.parent(this);
-    }
+        localPosition = new Vector3();
+        localRotation = new Quaternion();
+        localScale = new Vector3(1, 1, 1);
 
-    public TransformComponent transformComponent() { return transform; }
-    public Matrix4 transform() { return transform.transform; }
+        transform = new Matrix4(localPosition, localRotation, localScale);
+        components = new ArrayList<>();
+    }
 
     @Override
     public void getRenderables(Array<Renderable> renderables, Pool<Renderable> pool) {
-        getComponents().forEach(c -> {
-            if(c instanceof RenderableProvider)
-                ((RenderableComponent)c).getRenderables(renderables, pool);
-        });
+        transform();
+        components.forEach(c -> c.getRenderables(renderables, pool));
     }
 
-    @Override
-    public void getConfigurableAttributes(List<ConfigurableAttribute<?>> attrs) {
-        getComponents().forEach(c -> {
-            if(c instanceof IConfigurable)
-                ((IConfigurable)c).getConfigurableAttributes(attrs);
-        });
+    public void update(float delta) {
+        components.forEach(c -> c.update(delta));
+    }
+    public void render(float delta) {
+//        components.forEach(c -> c.render(delta));
     }
 
     @Override
     public String toString() {
-        if(EntityMappers.nameMapper.has(this)) {
-            String name = EntityMappers.nameMapper.get(this).name;
-            if(name.length() > 0) return name;
-        }
+        if(name.length() > 0)
+            return name;
         return super.toString();
+    }
+
+    public Matrix4 transform() {
+        transform.set(localPosition, localRotation, localScale);
+        return transform;
+    }
+
+    public void translate(Vector3 v) {
+        localPosition.add(v);
+    }
+
+    public void translate(float x, float y, float z) {
+        localPosition.add(x, y, z);
+    }
+
+    public void rotate(Quaternion q) {
+        localRotation.mulLeft(q);
+    }
+
+    public void rotate(float x, float y, float z, float w) {
+        localRotation.mulLeft(x, y, z, w);
+    }
+
+    public void scale(Vector3 v) {
+        localScale.scl(v);
+    }
+
+    public void scale(float x, float y, float z) {
+        localScale.scl(x, y, z);
+    }
+
+    public void setLocalPosition(float x, float y, float z) {
+        localPosition.set(x, y, z);
+    }
+
+    public void setLocalRotation(float x, float y, float z, float w) {
+        localRotation.set(x, y, z, w);
+    }
+
+    public void setLocalScale(float x, float y, float z) {
+        localScale.set(x, y, z);
+    }
+
+    public Vector3 getLocalPosition(Vector3 out) {
+        return out.set(localPosition);
+    }
+
+    public Quaternion getLocalRotation(Quaternion out) {
+        return out.set(localRotation);
+    }
+
+    public Vector3 getLocalScale(Vector3 out) {
+        return out.set(localScale);
+    }
+
+    public Vector3 getPosition(Vector3 out) {
+        return transform().getTranslation(out);
+    }
+
+    public Quaternion getRotation(Quaternion out) {
+        return transform().getRotation(out);
+    }
+
+    public Vector3 getScale(Vector3 out) {
+        return transform().getScale(out);
+    }
+
+    public List<ArgentComponent> components() {
+        return components;
+    }
+
+    public void remove(ArgentComponent component) {
+        this.components.remove(component);
+    }
+
+    public void add(ArgentComponent component) {
+        this.components.add(component);
+    }
+
+    public int count(Class<? extends ArgentComponent> componentCls) {
+        int count = 0;
+        for (ArgentComponent component : this.components)
+            if(component.getClass().equals(componentCls)) count++;
+        return count;
+    }
+
+    public boolean cantApply(Class<? extends ArgentComponent> componentCls) {
+        return !canApply(componentCls);
+    }
+    public boolean canApply(Class<? extends ArgentComponent> componentCls) {
+        ComponentData data = componentCls.getAnnotation(ComponentData.class);
+        if(data.limit() == -1) return true;
+        return count(componentCls) < data.limit();
+    }
+
+    public boolean hasNot(Class<? extends ArgentComponent> componentCls) { return !has(componentCls); }
+    public boolean has(Class<? extends ArgentComponent> componentCls) {
+        return get(componentCls) != null;
+    }
+
+    public <T extends ArgentComponent> T get(Class<T> componentCls) {
+        for (ArgentComponent component : this.components)
+            if(component.getClass().equals(componentCls)) return (T) component;
+        return null;
     }
 }
