@@ -28,7 +28,7 @@ public class EventBus {
         subscribers.remove(subscriber);
     }
 
-    public void post(Object event) {
+    public void post(AbstractEvent event) {
         try{
             final Class eventType = event.getClass();
             for(Object subscriber : subscribers) {

@@ -1,12 +1,13 @@
-#version 120
+#version 330
 
-attribute vec4 a_position;
-attribute vec2 a_texCoord0;
+in vec4 a_position;
+in vec3 a_normal;
+in vec2 a_texCoord0;
 
 uniform mat4 u_projViewTrans;
 uniform mat4 u_worldTrans;
 
-varying out vec2 TexCoords;
+out vec2 TexCoords;
 
 void main() {
     TexCoords = a_texCoord0;

@@ -3,6 +3,8 @@ package net.ncguy.argent.content;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Texture;
+import net.ncguy.argent.editor.project.Registry;
 import net.ncguy.argent.utils.FileUtils;
 
 import java.util.*;
@@ -35,10 +37,15 @@ public class ContentManager {
         assetMap = new HashMap<>();
         fileRoots = Collections.synchronizedSet(new LinkedHashSet<>());
         hasLoaded = true;
+
+        addDirectoryRoot(Registry.TEXTURES_DIR, Texture.class, true, "png", "jpg");
     }
 
     public void addDirectoryRoot(String root, Class<?> assetType, String... extensionFilters) {
         addDirectoryRoot(new FileRoot(root, assetType, extensionFilters));
+    }
+    public void addDirectoryRoot(String root, Class<?> assetType, boolean absolute, String... extensionFilters) {
+        addDirectoryRoot(new FileRoot(root, assetType, absolute, extensionFilters));
     }
 
     public void addDirectoryRoot(FileRoot fileRoot) {
@@ -64,7 +71,11 @@ public class ContentManager {
 //                    }
 //                });
                 // {@link FILEHANDLE}
-                List<FileHandle> handles = FileUtils.getAllHandlesInDirectory(Gdx.files.internal(root.root));
+                FileHandle rootHandle;
+                if(root.absolute) rootHandle = Gdx.files.absolute(root.root);
+                else rootHandle = Gdx.files.internal(root.root);
+                List<FileHandle> handles;
+                handles = FileUtils.getAllHandlesInDirectory(rootHandle);
                 handles.forEach(handle -> {
                     if(root.isExtensionValid(handle.extension())) {
                         String key = root.assetType.getSimpleName()+"_"+handle.nameWithoutExtension();
@@ -79,6 +90,8 @@ public class ContentManager {
     }
 
     public <T> T get(String ref, Class<T> cls) {
+        if(!ref.toLowerCase().startsWith(cls.getSimpleName().toLowerCase()))
+            ref = cls.getSimpleName()+"_"+ref;
         return (T)get(ref);
     }
 
@@ -117,22 +130,33 @@ public class ContentManager {
 
     // TODO Optimise
     public String getRef(Object asset) {
-        Class cls = asset.getClass();
-        String[] allRefs = getAllRefs(cls);
-        for(String ref : allRefs) {
-            if(get(ref, cls).equals(asset)) return ref;
-        }
-        return "Unable to find ref";
+        try {
+            Class cls = asset.getClass();
+            String[] allRefs = getAllRefs(cls);
+            for (String ref : allRefs) {
+                Object obj = get(ref, cls);
+                if (obj.equals(asset)) return ref;
+            }
+        }catch (Exception ignored) {}
+        return null;
     }
 
     public static class FileRoot {
         public String root;
         public Class<?> assetType;
         public String[] extensionFilters;
+        public boolean absolute = false;
 
         public FileRoot(String root, Class<?> assetType, String... extensionFilters) {
             this.root = root;
             this.assetType = assetType;
+            this.extensionFilters = extensionFilters;
+        }
+
+        public FileRoot(String root, Class<?> assetType, boolean absolute, String... extensionFilters) {
+            this.root = root;
+            this.assetType = assetType;
+            this.absolute = absolute;
             this.extensionFilters = extensionFilters;
         }
 

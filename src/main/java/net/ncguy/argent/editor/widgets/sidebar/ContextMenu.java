@@ -53,6 +53,7 @@ public class ContextMenu extends PopupMenu {
                 if(selected != null) {
                     context.currScene.sceneGraph.removeWorldEntity(selected);
                     selected = null;
+                    context.currScene.select(null);
                 }
                 Argent.event.post(new SceneGraphChangedEvent());
             }

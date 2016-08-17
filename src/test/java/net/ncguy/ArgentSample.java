@@ -50,7 +50,7 @@ public class ArgentSample extends ArgentGame {
         cfg.useOpenGL3(true, 4, 5);
         cfg.setWindowedMode(800, 600);
         cfg.setBackBufferConfig(8, 8, 8, 8, 16, 0, 16);
-        cfg.useVsync(true);
+        cfg.useVsync(false);
         new Lwjgl3Application(new ArgentSample(), cfg);
     }
 

@@ -3,12 +3,20 @@ package net.ncguy.argent.utils;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g3d.Attributes;
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
+import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
+import com.badlogic.gdx.graphics.g3d.utils.TextureDescriptor;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import net.ncguy.argent.entity.attributes.PickerIDAttribute;
 
 /**
  * Created by Guy on 21/07/2016.
@@ -125,6 +133,107 @@ public class AppUtils {
             camera.lookAt(point);
             camera.update(true);
         }
+
+        public static void getEyeRay(Camera camera, float x, float y, Vector3 result) {
+            Vector3 tmp0 = new Vector3();
+            Quaternion tmp3 = new Quaternion();
+            tmp3.set(x, y, 0, 1);
+            tmp3.mul(1f / tmp3.w);
+            tmp0.set(tmp3.x, tmp3.y, tmp3.z);
+            if(result == null) return;
+            result.set(tmp0);
+            result.sub(camera.position);
+        }
+
+        public static Matrix4 getInverseProjectionViewMatrix(Camera camera) {
+            Matrix4 mat = camera.combined.cpy();
+            mat.mul(getViewMatrix(camera));
+            mat.inv();
+            return mat;
+        }
+
+        public static Matrix4 getViewMatrix(Camera camera) {
+            Vector3 tmp0 = new Vector3();
+            Vector3 tmp1 = new Vector3();
+            Vector3 tmp2 = new Vector3();
+            tmp0.set(camera.direction);
+            tmp0.nor();
+            tmp1.set(camera.up);
+            tmp1.nor();
+		/* right = direction x up */
+            tmp1.set(tmp0.cpy().crs(tmp1));
+		/* up = right x direction */
+            tmp2.set(tmp1.cpy().crs(tmp0));
+            Matrix4 m = new Matrix4();
+            m.getValues()[Matrix4.M00] = tmp1.x;
+            m.getValues()[Matrix4.M01] = tmp1.y;
+            m.getValues()[Matrix4.M02] = tmp1.z;
+            m.getValues()[Matrix4.M03] = -tmp1.x * camera.position.x - tmp1.y * camera.position.y - tmp1.z * camera.position.z;
+            m.getValues()[Matrix4.M10] = tmp2.x;
+            m.getValues()[Matrix4.M11] = tmp2.y;
+            m.getValues()[Matrix4.M12] = tmp2.z;
+            m.getValues()[Matrix4.M13] = -tmp2.x * camera.position.x - tmp2.y * camera.position.y - tmp2.z * camera.position.z;
+            m.getValues()[Matrix4.M20] = -tmp0.x;
+            m.getValues()[Matrix4.M21] = -tmp0.y;
+            m.getValues()[Matrix4.M22] = -tmp0.z;
+            m.getValues()[Matrix4.M23] = tmp0.x * camera.position.x + tmp0.y * camera.position.y + tmp0.z * camera.position.z;
+            m.getValues()[Matrix4.M30] = 0.0f;
+            m.getValues()[Matrix4.M31] = 0.0f;
+            m.getValues()[Matrix4.M32] = 0.0f;
+            m.getValues()[Matrix4.M33] = 1.0f;
+            return m;
+        }
+    }
+
+    public static class Shader {
+
+        public static final String shaderFormat = "assets/shaders/%s.%s";
+
+        public static GeometryShaderProgram loadGeometryShader(String prefix) {
+            String vertPath = String.format(shaderFormat, prefix, "vert");
+            String geomPath = String.format(shaderFormat, prefix, "geom");
+            String fragPath = String.format(shaderFormat, prefix, "frag");
+            System.out.println(prefix);
+            GeometryShaderProgram prg = new GeometryShaderProgram(Gdx.files.internal(vertPath), Gdx.files.internal(geomPath), Gdx.files.internal(fragPath));
+            System.out.println(prg.getLog());
+            if(!prg.isCompiled()) return null;
+            return prg;
+        }
+
+        public static ShaderProgram loadShader(String prefix) {
+            String vertPath = String.format(shaderFormat, prefix, "vert");
+            String fragPath = String.format(shaderFormat, prefix, "frag");
+            System.out.println(prefix);
+            return compileShader(Gdx.files.internal(vertPath), Gdx.files.internal(fragPath));
+        }
+        public static ShaderProgram compileShader(FileHandle vertHandle, FileHandle fragHandle) {
+            return compileShader(vertHandle.readString(), fragHandle.readString());
+        }
+        public static ShaderProgram compileShader(String vert, String frag) {
+            ShaderProgram.pedantic = false;
+            ShaderProgram prg = new ShaderProgram(vert, frag);
+            System.out.println(prg.getLog());
+            if(!prg.isCompiled()) return null;
+            return prg;
+        }
+        public static Color bindPickerAttribute(Attributes combinedAttributes) {
+            if(combinedAttributes.has(PickerIDAttribute.Type)) {
+                return ((PickerIDAttribute) (combinedAttributes.get(PickerIDAttribute.Type))).colour;
+            }else{
+                return Color.WHITE;
+            }
+        }
+
+        public static int bindTextureAttribute(BaseShader shader, Attributes combinedAttributes, long type) {
+            if(combinedAttributes.has(type)) {
+                return shader.context.textureBinder.bind(((TextureAttribute) (combinedAttributes
+                        .get(type))).textureDescription);
+            }else{
+                TextureDescriptor<Texture> descriptor = new TextureDescriptor<>(TextureCache.white(), Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest, Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+                return shader.context.textureBinder.bind(descriptor);
+            }
+        }
+
     }
 
 }

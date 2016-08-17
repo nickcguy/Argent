@@ -2,28 +2,24 @@ package net.ncguy.argent.render.argent;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL30;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.Shader;
 import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
-import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import net.ncguy.argent.Argent;
+import net.ncguy.argent.editor.widgets.DebugPreview;
 import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.entity.components.ArgentComponent;
 import net.ncguy.argent.entity.components.LightComponent;
+import net.ncguy.argent.event.StringPacketEvent;
 import net.ncguy.argent.render.BasicWorldRenderer;
+import net.ncguy.argent.utils.AppUtils;
 import net.ncguy.argent.utils.MultiTargetFrameBuffer;
 import net.ncguy.argent.utils.ScreenshotUtils;
-import net.ncguy.argent.utils.TextureCache;
 import net.ncguy.argent.world.GameWorld;
 
 import java.util.ArrayList;
@@ -34,121 +30,151 @@ import java.util.List;
  */
 public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T> {
 
-    protected MultiTargetFrameBuffer mrtFbo;
-    protected ShaderProgram shaderProgram;
+    MultiTargetFrameBuffer textureMRT;
+    ModelBatch textureBatch;
+    ShaderProgram textureProgram;
 
-    public static final FBOAttachment POSITION = new FBOAttachment(0, "bufPosition");
-    public static final FBOAttachment NORMAL = new FBOAttachment(1, "bufNormal");
-    public static final FBOAttachment DIFFUSE = new FBOAttachment(2, "bufDiffuse");
-    public static final FBOAttachment SPECULAR = new FBOAttachment(3, "bufSpecular");
+    MultiTargetFrameBuffer lightingMRT;
+    ModelBatch lightingBatch;
+    ShaderProgram lightingProgram;
 
-    public static final FBOAttachment[] attachments = new FBOAttachment[]{
-            POSITION, NORMAL, DIFFUSE, SPECULAR
+//    SpriteBatch screenBatch;
+    ShaderProgram screenProgram;
+
+    Vector2 size = new Vector2();
+//    Sprite screenSprite;
+
+    public static final FBOAttachment tex_NORMAL = new FBOAttachment(0, "texNormal");
+    public static final FBOAttachment tex_DIFFUSE = new FBOAttachment(1, "texDiffuse");
+    public static final FBOAttachment tex_SPECULAR = new FBOAttachment(2, "texSpecular");
+    public static final FBOAttachment tex_AMBIENT = new FBOAttachment(3, "texAmbient");
+    public static final FBOAttachment tex_DISPLACEMENT = new FBOAttachment(4, "texDisplacement");
+    public static final FBOAttachment tex_EMISSIVE = new FBOAttachment(5, "texEmissive");
+    public static final FBOAttachment tex_REFLECTION = new FBOAttachment(6, "texReflection");
+    public static final FBOAttachment tex_POSITION = new FBOAttachment(7, "texPosition");
+
+    public static final FBOAttachment[] tex_ATTACHMENTS = new FBOAttachment[]{
+        tex_NORMAL, tex_DIFFUSE, tex_SPECULAR, tex_AMBIENT, tex_DISPLACEMENT, tex_EMISSIVE, tex_REFLECTION, tex_POSITION
     };
 
-    public static final int COLOUR_TARGETS = 4;
+    public static final FBOAttachment ltg_POSITION = new FBOAttachment(0, "ltgPosition");
+//    public static final FBOAttachment ltg_DEPTH = new FBOAttachment(0, "ltgPosition");
+    public static final FBOAttachment ltg_TEXTURES = new FBOAttachment(1, "ltgTextures");
+
+
+    public static final FBOAttachment[] ltg_ATTACHMENTS = new FBOAttachment[] {
+        ltg_POSITION, ltg_TEXTURES
+    };
 
     public ArgentRenderer(GameWorld<T> world) {
         super(world);
-        invalidateMrtFbo();
+        size.set(camera().viewportWidth, camera().viewportHeight);
+        refreshShaders();
+        refreshFBO();
         Argent.addOnResize(this::resize);
+        Argent.addOnResize(this::argentResize);
+        Argent.addOnKeyDown(key -> {
+            if(key == Input.Keys.O)
+                if(Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT))
+                    refreshShaders();
+        });
     }
 
-    protected ShaderProgram finalProgram;
-    protected ModelBatch finalBatch;
-
-    public ModelBatch finalBatch() {
-        if(finalBatch == null) {
-            ShaderProgram.pedantic = false;
-            finalProgram = loadShader("lighting");
-            finalBatch = new ModelBatch(new DefaultShaderProvider() {
+    @Override
+    public ModelBatch batch() {
+        if(modelBatch == null) {
+            screenProgram = AppUtils.Shader.loadShader("pipeline/screen");
+            modelBatch = new ModelBatch(new DefaultShaderProvider() {
                 @Override
                 protected Shader createShader(Renderable renderable) {
-                    return new ArgentShader(renderable, finalProgram);
+                    return new ArgentScreenShader(renderable, screenProgram);
                 }
             });
         }
-        return finalBatch;
+        return modelBatch;
     }
 
-    public MultiTargetFrameBuffer mrtFbo() {
-        if(this.mrtFbo == null) invalidateMrtFbo();
-        return this.mrtFbo;
-    }
-
-    public void invalidateMrtFbo() {
-        if(this.mrtFbo != null) {
-            this.mrtFbo.dispose();
-            this.mrtFbo = null;
-        }
-        this.mrtFbo = MultiTargetFrameBuffer.create(Pixmap.Format.RGBA8888, COLOUR_TARGETS, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true, false);
+    public void argentResize(int width, int height) {
+        size.set(width, height);
+        camera().viewportWidth = width;
+        camera().viewportHeight = height;
+        camera().update(true);
+        refreshFBO();
     }
 
     @Override
     public void resize(int width, int height) {
+        if(width == 0 || height == 0) return;
+        if(camera().viewportWidth == width && camera().viewportHeight == height) return;
         super.resize(width, height);
-        camera().viewportWidth = width;
-        camera().viewportHeight = height;
-        camera().update(true);
-
-        invalidateMrtFbo();
-        ortho = null;
-        if(debugFbo != null) debugFbo.dispose();
-        debugFbo = null;
+//        System.out.printf("[%s, %s]\n", width, height);
+//        refreshShaders();
     }
 
     @Override
     public void render(ModelBatch batch, float delta) {
-//        super.render(super.batch(), delta);
-        renderGBuffer(batch, delta);
-        renderDebug();
+        renderTexture(delta);
+        applyGBufferToLighting();
         renderLighting(delta);
-        if(Gdx.input.isKeyJustPressed(Input.Keys.O))
-            if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT))
-                reloadShader();
+        applyLightingToQuad();
+        renderToScreen(delta);
     }
 
-    public void renderGBuffer(ModelBatch batch, float delta) {
-        this.mrtFbo.begin();
+    private void renderToMRT(MultiTargetFrameBuffer mrt, ModelBatch batch, float delta) {
+        mrt.begin();
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT);
         super.render(batch, delta);
-        this.mrtFbo.end();
+        if(Gdx.input.isKeyJustPressed(Input.Keys.F2))
+            ScreenshotUtils.saveScreenshot(iWidth(), iHeight(), "Batch");
+        mrt.end();
     }
 
+    public void renderTexture(float delta) {
+        renderToMRT(textureMRT, textureBatch, delta);
+    }
     public void renderLighting(float delta) {
-        bindMRT(this.mrtFbo);
-        bindLightData();
-        super.render(finalBatch(), delta);
+        renderToMRT(lightingMRT, lightingBatch, delta);
+    }
+    public void renderToScreen(float delta) {
+        super.render(batch(), delta);
     }
 
-    public void bindLightData() {
+    public void applyGBufferToLighting() {
+        lightingProgram.begin();
+        bindToMRT(textureMRT, lightingProgram, tex_ATTACHMENTS);
+        bindLightingData(lightingProgram);
+        lightingProgram.end();
+    }
+    public void bindLightingData(ShaderProgram shaderProgram) {
         final List<LightComponent> lights = new ArrayList<>();
         world.instances().forEach(i -> i.components().stream()
-                .filter(this::bindLightData_Filter)
-                .map(this::bindLightData_Map)
-                .forEach(lights::add));
-        this.finalProgram.begin();
-        int i = 0;
+            .filter(this::bindLightData_Filter)
+            .map(this::bindLightData_Map)
+            .forEach(lights::add));
+        final int[] i = new int[]{0};
         lights.forEach(l -> {
-            String key = "lights["+i+"]";
-            float[] pos = new float[3];
+            String key = "lights["+i[0]+"]";
             Vector3 worldPos = l.getWorldPosition();
-            pos[0] = worldPos.x;
-            pos[1] = worldPos.y;
-            pos[2] = worldPos.z;
-            this.finalProgram.setUniform3fv(key+".Position", pos, 0, pos.length);
-            float[] col = new float[3];
+            float[] pos = new float[]{
+                    worldPos.x,
+                    worldPos.y,
+                    worldPos.z
+            };
             Color colour = l.getColour();
-            col[0] = colour.r;
-            col[1] = colour.g;
-            col[2] = colour.b;
-            this.finalProgram.setUniform3fv(key+".Colour", col, 0, col.length);
-            this.finalProgram.setUniformf(key+".Linear", l.getLinear());
-            this.finalProgram.setUniformf(key+".Quadratic", l.getQuadratic());
-            this.finalProgram.setUniformf(key+".Intensity", l.getIntensity());
+            float[] col = new float[]{
+                    colour.r,
+                    colour.g,
+                    colour.b
+            };
+            shaderProgram.setUniform3fv(key+".Position", pos, 0, pos.length);
+            shaderProgram.setUniform3fv(key+".Colour", col, 0, col.length);
+            shaderProgram.setUniformf(key+".Linear", l.getLinear());
+            shaderProgram.setUniformf(key+".Quadratic", l.getQuadratic());
+            shaderProgram.setUniformf(key+".Intensity", l.getIntensity());
+            shaderProgram.setUniformf(key+".Radius", l.getRadius());
+            i[0]++;
         });
-        this.finalProgram.end();
     }
     private boolean bindLightData_Filter(ArgentComponent c) {
         return c instanceof LightComponent;
@@ -157,133 +183,119 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         return (LightComponent)c;
     }
 
-    protected SpriteBatch debugBatch;
-    protected SpriteBatch debugBatch() {
-        if(debugBatch == null) {
-            debugBatch = new SpriteBatch();
-        }
-        return debugBatch;
-    }
-    protected OrthographicCamera ortho;
-    protected OrthographicCamera ortho() {
-        if(ortho == null) {
-            ortho = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        }
-        return ortho;
-    }
-    protected FrameBuffer debugFbo;
-    protected FrameBuffer debugFbo() {
-        if(debugFbo == null) {
-            debugFbo = new FrameBuffer(Pixmap.Format.RGBA8888, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
-        }
-
-        return debugFbo;
-    }
-    public void renderDebug() {
-//        Gdx.gl.glClearColor(1, 1, 1, 1);
-//        Gdx.gl.glClear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT);
-        Sprite[] sprites = new Sprite[COLOUR_TARGETS];
-        for(int i = 0; i < sprites.length; i++) {
-            sprites[i] = new Sprite(this.mrtFbo.getColorBufferTexture(i));
-        }
-        debugBatch().setProjectionMatrix(ortho().combined);
-        debugBatch().begin();
-        float w, h;
-
-//        w = Gdx.graphics.getWidth()/2;
-//        h = Gdx.graphics.getHeight()/2;
-        w = camera().viewportWidth / 2;
-        h = camera().viewportHeight / 2;
-        sprites[POSITION.id].setBounds(-w+1,  0+1, w-2, h-2);
-        sprites[NORMAL  .id].setBounds(-w+1, -h+1, w-2, h-2);
-        sprites[DIFFUSE .id].setBounds(0+1, 0+1, w-2, h-2);
-        sprites[SPECULAR.id].setBounds(0+1, -h+1, w-2, h-2);
-
-
-        debugBatch().setColor(Color.RED);
-        debugBatch().draw(TextureCache.pixel(), -w,  0, w, h);
-        debugBatch().setColor(Color.GREEN);
-        debugBatch().draw(TextureCache.pixel(), -w, -h, w, h);
-        debugBatch().setColor(Color.BLUE);
-        debugBatch().draw(TextureCache.pixel(),  0,  0, w, h);
-        debugBatch().setColor(Color.PURPLE);
-        debugBatch().draw(TextureCache.pixel(),  0, -h, w, h);
-        debugBatch().setColor(Color.WHITE);
-
-        for(Sprite s : sprites) {
-            s.setFlip(false, true);
-            s.draw(debugBatch());
-        }
-
-//        freeCamController.target.set(0, 0, 0);
-//        camera().lookAt(freeCamController.target);
-
-        debugBatch().end();
-        if(Gdx.input.isKeyJustPressed(Input.Keys.F2))
-            ScreenshotUtils.saveScreenshot(mrtFbo().getWidth(), mrtFbo().getHeight(), "Debug");
+    public void applyLightingToQuad() {
+        screenProgram.begin();
+        bindToMRT(lightingMRT, screenProgram, 7, ltg_ATTACHMENTS);
+        screenProgram.end();
     }
 
-    @Override
-    public Environment environment() {
-        return null;
+    private void bindToMRT(MultiTargetFrameBuffer mrt, ShaderProgram shader, FBOAttachment... attachments) {
+        bindToMRT(mrt, shader, 0, attachments);
     }
 
+    private void bindToMRT(MultiTargetFrameBuffer mrt, ShaderProgram shader, int offset, FBOAttachment... attachments) {
+        for (FBOAttachment attachment : attachments) {
+            int id = attachment.id + offset;
+            Texture tex = mrt.getColorBufferTexture(attachment.id);
+            if(tex != null) tex.bind(id);
+            attachment.bind(shader, id);
+        }
+        mrt.getColorBufferTexture(tex_DIFFUSE.id).bind(tex_DIFFUSE.id);
+        shader.setUniformi(tex_DIFFUSE.name, tex_DIFFUSE.id);
+        Gdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
+    }
 
-    public void reloadShader() {
+    public MultiTargetFrameBuffer getTextureMRT()  { return textureMRT;  }
+    public MultiTargetFrameBuffer getLightingMRT() { return lightingMRT; }
+
+    public void refreshFBO() {
+        if(textureMRT != null) {
+            textureMRT.dispose();
+            textureMRT = null;
+        }
+        if(lightingMRT != null) {
+            lightingMRT.dispose();
+            lightingMRT = null;
+        }
+
+        textureMRT = create(tex_ATTACHMENTS.length);
+        lightingMRT = create(ltg_ATTACHMENTS.length);
+
+        DebugPreview debugPreview = DebugPreview.instance();
+        if(debugPreview != null) debugPreview.build(textureMRT, lightingMRT);
+    }
+
+    public void refreshShaders() {
+        new StringPacketEvent("toast|info", "Reloading Shaders").fire();
+        ShaderProgram.pedantic = false;
+        refreshTextureShader();
+        refreshLightingShader();
+        refreshScreenShader();
+    }
+
+    public void refreshTextureShader() {
+        if(textureProgram != null) {
+            textureProgram.dispose();
+            textureProgram = null;
+        }
+        if(textureBatch != null) {
+            textureBatch.dispose();
+            textureBatch = null;
+        }
+        textureProgram = AppUtils.Shader.loadShader("pipeline/texture");
+        textureBatch = new ModelBatch(new DefaultShaderProvider() {
+            @Override
+            protected Shader createShader(Renderable renderable) {
+                return new SmartTextureShader(renderable, textureProgram);
+            }
+        });
+    }
+    public void refreshLightingShader() {
+        if(lightingProgram != null) {
+            lightingProgram.dispose();
+            lightingProgram = null;
+        }
+        if(lightingBatch != null) {
+            lightingBatch.dispose();
+            lightingBatch = null;
+        }
+        lightingProgram = AppUtils.Shader.loadGeometryShader("pipeline/lighting");
+        lightingBatch = new ModelBatch(new DefaultShaderProvider() {
+            @Override
+            protected Shader createShader(Renderable renderable) {
+                return new ArgentShader(renderable, lightingProgram);
+            }
+        });
+    }
+    public void refreshScreenShader() {
+        if(screenProgram != null) {
+            screenProgram.dispose();
+            screenProgram = null;
+        }
         if(modelBatch != null) {
             modelBatch.dispose();
             modelBatch = null;
         }
-        if(shaderProgram != null) {
-            shaderProgram.dispose();
-            shaderProgram = null;
-        }
-        if(finalBatch != null) {
-            finalBatch.dispose();
-            finalBatch = null;
-        }
-        if(finalProgram != null) {
-            finalProgram.dispose();
-            finalProgram = null;
-        }
-    }
-    @Override
-    public ModelBatch batch() {
-        if(modelBatch == null) {
-            shaderProgram = loadShader("gbuffer");
-            modelBatch = new ModelBatch(new DefaultShaderProvider() {
-                @Override
-                protected Shader createShader(Renderable renderable) {
-                    return new SmartTextureShader(renderable, shaderProgram);
-                }
-            });
-        }
-        return modelBatch;
+        batch();
     }
 
-    public static final int shaderOffset = 0;
-    public void bindMRT(MultiTargetFrameBuffer mrt) {
-        if(this.finalProgram == null) finalBatch();
-        int index = 0;
-        this.finalProgram.begin();
-        for (FBOAttachment attachment : attachments) {
-            int id = index + shaderOffset;
-            mrt.getColorBufferTexture(index).bind(id);
-            this.finalProgram.setUniformi(attachment.name, id);
-            index++;
-        }
-        this.finalProgram.end();
+    private MultiTargetFrameBuffer create(int bufferCount) {
+        return MultiTargetFrameBuffer.create(Pixmap.Format.RGBA8888, bufferCount,
+                iWidth(), iHeight(), true, false);
     }
 
-    public static final String shaderFormat = "assets/shaders/%s.%s";
-    public ShaderProgram loadShader(String prefix) {
-        String vertPath = String.format(shaderFormat, prefix, "vert");
-        String fragPath = String.format(shaderFormat, prefix, "frag");
-        ShaderProgram.pedantic = false;
-        ShaderProgram prg = new ShaderProgram(Gdx.files.internal(vertPath), Gdx.files.internal(fragPath));
-        System.out.println(prg.getLog());
-        if(!prg.isCompiled()) return null;
-        return prg;
+    public float width() {
+        return size.x;
+    }
+    public float height() {
+        return size.y;
+    }
+
+    public int iWidth() {
+        return (int) width();
+    }
+    public int iHeight() {
+        return (int) height();
     }
 
     public static class FBOAttachment {
@@ -293,6 +305,13 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         public FBOAttachment(int id, String name) {
             this.id = id;
             this.name = name;
+        }
+
+        public void bind(ShaderProgram program) {
+            bind(program, this.id);
+        }
+        public void bind(ShaderProgram program, int id) {
+            program.setUniformi(this.name, id);
         }
     }
 

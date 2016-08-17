@@ -8,7 +8,7 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
  */
 public interface IRenderAddon {
 
-    void init(Camera camera);
+    default void init(Camera camera) {};
     void render(ModelBatch rootBatch, float delta);
 
 }

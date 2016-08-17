@@ -1,11 +1,14 @@
 package net.ncguy.argent.injector;
 
+import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.editor.CommandHistory;
 import net.ncguy.argent.editor.EditorUI;
 import net.ncguy.argent.editor.project.ProjectManager;
+import net.ncguy.argent.editor.tools.ToolManager;
 import net.ncguy.argent.entity.ComponentSet;
 import net.ncguy.argent.misc.FreeCamController;
+import net.ncguy.argent.utils.InputManager;
 
 import java.lang.reflect.Field;
 
@@ -36,6 +39,9 @@ public class InjectionStore {
     private static CommandHistory commandHistory;
     private static EditorUI editorUI;
     private static ComponentSet availableComponents;
+    private static InputManager inputManager;
+    private static ToolManager toolManager;
+    private static DragAndDrop dragAndDrop;
 
 
 }

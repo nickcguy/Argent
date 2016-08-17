@@ -15,6 +15,7 @@ import com.kotcrab.vis.ui.widget.tabbedpane.Tab;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.editor.EditorUI;
 import net.ncguy.argent.editor.project.ProjectManager;
+import net.ncguy.argent.editor.tools.ToolManager;
 import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.event.SceneGraphChangedEvent;
 import net.ncguy.argent.event.WorldEntitySelectedEvent;
@@ -35,6 +36,8 @@ public class OutlineTab extends Tab implements WorldEntitySelectedEvent.WorldEnt
 
     @Inject
     private ProjectManager projectManager;
+    @Inject
+    private ToolManager toolManager;
     private EditorUI editorUI;
 
     public OutlineTab(EditorUI editorUI) {
@@ -93,6 +96,7 @@ public class OutlineTab extends Tab implements WorldEntitySelectedEvent.WorldEnt
                 if(sel != null) {
                     WorldEntity e = (WorldEntity)sel;
                     projectManager.current().currScene.select(e);
+                    toolManager.selected(e);
                     Argent.event.post(new WorldEntitySelectedEvent(e));
                 }
             }

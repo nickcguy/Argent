@@ -7,6 +7,8 @@ import com.kotcrab.vis.ui.widget.tabbedpane.Tab;
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPane;
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPaneListener;
 import net.ncguy.argent.editor.EditorUI;
+import net.ncguy.argent.editor.widgets.sidebar.DebugTab;
+import net.ncguy.argent.editor.widgets.sidebar.MaterialTab;
 import net.ncguy.argent.editor.widgets.sidebar.OutlineTab;
 
 /**
@@ -20,6 +22,8 @@ public class Sidebar extends Table implements TabbedPaneListener {
     private Table contentContainer;
 
     private OutlineTab outline;
+    private MaterialTab materials;
+    private DebugTab debug;
 
     private EditorUI editorUI;
 
@@ -30,6 +34,8 @@ public class Sidebar extends Table implements TabbedPaneListener {
         style.vertical = false;
         tabbedPane = new TabbedPane(style);
         outline = new OutlineTab(editorUI);
+        materials = new MaterialTab();
+        debug = new DebugTab(editorUI);
 
         setupUI();
 
@@ -44,6 +50,8 @@ public class Sidebar extends Table implements TabbedPaneListener {
         contentContainer.align(Align.topLeft);
 
         tabbedPane.add(outline);
+        tabbedPane.add(materials);
+        tabbedPane.add(debug);
 
         add(tabbedPane.getTable()).width(width).top().left().row();
         add(contentContainer).width(width).top().left().expandY().fillY().row();

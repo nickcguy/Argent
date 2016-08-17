@@ -41,9 +41,10 @@ public class Icons {
         FOLDER_OPEN("folder-open"),
         SEARCH("search"),
         MORE("more"),
+        REFRESH("refresh-big"),
 
         WARNING("warning"),
-        LAYER_ADD("layer-add"),
+        LAYER_ADD("layer-addZone"),
         LAYER_REMOVE("layer-remove"),
         LAYER_UP("layer-up"),
         LAYER_DOWN("layer-down"),

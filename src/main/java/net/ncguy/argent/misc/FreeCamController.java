@@ -1,5 +1,7 @@
 package net.ncguy.argent.misc;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
@@ -27,5 +29,12 @@ public class FreeCamController extends CameraInputController {
 
     public void setCamera(PerspectiveCamera camera) {
         this.camera = camera;
+    }
+
+    @Override
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+        if(Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT))
+            return super.touchDragged(screenX, screenY, pointer);
+        return false;
     }
 }

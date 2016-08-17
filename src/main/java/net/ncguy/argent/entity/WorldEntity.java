@@ -162,4 +162,10 @@ public class WorldEntity implements RenderableProvider {
             if(component.getClass().equals(componentCls)) return (T) component;
         return null;
     }
+
+    protected int id = hashCode();
+    public void id(int id) { this.id = id; }
+    public int id() {
+        return id;
+    }
 }

@@ -1,5 +1,7 @@
 package net.ncguy.argent;
 
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import net.ncguy.argent.content.ContentManager;
 import net.ncguy.argent.event.EventBus;
 import net.ncguy.argent.injector.InjectionModule;
@@ -9,6 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * Created by Guy on 15/07/2016.
@@ -70,5 +73,29 @@ public class Argent {
     public static void onResize(final int width, final int height) {
         onResizeListeners.forEach(c -> c.accept(width, height));
     }
+
+    public static Set<Consumer<Integer>> keyListeners = new LinkedHashSet<>();
+    public static void onKeyDown(Consumer<Integer> listener) {
+        if(keyListeners.contains(listener)) removeOnKeyDown(listener);
+        else addOnKeyDown(listener);
+    }
+    public static void addOnKeyDown(Consumer<Integer> listener) {
+        keyListeners.add(listener);
+    }
+    public static void removeOnKeyDown(Consumer<Integer> listener) {
+        keyListeners.remove(listener);
+    }
+    public static void onKeyDown(int keycode) {
+        keyListeners.forEach(c -> c.accept(keycode));
+    }
+
+    public static final InputListener globalListener = new InputListener() {
+        @Override
+        public boolean keyDown(InputEvent event, int keycode) {
+            onKeyDown(keycode);
+            return super.keyDown(event, keycode);
+        }
+    };
+
 
 }

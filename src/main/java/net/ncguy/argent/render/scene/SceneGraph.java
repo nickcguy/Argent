@@ -1,8 +1,11 @@
 package net.ncguy.argent.render.scene;
 
 import com.badlogic.gdx.Gdx;
+import net.ncguy.argent.Argent;
 import net.ncguy.argent.editor.EditorUI;
 import net.ncguy.argent.entity.WorldEntity;
+import net.ncguy.argent.event.SceneGraphChangedEvent;
+import net.ncguy.argent.event.WorldEntitySelectedEvent;
 import net.ncguy.argent.injector.ArgentInjector;
 import net.ncguy.argent.injector.Inject;
 import net.ncguy.argent.render.AbstractWorldRenderer;
@@ -71,6 +74,7 @@ public class SceneGraph {
     }
     public void addWorldEntity(WorldEntity entity) {
         world.addInstance(entity);
+        Argent.event.post(new SceneGraphChangedEvent());
     }
     public void removeWorldEntity(WorldEntity entity) {
         world.removeInstance(entity);
@@ -82,5 +86,10 @@ public class SceneGraph {
 
     public void setSelected(WorldEntity selected) {
         this.selected = selected;
+        Argent.event.post(new WorldEntitySelectedEvent(selected));
+    }
+
+    public void renderPickableScene() {
+
     }
 }

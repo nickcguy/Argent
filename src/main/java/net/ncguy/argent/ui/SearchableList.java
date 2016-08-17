@@ -15,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.kotcrab.vis.ui.VisUI;
+import com.kotcrab.vis.ui.widget.Separator;
 import net.ncguy.argent.utils.AppUtils;
 import net.ncguy.argent.utils.TextureCache;
 
@@ -27,12 +28,11 @@ import java.util.function.Consumer;
 /**
  * Created by Guy on 21/07/2016.
  */
-public class SearchableList<T> extends Group {
+public class SearchableList<T> extends Table {
 
     private boolean ready = false;
     private ArrayList<Item<T>> items;
     private Consumer<Item<T>> changeListener;
-    private Drawable bg = new TextureRegionDrawable(new TextureRegion(TextureCache.pixel()));
     private ClickListener stageClickListener = new ClickListener() {
         @Override
         public void clicked(InputEvent event, float x, float y) {
@@ -42,10 +42,10 @@ public class SearchableList<T> extends Group {
     private Item<T> selectedItem;
 
     public SearchableList() {
+        super(VisUI.getSkin());
         this.items = new ArrayList<>();
         initUI();
         ready = true;
-        resizeElements();
     }
 
     // UI
@@ -55,8 +55,10 @@ public class SearchableList<T> extends Group {
 
     protected void initUI() {
         this.searchField = new TextArea("", VisUI.getSkin());
+        Table itemTreeParent = new Table(VisUI.getSkin());
         this.itemTree = new Tree(VisUI.getSkin());
-        this.scroller = new ScrollPane(this.itemTree);
+        itemTreeParent.add(this.itemTree).expand().fill().row();
+        this.scroller = new ScrollPane(itemTreeParent);
 
         this.searchField.addListener(new ChangeListener() {
             @Override
@@ -66,8 +68,16 @@ public class SearchableList<T> extends Group {
             }
         });
 
-        this.addActor(this.searchField);
-        this.addActor(this.scroller);
+        setBackground("menu-bg");
+        itemTreeParent.setBackground("default-pane");
+        Table searchFieldParent = new Table(VisUI.getSkin());
+        searchFieldParent.add(this.searchField).expand().fill().row();
+        itemTreeParent.setBackground("default-pane");
+        searchFieldParent.setBackground("default-pane");
+
+        add(searchFieldParent).pad(4).expandX().fillX().row();
+        add(new Separator()).expandX().fillX().row();
+        add(this.scroller).pad(4).expand().fill().row();
 
         this.itemTree.addListener(new ChangeListener() {
             @Override
@@ -86,25 +96,13 @@ public class SearchableList<T> extends Group {
         System.out.println(stageBounds.toString());
         boolean contains = stageBounds.contains(stageCoords);
         System.out.println(contains);
-        if(!contains)
+        if (!contains)
             hide();
-    }
-
-    protected void resizeElements() {
-        this.searchField.pack();
-        this.searchField.setWidth(getWidth()-6);
-        this.searchField.setPosition(3, getHeight()-(this.searchField.getHeight()+3));
-
-        this.scroller.setSize(getWidth()-6, getHeight()-(this.searchField.getHeight()+9));
-        this.scroller.setPosition(3, 3);
-
-        this.itemTree.setPosition(0, 0);
     }
 
     @Override
     protected void sizeChanged() {
         super.sizeChanged();
-        if (ready) resizeElements();
     }
 
     public void setPosition(Vector2 pos) {
@@ -117,6 +115,7 @@ public class SearchableList<T> extends Group {
 
     public float getDesiredHeight(int max) {
         float tHeight = (items.size()*40)+this.searchField.getHeight()+12;
+        tHeight += 12;
         return Math.min(max, tHeight);
     }
 
@@ -138,7 +137,6 @@ public class SearchableList<T> extends Group {
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
-        bg.draw(batch, getX(), getY(), getWidth(), getHeight());
         super.draw(batch, parentAlpha);
     }
 
@@ -204,7 +202,7 @@ public class SearchableList<T> extends Group {
         public final T value;
 
         public Item(Drawable icon, String text, T value, String... keywords) {
-            if(icon == null) icon = new TextureRegionDrawable(new TextureRegion(TextureCache.pixel()));
+            if(icon == null) icon = new TextureRegionDrawable(new TextureRegion(TextureCache.white()));
             this.icon = icon;
             this.label = new Label(text, VisUI.getSkin());
             this.image = new Image(icon);

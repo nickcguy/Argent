@@ -5,7 +5,7 @@ import net.ncguy.argent.entity.WorldEntity;
 /**
  * Created by Guy on 27/07/2016.
  */
-public class WorldEntitySelectedEvent {
+public class WorldEntitySelectedEvent extends AbstractEvent {
 
     private WorldEntity entity;
 

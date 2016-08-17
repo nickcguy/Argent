@@ -35,4 +35,21 @@ public class StringUtils {
         return sb.toString();
     }
 
+    public static String present(String s) {
+        s = s.replace("_", " ");
+        StringBuilder sb = new StringBuilder();
+        char[] chars = s.toCharArray();
+        boolean nextCap = true;
+        for(char c : chars) {
+            if(nextCap) {
+                sb.append((c+"").toUpperCase());
+                nextCap = false;
+                continue;
+            }
+            sb.append(c);
+            if(c == ' ')
+                nextCap = true;
+        }
+        return sb.toString();
+    }
 }

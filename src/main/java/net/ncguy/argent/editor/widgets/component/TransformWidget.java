@@ -111,6 +111,19 @@ public class TransformWidget extends BaseInspectorWidget {
 
     @Override
     public void setValues(WorldEntity e) {
+
+        boolean valid = e != null;
+        posX.setEditable(valid);
+        posY.setEditable(valid);
+        posZ.setEditable(valid);
+        rotX.setEditable(valid);
+        rotY.setEditable(valid);
+        rotZ.setEditable(valid);
+        sclX.setEditable(valid);
+        sclY.setEditable(valid);
+        sclZ.setEditable(valid);
+        if(!valid) return;
+
         Vector3 pos = e.getLocalPosition(tmpV3);
         posX.setText(StringUtils.formatFloat(pos.x, 2));
         posY.setText(StringUtils.formatFloat(pos.y, 2));

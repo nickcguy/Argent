@@ -20,9 +20,21 @@ public class ProjectManager implements Disposable {
     public static final String PROJECT_SCENE_EXTENSION  = ".argent";
 
     private ProjectContext currentProject;
+    private final Context context;
+    private final Registry registry;
 
     public ProjectManager() {
-        currentProject = new ProjectContext();
+        registry = new Registry(this);
+        currentProject = new ProjectContext(this);
+        context = new Context(this);
+    }
+
+    public Registry getRegistry() {
+        return registry;
+    }
+
+    public Context global() {
+        return context;
     }
 
     public ProjectContext current() {

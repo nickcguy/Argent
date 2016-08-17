@@ -25,8 +25,10 @@ public abstract class AbstractWorldRenderer<T extends WorldEntity> {
     protected Set<IRenderAddon> additionalRenderers;
 
     protected FreeCamController freeCamController;
+    public final Set<IRenderAddon> separateRenderers;
 
     public AbstractWorldRenderer(GameWorld<T> world) {
+        this.separateRenderers = new LinkedHashSet<>();
         this.world = world;
         this.additionalRenderers = new LinkedHashSet<>();
         this.freeCamController = new FreeCamController(camera());
@@ -52,7 +54,7 @@ public abstract class AbstractWorldRenderer<T extends WorldEntity> {
         if(camera == null) {
             camera = new PerspectiveCamera(90, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
             camera.near = .1f;
-            camera.far = 1000;
+            camera.far = 100;
             camera.position.set(3, 3, 3);
             camera.lookAt(0, 0, 0);
         }
@@ -72,6 +74,7 @@ public abstract class AbstractWorldRenderer<T extends WorldEntity> {
     }
 
     public void setSize(int width, int height) {
+        if(camera().viewportWidth == width && camera().viewportHeight == height) return;
         resize(width, height);
     }
 

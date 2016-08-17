@@ -40,4 +40,8 @@ public class ColourPickerWrapper {
         picker.setListener(listener);
     }
 
+    public void editAlpha(boolean edit) {
+        picker.setAllowAlphaEdit(edit);
+    }
+
 }

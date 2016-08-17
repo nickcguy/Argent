@@ -1,6 +1,9 @@
 package net.ncguy.argent.ui;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.kotcrab.vis.ui.VisUI;
 import net.ncguy.argent.IModule;
 import net.ncguy.argent.content.ContentModule;
@@ -10,13 +13,21 @@ import net.ncguy.argent.content.ContentModule;
  */
 public class UIModule extends IModule {
 
-    private static FileHandle handle = VisUI.SkinScale.X1.getSkinFile();
+//    private static FileHandle handle = VisUI.SkinScale.X1.getSkinFile();
+    private static FileHandle handle = Gdx.files.internal("assets/ui/uiskin.json");
+    private static FileHandle fontHandle = Gdx.files.internal("assets/ui/fonts/roboto-medium.ttf");
 
     public static FileHandle handle() { return handle; }
     public static void handle(FileHandle handle) { UIModule.handle = handle; }
 
     public UIModule() {
         VisUI.load(handle);
+        FreeTypeFontGenerator gen = new FreeTypeFontGenerator(fontHandle);
+        FreeTypeFontGenerator.FreeTypeFontParameter params = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        params.size = 12;
+        BitmapFont font12 = gen.generateFont(params);
+        VisUI.getSkin().add("default", font12, BitmapFont.class);
+        gen.dispose();
         Icons.init();
     }
 

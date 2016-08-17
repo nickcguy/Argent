@@ -22,6 +22,7 @@ public class LightComponent implements ArgentComponent {
     Color colour;
     float linear, quadratic, intensity;
     boolean inverse = false;
+    private float radius;
 
     public LightComponent(WorldEntity entity) {
         this.entity = entity;
@@ -97,5 +98,13 @@ public class LightComponent implements ArgentComponent {
     @Override
     public void getRenderables(Array<Renderable> renderables, Pool<Renderable> pool) {
         // NOOP
+    }
+
+    public float getRadius() {
+        return radius;
+    }
+
+    public void setRadius(float radius) {
+        this.radius = radius;
     }
 }

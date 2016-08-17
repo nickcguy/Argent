@@ -1,5 +1,6 @@
 package net.ncguy.argent.ui;
 
+import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.kotcrab.vis.ui.VisUI;
@@ -43,4 +44,8 @@ public class TextFieldWithLabel extends Table {
     public void setText(String text) { textField.setText(text); }
     public void setLabelText(String text) { label.setText(text); }
 
+    @Override
+    public boolean addListener(EventListener listener) {
+        return textField.addListener(listener);
+    }
 }

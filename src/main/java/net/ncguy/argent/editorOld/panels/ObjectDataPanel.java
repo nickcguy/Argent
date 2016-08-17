@@ -283,7 +283,7 @@ public class ObjectDataPanel<T extends WorldEntity> extends AbstractEditorPanel<
         String[] errs = new String[errors.size()];
         errors.toArray(errs);
         componentErrorList.setItems(errs);
-//        fac.errors(editorRoot.selected()).forEach(componentErrorList.getItems()::add);
+//        fac.errors(editorRoot.selected()).forEach(componentErrorList.getItems()::addZone);
         this.addComponentBtn.setDisabled(!fac.canBeApplied(editorRoot.selected()));
         this.removeComponentBtn.setDisabled(!fac.canBeRemoved(editorRoot.selected()));
     }

@@ -1,9 +1,10 @@
-package net.ncguy.argent.entity.components;
+package net.ncguy.argent.entity.components.model;
 
 import com.badlogic.gdx.graphics.g3d.Model;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.editor.widgets.component.ComponentWidget;
 import net.ncguy.argent.entity.WorldEntity;
+import net.ncguy.argent.entity.components.ComponentData;
 
 /**
  * Created by Guy on 29/07/2016.

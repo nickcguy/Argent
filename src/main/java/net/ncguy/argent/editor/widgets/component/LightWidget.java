@@ -39,8 +39,8 @@ public class LightWidget extends ComponentWidget<LightComponent> {
     private Spinner quadratic;
     private Spinner intensity;
 
-    public LightWidget() {
-        super("Light");
+    public LightWidget(LightComponent component) {
+        super(component, "Light");
         setDeletable(true);
         init();
         setupUI();
@@ -90,11 +90,11 @@ public class LightWidget extends ComponentWidget<LightComponent> {
             public void clicked(InputEvent event, float x, float y) {
                 WorldEntity e = projectManager.current().currScene.selected();
                 if(e == null) return;
-                if(!e.has(LightComponent.class)) return;
-                LightComponent l = e.get(LightComponent.class);
+                LightComponent l = component;
                 Color oldColour = new Color(l.getColour());
 
                 ColourPickerWrapper.instance().colour(oldColour);
+                ColourPickerWrapper.instance().editAlpha(false);
                 ColourPickerWrapper.instance().setListener(new ColorPickerAdapter(){
                     @Override
                     public void canceled(Color oldColor) {
@@ -124,8 +124,7 @@ public class LightWidget extends ComponentWidget<LightComponent> {
             public void changed(ChangeEvent event, Actor actor) {
                 WorldEntity e = projectManager.current().currScene.selected();
                 if(e == null) return;
-                if(!e.has(LightComponent.class)) return;
-                LightComponent l = e.get(LightComponent.class);
+                LightComponent l = component;
                 float val = ((SimpleFloatSpinnerModel)linear.getModel()).getValue();
                 LinearCommand cmd = new LinearCommand(e);
                 cmd.setBefore(l.getLinear());
@@ -175,9 +174,9 @@ public class LightWidget extends ComponentWidget<LightComponent> {
     public void setValues(WorldEntity entity) {
         if(!entity.has(LightComponent.class)) return;
         LightComponent light = entity.get(LightComponent.class);
-        posX.setText(light.getLocalPosition().x+"");
-        posY.setText(light.getLocalPosition().y+"");
-        posZ.setText(light.getLocalPosition().z+"");
+        posX.setText(String.valueOf(light.getLocalPosition().x));
+        posY.setText(String.valueOf(light.getLocalPosition().y));
+        posZ.setText(String.valueOf(light.getLocalPosition().z));
         colBtn.setText(light.getColour().toString());
         ((SimpleFloatSpinnerModel)linear.getModel()).setValue(light.getLinear());
         ((SimpleFloatSpinnerModel)quadratic.getModel()).setValue(light.getQuadratic());

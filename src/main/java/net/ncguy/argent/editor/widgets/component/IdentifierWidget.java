@@ -65,13 +65,16 @@ public class IdentifierWidget extends Table {
         if(entity == null) {
             active.setDisabled(true);
             name.setDisabled(true);
+            tag.setDisabled(true);
             return;
         }else{
             active.setDisabled(false);
             name.setDisabled(false);
+            tag.setDisabled(false);
         }
         active.setChecked(entity.active);
         name.setText(entity.name);
+        tag.setText("Untagged");
     }
 
 }

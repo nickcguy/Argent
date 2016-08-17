@@ -11,6 +11,8 @@ import com.badlogic.gdx.utils.BufferUtils;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static com.badlogic.gdx.Gdx.gl30;
 import static com.badlogic.gdx.graphics.GL30.*;
@@ -52,6 +54,10 @@ public class MultiTargetFrameBuffer extends GLFrameBuffer<Texture> {
     protected MultiTargetFrameBuffer(int width, int height, boolean hasDepth, boolean hasStencil) {
         super(Pixmap.Format.RGB888, width, height, false, false);
         build(hasDepth, hasStencil);
+    }
+
+    public int bufferCount() {
+        return colourTextures.length;
     }
 
     protected void build(boolean hasDepth, boolean hasStencil) {
@@ -105,6 +111,15 @@ public class MultiTargetFrameBuffer extends GLFrameBuffer<Texture> {
         }
     }
 
+    public void forEach(Consumer<Texture> tex) {
+        for (Texture texture : colourTextures)
+            tex.accept(texture);
+    }
+    public void forEachIndexed(BiConsumer<Texture, Integer> func) {
+        for (int i = 0; i < colourTextures.length; i++)
+            func.accept(colourTextures[i], i);
+    }
+
     @Override
     protected Texture createColorTexture() {
         return createColorTexture(0);
@@ -130,11 +145,28 @@ public class MultiTargetFrameBuffer extends GLFrameBuffer<Texture> {
 
         return result;
     }
+    private Texture createColourTexture(int index, Texture tex) {
+        ColourAttachmentFormat format = fbCreateFormats[0];
+
+        if (format.format == Format.PixmapFormat) {
+            int glFormat = Pixmap.Format.toGlFormat(format.pixmapFormat);
+            int glType = Pixmap.Format.toGlType(format.pixmapFormat);
+            GLOnlyTextureData data = new GLOnlyTextureData(width, height, 0, glFormat, glFormat, glType);
+            ReflectionUtils.setValue(tex, "data", data);
+        } else {
+            ColorBufferTextureData data = new ColorBufferTextureData(format.format, format.generateMipmaps, width, height);
+            ReflectionUtils.setValue(tex, "data", data);
+        }
+        return tex;
+    }
 
     @Override
     protected void disposeColorTexture(Texture colorTexture) {
-        for (Texture texture : colourTextures) {
-            texture.dispose();
+        if(colourTextures != null) {
+            for (Texture texture : colourTextures) {
+                if (texture != null)
+                    texture.dispose();
+            }
         }
 
         if (depthBufferHandle != 0) {
@@ -147,6 +179,7 @@ public class MultiTargetFrameBuffer extends GLFrameBuffer<Texture> {
     }
 
     public Texture getColorBufferTexture(int index) {
+        index = MathUtils.clamp(index, 0, colourTextures.length-1);
         return colourTextures[index];
     }
 
@@ -250,6 +283,13 @@ public class MultiTargetFrameBuffer extends GLFrameBuffer<Texture> {
     public int getId(int index) {
         index = MathUtils.clamp(index, 0, attachmentIds.capacity()-1);
         return attachmentIds.get(index);
+    }
+
+    public void overrideBufferContents(int id, Texture texture) {
+        texture = createColourTexture(id, texture);
+        if(id == 0) colorTexture = texture;
+        colourTextures[id] = texture;
+        gl30.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + id, GL_TEXTURE_2D, colourTextures[id].getTextureObjectHandle(), 0);
     }
 
     private static class ColorBufferTextureData implements TextureData {

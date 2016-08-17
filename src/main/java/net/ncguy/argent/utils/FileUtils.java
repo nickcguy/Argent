@@ -39,4 +39,16 @@ public class FileUtils {
         }
     }
 
+    public static String getUserDirectoryPath() {
+        return System.getProperty("user.home");
+    }
+
+    public static String getFileExtension(File file) {
+        return getFileExtension(file.getName());
+    }
+    public static String getFileExtension(String fileName) {
+        if(!fileName.contains(".")) return fileName;
+        int index = fileName.lastIndexOf('.');
+        return fileName.substring(index);
+    }
 }

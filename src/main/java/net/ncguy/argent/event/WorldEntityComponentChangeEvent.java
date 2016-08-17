@@ -3,7 +3,7 @@ package net.ncguy.argent.event;
 /**
  * Created by Guy on 29/07/2016.
  */
-public class WorldEntityComponentChangeEvent {
+public class WorldEntityComponentChangeEvent extends AbstractEvent {
 
     public final ChangeType type;
 
@@ -13,7 +13,7 @@ public class WorldEntityComponentChangeEvent {
 
     public static interface WorldEntityComponentChangeListener {
         @Subscribe
-        void onWorldEntitySelected(WorldEntityComponentChangeEvent event);
+        void onWorldEntityComponentChange(WorldEntityComponentChangeEvent event);
     }
 
     public static enum ChangeType {

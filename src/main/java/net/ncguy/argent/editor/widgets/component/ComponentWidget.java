@@ -9,9 +9,12 @@ public abstract class ComponentWidget<T extends ArgentComponent> extends BaseIns
 
     public T component;
 
-    public ComponentWidget(String title) {
+    public ComponentWidget(T component, String title) {
         super(title);
+        this.component = component;
     }
+
+
 
     @Override
     public void onDelete() {

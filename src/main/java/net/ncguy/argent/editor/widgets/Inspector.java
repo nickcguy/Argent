@@ -165,11 +165,12 @@ public class Inspector extends Table implements WorldEntitySelectedEvent.WorldEn
         }
     }
     private ComponentWidget createWidget(ArgentComponent component) {
-        return createWidget(component.widgetClass());
+        return createWidget(component.widgetClass(), component);
     }
-    private ComponentWidget createWidget(Class<? extends ComponentWidget> cls) {
+    private ComponentWidget createWidget(Class<? extends ComponentWidget> cls, ArgentComponent component) {
+        if(cls == null) return null;
         try {
-            Object obj = cls.getConstructor().newInstance();
+            Object obj = cls.getConstructor(component.getClass()).newInstance(component);
             if(obj instanceof BaseInspectorWidget)
                 return (ComponentWidget)obj;
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
@@ -204,7 +205,7 @@ public class Inspector extends Table implements WorldEntitySelectedEvent.WorldEn
     }
 
     @Override
-    public void onWorldEntitySelected(WorldEntityComponentChangeEvent event) {
+    public void onWorldEntityComponentChange(WorldEntityComponentChangeEvent event) {
         populateAvailableComponents();
     }
 }
