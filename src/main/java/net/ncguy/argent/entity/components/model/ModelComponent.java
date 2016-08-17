@@ -16,12 +16,16 @@ import net.ncguy.argent.entity.components.ArgentComponent;
 import net.ncguy.argent.entity.components.IPickable;
 import net.ncguy.argent.event.MaterialModifiedEvent;
 
+import static com.badlogic.gdx.graphics.VertexAttributes.Usage.*;
+import static com.badlogic.gdx.graphics.VertexAttributes.Usage.BiNormal;
 import static net.ncguy.argent.entity.components.ArgentComponent.Type.MODEL;
 
 /**
  * Created by Guy on 29/07/2016.
  */
 public abstract class ModelComponent implements ArgentComponent, IPickable, MaterialModifiedEvent.MaterialModifiedListener {
+
+    protected static final int attributes = Position | Normal | TextureCoordinates | Tangent | BiNormal;
 
     WorldEntity entity;
     ModelInstance instance;

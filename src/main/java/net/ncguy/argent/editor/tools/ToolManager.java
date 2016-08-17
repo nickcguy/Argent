@@ -12,6 +12,7 @@ import net.ncguy.argent.editor.project.ProjectManager;
 import net.ncguy.argent.editor.tools.picker.ToolHandlePicker;
 import net.ncguy.argent.editor.tools.picker.WorldEntityPicker;
 import net.ncguy.argent.entity.WorldEntity;
+import net.ncguy.argent.event.WorldEntitySelectedEvent;
 import net.ncguy.argent.injector.ArgentInjector;
 import net.ncguy.argent.injector.Inject;
 import net.ncguy.argent.utils.InputManager;
@@ -19,7 +20,7 @@ import net.ncguy.argent.utils.InputManager;
 /**
  * Created by Guy on 30/07/2016.
  */
-public class ToolManager extends InputAdapter implements Disposable, RenderableProvider {
+public class ToolManager extends InputAdapter implements Disposable, RenderableProvider, WorldEntitySelectedEvent.WorldEntitySelectedListener {
 
     public static final int KEY_DEACTIVATE = Input.Keys.ESCAPE;
     private final WorldEntityPicker wePicker;
@@ -97,5 +98,10 @@ public class ToolManager extends InputAdapter implements Disposable, RenderableP
 
     public void selected(WorldEntity e) {
         if(activeTool != null) activeTool.selected(e);
+    }
+
+    @Override
+    public void onWorldEntitySelected(WorldEntitySelectedEvent event) {
+        selected(event.getEntity());
     }
 }

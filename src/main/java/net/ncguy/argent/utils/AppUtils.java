@@ -98,6 +98,10 @@ public class AppUtils {
 
     public static class Graphics {
 
+        public static Color randomColour() {
+            return new Color(MathUtils.random(0f, 1f), MathUtils.random(0f, 1f), MathUtils.random(0f, 1f), 1.0f);
+        }
+
         public static Vector3 getRightVector(Camera camera) {
             return getRightVector(camera.direction.cpy(), camera.up.cpy());
         }
@@ -191,7 +195,7 @@ public class AppUtils {
 
         public static GeometryShaderProgram loadGeometryShader(String prefix) {
             String vertPath = String.format(shaderFormat, prefix, "vert");
-            String geomPath = String.format(shaderFormat, prefix, "geom");
+            String geomPath = String.format(shaderFormat, "geometry/world", "geom");
             String fragPath = String.format(shaderFormat, prefix, "frag");
             System.out.println(prefix);
             GeometryShaderProgram prg = new GeometryShaderProgram(Gdx.files.internal(vertPath), Gdx.files.internal(geomPath), Gdx.files.internal(fragPath));
@@ -232,6 +236,14 @@ public class AppUtils {
                 TextureDescriptor<Texture> descriptor = new TextureDescriptor<>(TextureCache.white(), Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest, Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
                 return shader.context.textureBinder.bind(descriptor);
             }
+        }
+
+    }
+
+    public static class GL {
+
+        public static float getTime() {
+            return (float) -(Math.PI/2);
         }
 
     }

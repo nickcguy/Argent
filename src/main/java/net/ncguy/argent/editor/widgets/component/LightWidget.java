@@ -38,6 +38,7 @@ public class LightWidget extends ComponentWidget<LightComponent> {
     private Spinner linear;
     private Spinner quadratic;
     private Spinner intensity;
+    private Spinner radius;
 
     public LightWidget(LightComponent component) {
         super(component, "Light");
@@ -60,6 +61,8 @@ public class LightWidget extends ComponentWidget<LightComponent> {
         quadratic = new Spinner("", quadModel);
         SpinnerModel intenModel = new SimpleFloatSpinnerModel(1, 0.1f, 65536, .1f, 1);
         intensity = new Spinner("", intenModel);
+        SpinnerModel radModel = new SimpleFloatSpinnerModel(1, 0.1f, 65536, .1f, 1);
+        radius = new Spinner("", radModel);
     }
     protected void setupUI() {
         int pad = 4;
@@ -76,6 +79,9 @@ public class LightWidget extends ComponentWidget<LightComponent> {
 
         collapsibleContent.add("Intensity: ").padRight(5).padBottom(pad).left();
         collapsibleContent.add(intensity).padBottom(pad).colspan(3).expandX().fillX().row();
+
+        collapsibleContent.add("Radius: ").padRight(5).padBottom(pad).left();
+        collapsibleContent.add(radius).padBottom(pad).colspan(3).expandX().fillX().row();
 
         collapsibleContent.add("Colour: ").padRight(5).padBottom(pad).left();
         collapsibleContent.add(colBtn).padBottom(pad).colspan(3).expandX().fillX().row();
@@ -98,21 +104,25 @@ public class LightWidget extends ComponentWidget<LightComponent> {
                 ColourPickerWrapper.instance().setListener(new ColorPickerAdapter(){
                     @Override
                     public void canceled(Color oldColor) {
+                        colBtn.setText("#"+oldColor.toString());
                         l.getColour().set(oldColor);
                     }
 
                     @Override
                     public void changed(Color newColor) {
+                        colBtn.setText("#"+newColor.toString());
                         l.getColour().set(newColor);
                     }
 
                     @Override
                     public void finished(Color newColor) {
+                        colBtn.setText("#"+newColor.toString());
                         ColourCommand command = new ColourCommand(e);
                         command.setBefore(oldColour);
                         command.setAfter(newColor);
                         command.execute();
                         commandHistory.add(command);
+                        ColourPickerWrapper.instance().setListener(null);
                     }
                 });
                 ColourPickerWrapper.instance().open(colBtn);
@@ -163,6 +173,13 @@ public class LightWidget extends ComponentWidget<LightComponent> {
                 commandHistory.add(cmd);
             }
         });
+        radius.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                float val = ((SimpleFloatSpinnerModel)radius.getModel()).getValue();
+                component.setRadius(val);
+            }
+        });
     }
 
     private Vector3 getTranslation() {
@@ -177,10 +194,11 @@ public class LightWidget extends ComponentWidget<LightComponent> {
         posX.setText(String.valueOf(light.getLocalPosition().x));
         posY.setText(String.valueOf(light.getLocalPosition().y));
         posZ.setText(String.valueOf(light.getLocalPosition().z));
-        colBtn.setText(light.getColour().toString());
+        colBtn.setText("#"+light.getColour().toString());
         ((SimpleFloatSpinnerModel)linear.getModel()).setValue(light.getLinear());
         ((SimpleFloatSpinnerModel)quadratic.getModel()).setValue(light.getQuadratic());
         ((SimpleFloatSpinnerModel)intensity.getModel()).setValue(light.getIntensity());
+        ((SimpleFloatSpinnerModel)radius.getModel()).setValue(light.getRadius());
     }
 
     public static class TranslateListener extends ChangeListener {

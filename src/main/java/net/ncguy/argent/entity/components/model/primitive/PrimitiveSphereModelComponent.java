@@ -11,8 +11,6 @@ import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.entity.components.ComponentData;
 import net.ncguy.argent.entity.components.model.ModelComponent;
 
-import static com.badlogic.gdx.graphics.VertexAttributes.Usage.*;
-
 /**
  * Created by Guy on 04/08/2016.
  */
@@ -74,7 +72,7 @@ public class PrimitiveSphereModelComponent extends ModelComponent {
     }
 
     public void applyModel() {
-        Model model = new ModelBuilder().createSphere(width, height, depth, divU, divV, mtl.getAsset(), Position | Normal | TextureCoordinates);
+        Model model = new ModelBuilder().createSphere(width, height, depth, divU, divV, mtl.getAsset(), attributes);
         setModel(model);
     }
 

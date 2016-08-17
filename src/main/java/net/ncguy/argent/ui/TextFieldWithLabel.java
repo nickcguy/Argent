@@ -40,8 +40,10 @@ public class TextFieldWithLabel extends Table {
 
     public String getText() { return textField.getText(); }
     public void setEditable(boolean editable) { textField.setDisabled(!editable); }
-    public void clear() { setText(""); }
-    public void setText(String text) { textField.setText(text); }
+    public void clearField() { setText(""); }
+    public void setText(String text) {
+        textField.setText(text);
+    }
     public void setLabelText(String text) { label.setText(text); }
 
     @Override

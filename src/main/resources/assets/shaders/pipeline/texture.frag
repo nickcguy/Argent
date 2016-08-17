@@ -2,17 +2,24 @@
 
 layout (location = 0) out vec4 texNormal;
 layout (location = 1) out vec4 texDiffuse;
-layout (location = 2) out vec4 texSpecular;
-layout (location = 3) out vec4 texAmbient;
-layout (location = 4) out vec4 texDisplacement;
-layout (location = 5) out vec4 texEmissive;
-layout (location = 6) out vec4 texReflection;
-layout (location = 7) out vec4 texPosition;
+layout (location = 2) out vec4 texSpcAmbDis;
+layout (location = 3) out vec4 texEmissive;
+layout (location = 4) out vec4 texReflection;
+layout (location = 5) out vec4 texPosition;
+layout (location = 6) out vec4 texModNormal;
 
-in vec4 Normal;
-in vec2 TexCoords;
-in vec4 Position;
-in float Depth;
+
+in VS_OUT {
+    vec3 Normal;
+    vec2 TexCoords;
+    float Depth;
+    vec4 Position;
+} gs_out;
+
+vec3 Normal;
+vec2 TexCoords;
+vec4 Position;
+float Depth;
 
 uniform sampler2D u_smartNormal;
 uniform vec2 u_smartNormal_Offset;
@@ -55,6 +62,11 @@ uniform float u_smartBlending;
 
 void main() {
 
+    Normal = gs_out.Normal;
+    TexCoords = gs_out.TexCoords;
+    Position = gs_out.Position;
+    Depth = gs_out.Depth;
+
     vec2 normal_texCoords       = mod((TexCoords * u_smartNormal_Scale)         + u_smartNormal_Offset,         1.0);
     vec2 diffuse_texCoords      = mod((TexCoords * u_smartDiffuse_Scale)        + u_smartDiffuse_Offset,        1.0);
     vec2 specular_texCoords     = mod((TexCoords * u_smartSpecular_Scale)       + u_smartSpecular_Offset,       1.0);
@@ -65,8 +77,11 @@ void main() {
 
     // Normal
     vec4 normal = texture(u_smartNormal, normal_texCoords);
-    normal = Normal * normal;
-    texNormal = vec4(normalize(normal).rgb, 1.0);
+    texNormal = vec4(Normal * normal.rgb, normal.a);
+    normal.rgb = normalize(normal.rgb * 2.0 - 1.0);
+//    normal.rgb = Normal * normal.rgb;
+//normalize(normal.rgb * 2.0 - 1.0)
+    texModNormal = vec4(normal.rgb, 1.0);
 
     // Diffuse
     texDiffuse = texture(u_smartDiffuse, diffuse_texCoords);
@@ -74,16 +89,16 @@ void main() {
 //    texDiffuse.a = u_smartBlending;
 
     // Specular
-    texSpecular = texture(u_smartSpecular, specular_texCoords);
-    texSpecular *= u_smartSpecular_Col;
+    texSpcAmbDis.r = texture(u_smartSpecular, specular_texCoords).r;
+    texSpcAmbDis.r *= u_smartSpecular_Col.r;
 
     // Ambient
-    texAmbient = texture(u_smartAmbient, ambient_texCoords);
-    texAmbient *= u_smartAmbient_Col;
-    texAmbient += (1-u_smartAmbientLight_Col);
+    texSpcAmbDis.g = texture(u_smartAmbient, ambient_texCoords).g;
+    texSpcAmbDis.g *= u_smartAmbient_Col.g;
+//    texAmbient += (1-u_smartAmbientLight_Col);
 
     // Displacement
-    texDisplacement = texture(u_smartDisplacement, displacement_texCoords);
+    texSpcAmbDis.b = texture(u_smartDisplacement, displacement_texCoords).b;
 
     // Emissive
     texEmissive = texture(u_smartEmissive, emissive_texCoords);

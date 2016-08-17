@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Matrix4;
+import net.ncguy.argent.utils.AppUtils;
 
 /**
  * Created by Guy on 29/07/2016.
@@ -34,6 +35,12 @@ public class ArgentShader extends BaseShader {
         register(DefaultShader.Inputs.worldTrans, DefaultShader.Setters.worldTrans);
         register(DefaultShader.Inputs.projViewTrans, DefaultShader.Setters.projViewTrans);
         register(DefaultShader.Inputs.cameraNearFar, DefaultShader.Setters.cameraNearFar);
+        register(new Uniform("u_time"), new LocalSetter() {
+            @Override
+            public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
+                shader.set(inputID, AppUtils.GL.getTime());
+            }
+        });
         register(new Uniform("u_viewPos"), new LocalSetter() {
             @Override
             public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {

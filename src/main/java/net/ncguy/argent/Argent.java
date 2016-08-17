@@ -6,10 +6,7 @@ import net.ncguy.argent.content.ContentManager;
 import net.ncguy.argent.event.EventBus;
 import net.ncguy.argent.injector.InjectionModule;
 
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -97,5 +94,25 @@ public class Argent {
         }
     };
 
+
+    private static List<String> boolVars = new ArrayList<>();
+    public static void addBoolVar(String key) {
+        boolVars.add(key);
+    }
+    public static void removeBoolVar(String key) {
+        boolVars.remove(key);
+    }
+    public static void toggleBoolVar(String key) {
+        if(hasBoolVar(key)) removeBoolVar(key);
+        else addBoolVar(key);
+    }
+    public static boolean hasBoolVar(String key) {
+        return boolVars.contains(key);
+    }
+
+    public static class VarKeys {
+        public static final String bool_LIGHTDEBUG = "light.debug";
+        public static final String bool_SHADOWS = "light.shadow";
+    }
 
 }

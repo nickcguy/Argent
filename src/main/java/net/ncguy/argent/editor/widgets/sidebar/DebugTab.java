@@ -2,6 +2,7 @@ package net.ncguy.argent.editor.widgets.sidebar;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Slider;
@@ -27,6 +28,7 @@ public class DebugTab extends Tab {
     private ScrollPane scroller;
     private GridGroup group;
     private EditorUI editorUI;
+    ArgentRenderer.FBOAttachment[] attachments;
     List<Image> images;
     int imageCount = 0;
 
@@ -39,8 +41,18 @@ public class DebugTab extends Tab {
             public void act(float delta) {
                 super.act(delta);
                 if(editorUI.getRenderer() instanceof ArgentRenderer) {
-                    MultiTargetFrameBuffer texMrt = ((ArgentRenderer) editorUI.getRenderer()).getTextureMRT();
-                    MultiTargetFrameBuffer ltgMrt = ((ArgentRenderer) editorUI.getRenderer()).getLightingMRT();
+                    ArgentRenderer renderer = (ArgentRenderer) editorUI.getRenderer();
+                    MultiTargetFrameBuffer texMrt = renderer.getTextureMRT();
+                    MultiTargetFrameBuffer ltgMrt = renderer.getLightingMRT();
+                    attachments = new ArgentRenderer.FBOAttachment[renderer.tex_ATTACHMENTS.length + renderer.ltg_ATTACHMENTS.length];
+                    for (int i = 0; i < attachments.length; i++) {
+                        if(i < renderer.tex_ATTACHMENTS.length)
+                            attachments[i] = renderer.tex_ATTACHMENTS[i];
+                        else {
+                            int j = i - renderer.tex_ATTACHMENTS.length;
+                            attachments[i] = renderer.ltg_ATTACHMENTS[j];
+                        }
+                    }
                     final int[] index = {0};
                     texMrt.forEach(tex -> configure(tex, index[0]++));
                     ltgMrt.forEach(tex -> configure(tex, index[0]++));
@@ -80,6 +92,7 @@ public class DebugTab extends Tab {
         TextureRegion textureRegion = new TextureRegion(tex);
         textureRegion.setV(1);
         textureRegion.setV2(0);
+
         img.setDrawable(new TextureRegionDrawable(textureRegion));
 
     }
@@ -88,7 +101,16 @@ public class DebugTab extends Tab {
         if(imageCount == images.size()) return;
         imageCount = images.size();
         group.clearChildren();
-        images.forEach(group::addActor);
+        final int[] index = {0};
+        images.forEach(img -> {
+            index[0] = MathUtils.clamp(index[0], 0, attachments.length-1);
+            Table t = new Table(VisUI.getSkin());
+            t.setBackground("menu-bg");
+            String label = attachments[index[0]++].name;
+            t.add(img).expand().fill().row();
+            t.add(label).expandX().fillX().row();
+            group.addActor(t);
+        });
     }
 
     @Override

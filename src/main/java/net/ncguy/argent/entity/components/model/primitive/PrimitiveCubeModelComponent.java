@@ -10,8 +10,6 @@ import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.entity.components.ComponentData;
 import net.ncguy.argent.entity.components.model.ModelComponent;
 
-import static com.badlogic.gdx.graphics.VertexAttributes.Usage.*;
-
 /**
  * Created by Guy on 29/07/2016.
  */
@@ -47,7 +45,7 @@ public class PrimitiveCubeModelComponent extends ModelComponent {
     }
 
     public void applyModel() {
-        Model model = new ModelBuilder().createBox(width, height, depth, mtl.getAsset(), Position | Normal | TextureCoordinates);
+        Model model = new ModelBuilder().createBox(width, height, depth, mtl.getAsset(), attributes);
         setModel(model);
     }
 

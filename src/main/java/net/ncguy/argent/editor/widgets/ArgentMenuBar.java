@@ -5,6 +5,7 @@ import com.kotcrab.vis.ui.widget.MenuBar;
 import net.ncguy.argent.editor.EditorUI;
 import net.ncguy.argent.editor.widgets.menubar.EditMenu;
 import net.ncguy.argent.editor.widgets.menubar.FileMenu;
+import net.ncguy.argent.editor.widgets.menubar.SettingsMenu;
 import net.ncguy.argent.editor.widgets.menubar.ToolMenu;
 
 /**
@@ -15,6 +16,7 @@ public class ArgentMenuBar extends MenuBar {
     private FileMenu fileMenu;
     private EditMenu editMenu;
     private ToolMenu toolMenu;
+    private SettingsMenu settingsMenu;
 
     private EditorUI editorUI;
 
@@ -24,10 +26,12 @@ public class ArgentMenuBar extends MenuBar {
         fileMenu = new FileMenu(editorUI);
         editMenu = new EditMenu(editorUI);
         toolMenu = new ToolMenu(editorUI);
+        settingsMenu = new SettingsMenu(editorUI);
 
         addMenu(fileMenu);
         addMenu(editMenu);
         addMenu(toolMenu);
+        addMenu(settingsMenu);
     }
 
     @Override

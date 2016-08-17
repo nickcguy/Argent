@@ -46,24 +46,28 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
 
     public static final FBOAttachment tex_NORMAL = new FBOAttachment(0, "texNormal");
     public static final FBOAttachment tex_DIFFUSE = new FBOAttachment(1, "texDiffuse");
-    public static final FBOAttachment tex_SPECULAR = new FBOAttachment(2, "texSpecular");
-    public static final FBOAttachment tex_AMBIENT = new FBOAttachment(3, "texAmbient");
-    public static final FBOAttachment tex_DISPLACEMENT = new FBOAttachment(4, "texDisplacement");
-    public static final FBOAttachment tex_EMISSIVE = new FBOAttachment(5, "texEmissive");
-    public static final FBOAttachment tex_REFLECTION = new FBOAttachment(6, "texReflection");
-    public static final FBOAttachment tex_POSITION = new FBOAttachment(7, "texPosition");
+    public static final FBOAttachment tex_SPCAMBDIS = new FBOAttachment(2, "texSpcAmbDis");
+//    public static final FBOAttachment tex_SPECULAR = new FBOAttachment(2, "texSpecular");
+//    public static final FBOAttachment tex_AMBIENT = new FBOAttachment(3, "texAmbient");
+//    public static final FBOAttachment tex_DISPLACEMENT = new FBOAttachment(4, "texDisplacement");
+    public static final FBOAttachment tex_EMISSIVE = new FBOAttachment(3, "texEmissive");
+    public static final FBOAttachment tex_REFLECTION = new FBOAttachment(4, "texReflection");
+    public static final FBOAttachment tex_POSITION = new FBOAttachment(5, "texPosition");
+    public static final FBOAttachment tex_MODIFIEDNORMAL = new FBOAttachment(6, "texModNormal");
 
     public static final FBOAttachment[] tex_ATTACHMENTS = new FBOAttachment[]{
-        tex_NORMAL, tex_DIFFUSE, tex_SPECULAR, tex_AMBIENT, tex_DISPLACEMENT, tex_EMISSIVE, tex_REFLECTION, tex_POSITION
+        tex_NORMAL, tex_DIFFUSE, tex_SPCAMBDIS, tex_EMISSIVE, tex_REFLECTION, tex_POSITION, tex_MODIFIEDNORMAL
     };
 
     public static final FBOAttachment ltg_POSITION = new FBOAttachment(0, "ltgPosition");
 //    public static final FBOAttachment ltg_DEPTH = new FBOAttachment(0, "ltgPosition");
     public static final FBOAttachment ltg_TEXTURES = new FBOAttachment(1, "ltgTextures");
+    public static final FBOAttachment ltg_LIGHTING = new FBOAttachment(2, "ltgLighting");
+    public static final FBOAttachment ltg_GEOMETRY = new FBOAttachment(3, "ltgGeometry");
 
 
     public static final FBOAttachment[] ltg_ATTACHMENTS = new FBOAttachment[] {
-        ltg_POSITION, ltg_TEXTURES
+        ltg_POSITION, ltg_TEXTURES, ltg_LIGHTING, ltg_GEOMETRY
     };
 
     public ArgentRenderer(GameWorld<T> world) {
@@ -83,7 +87,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     @Override
     public ModelBatch batch() {
         if(modelBatch == null) {
-            screenProgram = AppUtils.Shader.loadShader("pipeline/screen");
+            screenProgram = AppUtils.Shader.loadGeometryShader("pipeline/screen");
             modelBatch = new ModelBatch(new DefaultShaderProvider() {
                 @Override
                 protected Shader createShader(Renderable renderable) {
@@ -242,7 +246,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
             textureBatch.dispose();
             textureBatch = null;
         }
-        textureProgram = AppUtils.Shader.loadShader("pipeline/texture");
+        textureProgram = AppUtils.Shader.loadGeometryShader("pipeline/texture");
         textureBatch = new ModelBatch(new DefaultShaderProvider() {
             @Override
             protected Shader createShader(Renderable renderable) {
@@ -280,7 +284,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     }
 
     private MultiTargetFrameBuffer create(int bufferCount) {
-        return MultiTargetFrameBuffer.create(Pixmap.Format.RGBA8888, bufferCount,
+        return MultiTargetFrameBuffer.create(MultiTargetFrameBuffer.Format.RGBA32F, bufferCount,
                 iWidth(), iHeight(), true, false);
     }
 

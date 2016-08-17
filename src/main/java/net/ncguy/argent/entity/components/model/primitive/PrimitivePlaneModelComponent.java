@@ -10,8 +10,6 @@ import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.entity.components.ComponentData;
 import net.ncguy.argent.entity.components.model.ModelComponent;
 
-import static com.badlogic.gdx.graphics.VertexAttributes.Usage.*;
-
 /**
  * Created by Guy on 16/08/2016.
  */
@@ -58,9 +56,9 @@ public class PrimitivePlaneModelComponent extends ModelComponent {
 //        Model model = new ModelBuilder().createSphere(width, height, depth, divU, divV, mtl.getAsset(), Position | Normal | TextureCoordinates);
         ModelBuilder mb = new ModelBuilder();
         mb.begin();
-        mb.part("front", GL30.GL_TRIANGLES, Position | Normal | TextureCoordinates, mtl.getAsset()).rect(-w, -h, 0, w, -h, 0, w, h, 0, -w, h, 0, 0, 0, 1);
+        mb.part("front", GL30.GL_TRIANGLES, attributes, mtl.getAsset()).rect(-w, -h, 0, w, -h, 0, w, h, 0, -w, h, 0, 0, 0, 1);
         if(twoSided)
-            mb.part("back", GL30.GL_TRIANGLES, Position | Normal | TextureCoordinates, mtl.getAsset()).rect(w, -h, 0, -w, -h, 0, -w, h, 0, w, h, 0, 0, 0, -1);
+            mb.part("back", GL30.GL_TRIANGLES, attributes, mtl.getAsset()).rect(w, -h, 0, -w, -h, 0, -w, h, 0, w, h, 0, 0, 0, -1);
 
         setModel(mb.end());
     }

@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import net.ncguy.argent.utils.AppUtils;
 
 /**
  * Created by Guy on 16/08/2016.
@@ -29,6 +30,13 @@ public class ArgentScreenShader extends BaseShader {
         this.program = shaderProgramModelBorder;
         register(DefaultShader.Inputs.worldTrans, DefaultShader.Setters.worldTrans);
         register(DefaultShader.Inputs.projViewTrans, DefaultShader.Setters.projViewTrans);
+
+        register(new Uniform("u_time"), new LocalSetter() {
+            @Override
+            public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
+                shader.set(inputID, AppUtils.GL.getTime());
+            }
+        });
 
         register(new Uniform("u_screenRes"), new LocalSetter() {
             @Override

@@ -78,9 +78,9 @@ public class PrimitiveCubeModelWidget extends ComponentWidget<PrimitiveCubeModel
     @Override
     public void setValues(WorldEntity entity) {
         this.name.setText(component.name());
-        this.width.setText(String.valueOf(component.width));
-        this.height.setText(String.valueOf(component.height));
-        this.depth.setText(String.valueOf(component.depth));
+        this.width.setText(component.width+"");
+        this.height.setText(component.height+"");
+        this.depth.setText(component.depth+"");
     }
 
     public class CubeRenameListener extends ChangeListener {

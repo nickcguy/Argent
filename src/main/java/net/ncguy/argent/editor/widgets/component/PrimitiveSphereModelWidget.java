@@ -13,6 +13,7 @@ import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.entity.components.model.primitive.PrimitiveSphereModelComponent;
 import net.ncguy.argent.ui.FloatFieldWithLabel;
 import net.ncguy.argent.ui.dnd.DropZone;
+import net.ncguy.argent.utils.StringUtils;
 
 import java.util.function.Supplier;
 
@@ -96,7 +97,7 @@ public class PrimitiveSphereModelWidget extends ComponentWidget<PrimitiveSphereM
     @Override
     public void setValues(WorldEntity entity) {
         this.name.setText(component.name());
-        this.width.setText(String.valueOf(component.width));
+        this.width.setText(StringUtils.formatFloat(component.width, 2));
         this.height.setText(String.valueOf(component.height));
         this.depth.setText(String.valueOf(component.depth));
         this.divU.setText(String.valueOf(component.divU));

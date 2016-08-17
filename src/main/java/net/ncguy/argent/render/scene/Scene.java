@@ -2,11 +2,12 @@ package net.ncguy.argent.render.scene;
 
 import com.badlogic.gdx.utils.Disposable;
 import net.ncguy.argent.entity.WorldEntity;
+import net.ncguy.argent.event.WorldEntitySelectedEvent;
 
 /**
  * Created by Guy on 27/07/2016.
  */
-public class Scene implements Disposable {
+public class Scene implements Disposable, WorldEntitySelectedEvent.WorldEntitySelectedListener {
 
     private String name;
     private long id;
@@ -33,4 +34,8 @@ public class Scene implements Disposable {
         sceneGraph.setSelected(entity);
     }
 
+    @Override
+    public void onWorldEntitySelected(WorldEntitySelectedEvent event) {
+        select(event.getEntity());
+    }
 }

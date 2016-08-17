@@ -21,7 +21,7 @@ public class PrimitivePlaneModelWidget extends ComponentWidget<PrimitivePlaneMod
     private FloatFieldWithLabel width;
     private FloatFieldWithLabel height;
     private CheckBox twoSided;
-    DropZone<ArgMaterial> mtlDropZone;
+    private DropZone<ArgMaterial> mtlDropZone;
 
     public PrimitivePlaneModelWidget(PrimitivePlaneModelComponent component) {
         super(component, "Plane Primitive");

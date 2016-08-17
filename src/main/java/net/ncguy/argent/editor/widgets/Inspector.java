@@ -193,8 +193,8 @@ public class Inspector extends Table implements WorldEntitySelectedEvent.WorldEn
 
     @Override
     public void onWorldEntitySelected(WorldEntitySelectedEvent event) {
-        setValues(projectManager.current().currScene.selected());
         populateAvailableComponents();
+        setValues(projectManager.current().currScene.selected());
     }
 
     @Override

@@ -54,6 +54,13 @@ public class SmartTextureShader extends BaseShader {
         registerColourUniform(ColorAttribute.AmbientLight);
         registerColourUniform(ColorAttribute.Fog);
 
+        register(new Uniform("u_time"), new LocalSetter() {
+            @Override
+            public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
+                shader.set(inputID, AppUtils.GL.getTime());
+            }
+        });
+
         register(new Uniform("u_pickerColour"), new LocalSetter() {
             @Override
             public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
@@ -135,7 +142,6 @@ public class SmartTextureShader extends BaseShader {
         super.begin(camera, context);
         context.setDepthTest(GL20.GL_LEQUAL);
         context.setCullFace(GL20.GL_BACK);
-
     }
 
     @Override
