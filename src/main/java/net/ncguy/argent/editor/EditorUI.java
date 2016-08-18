@@ -64,6 +64,11 @@ public class EditorUI extends Stage {
             e.printStackTrace();
         }
         toaster = new Toaster(this);
+        try {
+            InjectionStore.setGlobal(toaster);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
         root = new Table(VisUI.getSkin());
         root.setFillParent(true);
         root.align(Align.center | Align.left);

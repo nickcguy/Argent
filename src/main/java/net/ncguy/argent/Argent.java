@@ -5,6 +5,7 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import net.ncguy.argent.content.ContentManager;
 import net.ncguy.argent.event.EventBus;
 import net.ncguy.argent.injector.InjectionModule;
+import net.ncguy.argent.vpl.VPLManager;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -19,6 +20,7 @@ public class Argent {
 
     public static ContentManager content;
     public static EventBus event;
+    public static VPLManager vpl;
     @Deprecated
     public static InjectionModule injector;
 

@@ -8,6 +8,7 @@ import net.ncguy.argent.editor.project.ProjectManager;
 import net.ncguy.argent.editor.tools.ToolManager;
 import net.ncguy.argent.entity.ComponentSet;
 import net.ncguy.argent.misc.FreeCamController;
+import net.ncguy.argent.ui.Toaster;
 import net.ncguy.argent.utils.InputManager;
 
 import java.lang.reflect.Field;
@@ -42,6 +43,7 @@ public class InjectionStore {
     private static InputManager inputManager;
     private static ToolManager toolManager;
     private static DragAndDrop dragAndDrop;
+    private static Toaster toaster;
 
 
 }

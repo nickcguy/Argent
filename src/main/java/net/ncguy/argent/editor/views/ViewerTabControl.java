@@ -6,6 +6,7 @@ import com.kotcrab.vis.ui.widget.tabbedpane.Tab;
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPane;
 import com.kotcrab.vis.ui.widget.tabbedpane.TabbedPaneListener;
 import net.ncguy.argent.editor.EditorUI;
+import net.ncguy.argent.vpl.VPLViewer;
 
 /**
  * Created by Guy on 02/08/2016.
@@ -16,6 +17,7 @@ public class ViewerTabControl extends Table implements TabbedPaneListener {
 
     private SceneViewer sceneViewer;
     private MaterialViewer materialViewer;
+    private VPLViewer vplViewer;
 
     private TabbedPane tabPane;
     private Table tabContent;
@@ -23,6 +25,7 @@ public class ViewerTabControl extends Table implements TabbedPaneListener {
     public ViewerTabControl(EditorUI editorUI) {
         sceneViewer = new SceneViewer(editorUI);
         materialViewer = new MaterialViewer(editorUI);
+        vplViewer = new VPLViewer(editorUI);
         this.editorUI = editorUI;
         tabContent = new Table(VisUI.getSkin());
         tabPane = new TabbedPane();
@@ -31,6 +34,7 @@ public class ViewerTabControl extends Table implements TabbedPaneListener {
 
         tabPane.add(sceneViewer);
         tabPane.add(materialViewer);
+        tabPane.add(vplViewer);
 
         tabPane.switchTab(sceneViewer);
 

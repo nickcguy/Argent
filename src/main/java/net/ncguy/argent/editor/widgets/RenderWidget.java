@@ -40,8 +40,6 @@ public class RenderWidget extends Widget {
         return renderer;
     }
 
-    // TODO disconnect camera from viewport
-
     @Override
     public void draw(Batch batch, float parentAlpha) {
         if(renderer == null) return;
