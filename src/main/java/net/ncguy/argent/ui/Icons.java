@@ -1,31 +1,56 @@
 package net.ncguy.argent.ui;
 
+import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.kotcrab.vis.ui.VisUI;
+
+import java.util.Arrays;
 
 /**
  * Created by Guy on 22/07/2016.
  */
 public class Icons {
 
-    private static TextureAtlas icons;
+    private static TextureAtlas icons, nodes;
+    private static Skin iconSkin, nodeSkin;
 
     public static void init() {
         icons = new TextureAtlas("assets/icons/icons.atlas");
+        nodes = new TextureAtlas(UIModule.nodeHandle());
+
+        (iconSkin = new Skin()).addRegions(icons);
+        (nodeSkin = new Skin()).addRegions(nodes);
+
+        System.out.println("Node regions");
+        nodes.getRegions().forEach(r -> {
+            System.out.printf("\t%s: %s\n", r.name, Arrays.toString(r.splits));
+        });
     }
 
-    public static Drawable getIcon (Icon name) {
-        return new TextureRegionDrawable(getIconRegion(name));
+    public static <T> T get(Skin skin, String name, Class<T> cls) {
+        return skin.optional(name, cls);
     }
 
-    public static TextureRegion getIconRegion (Icon icon) {
-        return icons.findRegion(icon.name);
+    public static TextureRegion getIconRegion (Skin skin, String name) {
+        return skin.getRegion(name);
     }
 
-    public enum Icon {
+    public static NinePatch getIconPatch(Skin skin, String name) {
+        return skin.getPatch(name);
+    }
+
+    public interface IconSet {
+        Drawable drawable();
+        TextureRegion textureRegion();
+        NinePatch patch();
+        <T> T get(Class<T> cls);
+    }
+
+    public enum Icon implements IconSet {
         NEW("new"),
         UNDO("undo"),
         REDO("redo"),
@@ -110,7 +135,49 @@ public class Icons {
             if (fromVisUI)
                 return VisUI.getSkin().getRegion(name);
             else
-                return Icons.getIconRegion(this);
+                return Icons.getIconRegion(iconSkin, this.name);
+        }
+
+        public NinePatch patch() {
+            return Icons.getIconPatch(iconSkin, this.name);
+        }
+
+        public <T> T get(Class<T> cls) {
+            return Icons.get(iconSkin, this.name, cls);
+        }
+
+    }
+
+    public enum Node implements IconSet {
+        NODE_BODY("Node_Body"),
+        NODE_SELECTED("Node_Selected"),
+        NODE_TITLE("Node_Title"),
+        NODE_TITLE_GLOSS("Node_Title_Gloss"),
+        NODE_TITLE_HIGHLIGHT("Node_Title_Highlight"),
+        PIN_CONNECTED("Pin_Connected"),
+        PIN("Pin_Disconnected"),
+        PIN_EXEC_CONNECTED("ExecPin_Connected"),
+        PIN_EXEC("ExecPin_Disconnected"),
+        ;
+        Node(String name) {
+            this.name = name;
+        }
+        private String name;
+
+        public Drawable drawable () {
+                return new TextureRegionDrawable(textureRegion());
+        }
+
+        public TextureRegion textureRegion () {
+            return Icons.getIconRegion(nodeSkin, this.name);
+        }
+
+        public NinePatch patch() {
+            return Icons.getIconPatch(nodeSkin, this.name);
+        }
+
+        public <T> T get(Class<T> cls) {
+            return Icons.get(nodeSkin, this.name, cls);
         }
 
     }

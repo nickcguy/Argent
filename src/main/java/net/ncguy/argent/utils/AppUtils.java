@@ -248,4 +248,13 @@ public class AppUtils {
 
     }
 
+    public static class General {
+
+        public static <T> boolean arrayContains(T[] arr, T obj) {
+            for (T t : arr) if(obj.equals(t)) return true;
+            return false;
+        }
+
+    }
+
 }

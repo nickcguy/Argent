@@ -16,11 +16,16 @@ public class UIModule extends IModule {
 //    private static FileHandle handle = VisUI.SkinScale.X1.getSkinFile();
     private static FileHandle handle = Gdx.files.internal("assets/ui/uiskin.json");
     private static FileHandle fontHandle = Gdx.files.internal("assets/ui/fonts/roboto-medium.ttf");
+    private static FileHandle nodeHandle = Gdx.files.internal("assets/ui/vpl/vplskin.atlas");
 
     public static FileHandle handle() { return handle; }
     public static void handle(FileHandle handle) { UIModule.handle = handle; }
 
-    public UIModule() {
+    public static FileHandle nodeHandle() { return nodeHandle; }
+    public static void nodeHandle(FileHandle nodeHandle) { UIModule.nodeHandle = nodeHandle; }
+
+    @Override
+    public void init() {
         VisUI.load(handle);
         FreeTypeFontGenerator gen = new FreeTypeFontGenerator(fontHandle);
         FreeTypeFontGenerator.FreeTypeFontParameter params = new FreeTypeFontGenerator.FreeTypeFontParameter();

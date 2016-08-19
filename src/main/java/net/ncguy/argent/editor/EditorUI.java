@@ -96,7 +96,10 @@ public class EditorUI extends Stage {
         setupInput();
     }
 
+    public InputManager getInputManager() { return inputManager; }
+
     private void setupInput() {
+        inputManager.clear();
         addListener(Argent.globalListener);
         inputManager.addProcessor(this);
         inputManager.addProcessor(new InputAdapter(){

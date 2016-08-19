@@ -11,7 +11,7 @@ public class VPLModule extends IModule {
 
     @Override
     public void init() {
-        Argent.vpl = new VPLManager();
+        Argent.vpl = VPLManager.instance();
     }
 
     @Override

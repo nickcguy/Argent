@@ -14,5 +14,6 @@ public abstract class ViewTab extends Tab {
     public ViewTab(boolean savable, boolean closeableByUser) { super(savable, closeableByUser); }
 
     public void onOpen() {}
+    public void onClose() {}
 
 }

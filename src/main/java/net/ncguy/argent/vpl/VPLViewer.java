@@ -3,9 +3,11 @@ package net.ncguy.argent.vpl;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.kotcrab.vis.ui.VisUI;
-import com.kotcrab.vis.ui.widget.Separator;
 import net.ncguy.argent.editor.EditorUI;
 import net.ncguy.argent.editor.views.ViewTab;
+import net.ncguy.argent.injector.ArgentInjector;
+import net.ncguy.argent.injector.Inject;
+import net.ncguy.argent.utils.InputManager;
 
 /**
  * Created by Guy on 18/08/2016.
@@ -14,27 +16,22 @@ public class VPLViewer extends ViewTab {
 
     protected Table content;
     protected VPLContainer vplContainer;
-    protected VPLWidget widget;
     protected Label zoomLabel, camLabel;
     protected Table statusTable;
 
+    @Inject
+    InputManager inputManager;
+
     public VPLViewer(EditorUI editorUI) {
         super(false, false);
+        ArgentInjector.inject(this);
         content = new Table(VisUI.getSkin());
         statusTable = new Table(VisUI.getSkin());
         statusTable.setBackground("menu-bg");
 //        content.setBackground(Icons.Icon.WARNING.drawable());
 
         vplContainer = new VPLContainer();
-        widget = new VPLWidget(editorUI, vplContainer);
 
-        zoomLabel = new Label("", VisUI.getSkin()) {
-            @Override
-            public void act(float delta) {
-                zoomLabel.setText("Current Zoom: "+vplContainer.getZoom());
-                super.act(delta);
-            }
-        };
         camLabel = new Label("", VisUI.getSkin()) {
             @Override
             public void act(float delta) {
@@ -42,12 +39,19 @@ public class VPLViewer extends ViewTab {
                 super.act(delta);
             }
         };
-        statusTable.add(zoomLabel).left();
-        statusTable.add(new Separator()).expandY().fillY().padLeft(5).padRight(5);
         statusTable.add(camLabel).left();
+        vplContainer.setFillParent(true);
 
-        content.add(statusTable).expandX().fillX().left().row();
-        content.add(widget).expand().fill().row();
+//        content.add(statusTable).expandX().fillX().left().row();
+        content.add(vplContainer).expand().fill().row();
+    }
+
+    @Override
+    public void onOpen() {
+    }
+
+    @Override
+    public void onClose() {
     }
 
     @Override

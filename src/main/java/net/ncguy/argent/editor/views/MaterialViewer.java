@@ -108,7 +108,13 @@ public class MaterialViewer extends ViewTab {
 
     @Override
     public void onOpen() {
+        editorUI.getInputManager().addProcessor(editorUI.getFreeCamController());
         editorUI.getFreeCamController().setCamera(this.widget3D.getRenderer().camera());
+    }
+
+    @Override
+    public void onClose() {
+        editorUI.getInputManager().removeProcessor(editorUI.getFreeCamController());
     }
 
     public void setPreviewModel(ModelComponent newComponent) {

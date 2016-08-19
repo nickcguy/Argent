@@ -1,0 +1,73 @@
+
+vplskin.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: xy
+Node_Body
+  rotate: false
+  xy: 0, 0
+  size: 62, 62
+  split: 5, 5, 5, 5
+  orig: 62, 62
+  offset: 0, 0
+  index: -1
+Node_Selected
+  rotate: false
+  xy: 62, 0
+  size: 62, 62
+  split: 18, 18, 18, 18
+  orig: 62, 62
+  offset: 0, 0
+  index: -1
+Node_Title_Gloss
+  rotate: false
+  xy: 124, 36
+  size: 62, 26
+  split: 10, 12, 4, 6
+  orig: 62, 26
+  offset: 0, 0
+  index: -1
+Node_Title
+  rotate: false
+  xy: 124, 13
+  size: 62, 23
+  split: 6, 6, 5, 1
+  orig: 62, 23
+  offset: 0, 0
+  index: -1
+Node_Title_Highlight
+  rotate: false
+  xy: 186, 42
+  size: 62, 20
+  split: 6, 7, 5, 4
+  orig: 62, 20
+  offset: 0, 0
+  index: -1
+ExecPin_Connected
+  rotate: false
+  xy: 186, 26
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
+ExecPin_Disconnected
+  rotate: false
+  xy: 202, 26
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
+Pin_Connected
+  rotate: false
+  xy: 124, 2
+  size: 15, 11
+  orig: 15, 11
+  offset: 0, 0
+  index: -1
+Pin_Disconnected
+  rotate: false
+  xy: 186, 15
+  size: 15, 11
+  orig: 15, 11
+  offset: 0, 0
+  index: -1

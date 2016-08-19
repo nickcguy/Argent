@@ -4,10 +4,10 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
+import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.ui.DrawableFactory;
 import net.ncguy.argent.utils.AppUtils;
@@ -21,11 +21,16 @@ public class VPLPane extends Group {
     Drawable bg;
     ShaderProgram shader;
     private VPLContainer parent;
+    protected String tag;
+    VPLGraph graph;
+    Rectangle gridBounds;
 
-    public VPLPane(VPLContainer parent) {
+    public VPLPane(VPLContainer parent, String tag) {
         this.parent = parent;
+        this.tag = tag;
         bg = DrawableFactory.grid();
         shader = AppUtils.Shader.loadShader("2d/graph");
+        graph = new VPLGraph(tag);
 
         Argent.addOnKeyDown(keycode -> {
             if(keycode == Input.Keys.P) {
@@ -34,34 +39,31 @@ public class VPLPane extends Group {
                 }
             }
         });
+        addActor(graph);
+        gridBounds = new Rectangle(parent.getX(), parent.getY(), parent.getWidth(), parent.getHeight());
+        graph.bounds = gridBounds;
+    }
+
+    @Override
+    protected void sizeChanged() {
+        graph.setWidth(getWidth());
+        graph.setHeight(getHeight());
     }
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
+        gridBounds.set(parent.getX(), parent.getY(), parent.getWidth(), parent.getHeight());
+        batch.flush();
+        ScissorStack.pushScissors(gridBounds);
         ShaderProgram current = batch.getShader();
         batch.setShader(shader);
         bg.draw(batch, getX(), getY(), getWidth(), getHeight());
-        batch.draw(TextureCache.white(), -2, -2, 6, 6);
+        batch.draw(TextureCache.white(), (getX()+(getWidth()/2))-2, (getY()+(getHeight()/2))-2, 6, 6);
         super.draw(batch, parentAlpha);
+        batch.flush();
+        ScissorStack.popScissors();
         batch.setShader(current);
     }
 
-    public Vector2 getStagePosition() {
-        return localToStageCoordinates(new Vector2(0, 0));
-    }
-
-    public int getSafeX() {
-        Vector3 unproject = parent.unproject(new Vector3(getX(), getY(), 0));
-        return (int) unproject.x;
-    }
-    public int getSafeY() {
-        return (int)getY();
-    }
-    public int getSafeWidth() {
-        return (int)getWidth();
-    }
-    public int getSafeHeight() {
-        return (int)getHeight();
-    }
 
 }

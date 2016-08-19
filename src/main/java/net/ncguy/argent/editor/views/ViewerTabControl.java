@@ -21,6 +21,7 @@ public class ViewerTabControl extends Table implements TabbedPaneListener {
 
     private TabbedPane tabPane;
     private Table tabContent;
+    private Tab activeTab;
 
     public ViewerTabControl(EditorUI editorUI) {
         sceneViewer = new SceneViewer(editorUI);
@@ -44,7 +45,12 @@ public class ViewerTabControl extends Table implements TabbedPaneListener {
 
     @Override
     public void switchedTab(Tab tab) {
+        if(tab == activeTab) return;
+        if(activeTab instanceof ViewTab)
+            ((ViewTab) activeTab).onClose();
+
         tabContent.clearChildren();
+        activeTab = tab;
         if(tab != null) {
             tabContent.add(tab.getContentTable()).expand().fill().row();
             if(tab instanceof ViewTab)

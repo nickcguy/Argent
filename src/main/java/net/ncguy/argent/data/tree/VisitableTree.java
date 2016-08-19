@@ -1,7 +1,10 @@
 package net.ncguy.argent.data.tree;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * Created by Guy on 15/07/2016.
@@ -50,5 +53,21 @@ public class VisitableTree<T> implements Visitable<T> {
     @Override
     public T data() {
         return this.data;
+    }
+
+    public List<T> flatten() {
+        final List<T> t = new ArrayList<>();
+        flatten(t);
+        return t;
+    }
+
+    public void flatten(final List<T> t) {
+        t.add(data());
+        children.forEach(c -> c.flatten(t));
+    }
+
+    public void forEach(final Consumer<T> consumer) {
+        consumer.accept(data());
+        children.forEach(c -> c.forEach(consumer));
     }
 }

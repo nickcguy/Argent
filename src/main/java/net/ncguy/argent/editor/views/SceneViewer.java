@@ -39,8 +39,14 @@ public class SceneViewer extends ViewTab {
     @Override
     public void onOpen() {
         try {
+            editorUI.getInputManager().addProcessor(editorUI.getFreeCamController());
             editorUI.getFreeCamController().setCamera(this.widget3D.getRenderer().camera());
         }catch (Exception e) {}
+    }
+
+    @Override
+    public void onClose() {
+        editorUI.getInputManager().removeProcessor(editorUI.getFreeCamController());
     }
 
     public RenderWidget getWidget3D() {

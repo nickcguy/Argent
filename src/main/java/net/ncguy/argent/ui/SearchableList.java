@@ -1,7 +1,6 @@
 package net.ncguy.argent.ui;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -13,11 +12,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.kotcrab.vis.ui.VisUI;
 import com.kotcrab.vis.ui.widget.Separator;
 import net.ncguy.argent.utils.AppUtils;
-import net.ncguy.argent.utils.TextureCache;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,6 +49,7 @@ public class SearchableList<T> extends Table {
     protected TextField searchField;
     protected ScrollPane scroller;
     protected Tree itemTree;
+    protected boolean keepWithinStage = true;
 
     protected void initUI() {
         this.searchField = new TextArea("", VisUI.getSkin());
@@ -127,12 +125,14 @@ public class SearchableList<T> extends Table {
     }
     public void show(Stage stage, float x, float y) {
         this.clearActions();
+        this.resetSearch();
         stage.addActor(this);
         stage.addListener(stageClickListener);
         this.setPosition(x, y);
         this.setSize(300, getDesiredHeight(350));
-        AppUtils.Stage2d.keepWithinStage(this);
+        if(keepWithinStage) AppUtils.Stage2d.keepWithinStage(this);
         this.addAction(Actions.fadeIn(.3f));
+        stage.setKeyboardFocus(searchField);
     }
 
     @Override
@@ -163,7 +163,14 @@ public class SearchableList<T> extends Table {
         if(this.getStage() == null) return;
         this.clearActions();
         this.getStage().removeListener(this.stageClickListener);
-        this.addAction(Actions.sequence(Actions.fadeOut(.3f), Actions.run(this::remove)));
+        this.addAction(Actions.sequence(Actions.fadeOut(.3f), Actions.run(this::remove), Actions.run(this::resetSearch)));
+        getStage().setKeyboardFocus(null);
+    }
+
+    private void resetSearch() {
+        this.searchField.setProgrammaticChangeEvents(true);
+        this.searchField.setText("");
+        this.searchField.setProgrammaticChangeEvents(false);
     }
 
     public void addItem(Item<T> item) {
@@ -198,26 +205,29 @@ public class SearchableList<T> extends Table {
         private Set<String> keywords;
         private Consumer<Boolean> onToggleVisibility;
         private boolean ready = false;
+        private float fullHeight = 36;
 
         public final T value;
 
         public Item(Drawable icon, String text, T value, String... keywords) {
-            if(icon == null) icon = new TextureRegionDrawable(new TextureRegion(TextureCache.white()));
             this.icon = icon;
             this.label = new Label(text, VisUI.getSkin());
-            this.image = new Image(icon);
+            if(icon != null)
+                this.image = new Image(icon);
             this.value = value;
             this.keywords = new LinkedHashSet<>();
             Collections.addAll(this.keywords, keywords);
-            this.addActor(this.image);
+            if(image != null) this.addActor(this.image);
             this.addActor(this.label);
             ready = true;
-            setHeight(36);
+            if(image == null) fullHeight = 20;
+            setHeight(fullHeight);
         }
 
         protected void resizeElements() {
-            this.image.setBounds(2, 2, 32, 32);
-            this.label.setBounds(36, 16, 0, 0);
+            if(image != null)
+                this.image.setBounds(2, 2, 32, 32);
+            this.label.setBounds(36, (fullHeight/2), 0, 0);
         }
 
         @Override
@@ -227,10 +237,11 @@ public class SearchableList<T> extends Table {
         }
 
         public boolean match(String query) {
-            String[] querySegs = query.split(" ");
+            String[] querySegs = query.toLowerCase().split(" ");
             StringBuilder sb = new StringBuilder();
+            sb.append(label.getText()).append(" ");
             this.keywords.forEach(k -> sb.append(k).append(" "));
-            String keywordStr = sb.toString();
+            String keywordStr = sb.toString().toLowerCase();
             for(String seg : querySegs) {
                 if(!keywordStr.contains(seg))
                     return false;
@@ -244,7 +255,7 @@ public class SearchableList<T> extends Table {
 
         @Override
         public void setVisible(boolean visible) {
-            setHeight(visible ? 36 : -4);
+            setHeight(visible ? fullHeight : -4);
             super.setVisible(visible);
             if(onToggleVisibility != null) onToggleVisibility.accept(visible);
         }
