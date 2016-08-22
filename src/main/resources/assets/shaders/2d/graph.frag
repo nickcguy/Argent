@@ -9,5 +9,5 @@ in vec2 TexCoords;
 uniform sampler2D u_texture;
 
 void main() {
-    FinalColour = texture(u_texture, TexCoords);
+    FinalColour = texture(u_texture, TexCoords) * Color;
 }

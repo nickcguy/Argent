@@ -1,6 +1,7 @@
 package net.ncguy.argent;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 
 /**
@@ -9,9 +10,19 @@ import com.badlogic.gdx.Screen;
 public abstract class ArgentGame extends Game {
 
     @Override
+    public void create() {}
+
+    @Override
     public void setScreen(Screen screen) {
         Argent.loadModule(new CoreModule());
         super.setScreen(screen);
+    }
+
+    @Override
+    public void render() {
+        super.render();
+        if(Argent.tween != null)
+            Argent.tween.update(Gdx.graphics.getDeltaTime());
     }
 
     @Override

@@ -107,7 +107,7 @@ public class MultiTargetFrameBuffer extends GLFrameBuffer<Texture> {
 
         if (result != GL_FRAMEBUFFER_COMPLETE) {
             dispose();
-            throw new IllegalStateException("frame buffer couldn't be constructed: error " + result);
+            throw new IllegalStateException("frame buffer couldn'value be constructed: error " + result);
         }
     }
 

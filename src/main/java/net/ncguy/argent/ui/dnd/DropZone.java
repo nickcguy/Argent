@@ -15,6 +15,8 @@ public class DropZone<T> extends DnDZone {
     protected String[] tags;
     protected TiledBorder border = new TiledBorder("Texture_TiledBorder");
     protected Consumer<T> onDrop;
+    protected Consumer<TargetDragPayload> onHover;
+    protected Consumer<TargetResetPayload> onReset;
 
     public DropZone(Class<T> cls, String... tags) {
         super();
@@ -30,11 +32,18 @@ public class DropZone<T> extends DnDZone {
     }
 
     @Override
+    public String getTag() {
+        return null;
+    }
+
+
+    @Override
     public void draw(Batch batch, float parentAlpha) {
         super.draw(batch, parentAlpha);
         border.draw(batch, getX(), getY(), getWidth(), getHeight());
     }
 
+    @Override
     public void onDrop_Safe(Object obj) {
         if(cls().isAssignableFrom(obj.getClass()))
             onDrop((T) obj);
@@ -50,6 +59,23 @@ public class DropZone<T> extends DnDZone {
     @Override
     public void highlight() {
 
+    }
+
+    public Consumer<TargetDragPayload> getOnHover() { return onHover; }
+    public void setOnHover(Consumer<TargetDragPayload> onHover) { this.onHover = onHover; }
+    public Consumer<TargetResetPayload> getOnReset() { return onReset; }
+    public void setOnReset(Consumer<TargetResetPayload> onReset) { this.onReset = onReset; }
+
+    @Override
+    public void onHover(DragDropZone.TargetDragPayload t) {
+        if(onHover != null)
+            onHover.accept(t);
+    }
+
+    @Override
+    public void onReset(DragDropZone.TargetResetPayload t) {
+        if(onReset != null)
+            onReset.accept(t);
     }
 
     public Class<T> cls() {

@@ -1,7 +1,10 @@
 package net.ncguy.argent.utils;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Guy on 31/07/2016.
@@ -40,5 +43,21 @@ public class ReflectionUtils {
         return null;
     }
 
+    public static final Map<Class<?>, Object> primitiveInstances = new HashMap<>();
+    static {
+        primitiveInstances.put(Integer.class, 0);
+        primitiveInstances.put(int.class, 0);
+        primitiveInstances.put(Long.class, 0L);
+        primitiveInstances.put(long.class, 0L);
+        primitiveInstances.put(float.class, 0F);
+        primitiveInstances.put(Float.class, 0F);
+        primitiveInstances.put(double.class, 0D);
+        primitiveInstances.put(Double.class, 0D);
+    }
+    public static <T> T newInstance(Class<T> cls) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        if(primitiveInstances.containsKey(cls))
+            return (T) primitiveInstances.get(cls);
+        return cls.getConstructor().newInstance();
+    }
 
 }

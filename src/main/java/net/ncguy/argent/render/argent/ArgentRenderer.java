@@ -103,6 +103,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         camera().viewportWidth = width;
         camera().viewportHeight = height;
         camera().update(true);
+        if(width <= 0 || height <= 0) return;
         refreshFBO();
     }
 

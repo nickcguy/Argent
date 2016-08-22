@@ -28,6 +28,16 @@ public class Toaster implements StringPacketEvent.StringPacketListener {
     public void error(String msg)   { toast(ERROR,   5, msg); }
     public void success(String msg) { toast(SUCCESS, 3, msg); }
 
+    public void info(String format, String... args)    {
+        toast(INFO, 3, String.format(format, args));
+    }
+    public void error(String format, String... args)   {
+        toast(ERROR, 5, String.format(format, args));
+    }
+    public void success(String format, String... args) {
+        toast(SUCCESS, 3, String.format(format, args));
+    }
+
     public void sticky(ToastType type, String msg) { toast(type, ToastManager.UNTIL_CLOSED, msg); }
 
     public void toast(ToastType type, int timeSec, String msg) {

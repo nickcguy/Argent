@@ -30,7 +30,7 @@ public class VPLViewer extends ViewTab {
         statusTable.setBackground("menu-bg");
 //        content.setBackground(Icons.Icon.WARNING.drawable());
 
-        vplContainer = new VPLContainer();
+        vplContainer = new VPLContainer("shader");
 
         camLabel = new Label("", VisUI.getSkin()) {
             @Override

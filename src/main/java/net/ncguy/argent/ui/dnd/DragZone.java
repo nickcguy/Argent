@@ -24,17 +24,28 @@ public class DragZone extends DnDZone {
     }
 
     @Override
+    public boolean hasTag(String tag) {
+        return this.tag.equalsIgnoreCase(tag);
+    }
+
+    @Override public String getTag() { return tag; }
+
+    @Override
     public void highlight() {
 
     }
 
-    public List<DropZone> getTargetZones() {
+    @Override public void onDrop_Safe(Object object) {}
+    @Override public void onHover(TargetDragPayload dragPayload) {}
+    @Override public void onReset(TargetResetPayload resetPayload) {}
+
+    public List<DnDZone> getTargetZones() {
         return getTargetZones(this);
     }
 
     public void initDropZones() {
-        List<DropZone> dropZones = getTargetZones();
-        for (DropZone zone : dropZones) {
+        List<DnDZone> dropZones = getTargetZones();
+        for (DnDZone zone : dropZones) {
             DragAndDrop.Target target;
             dnd.addTarget(target = new DragAndDrop.Target(zone) {
                 @Override

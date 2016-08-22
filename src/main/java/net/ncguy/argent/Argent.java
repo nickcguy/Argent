@@ -1,5 +1,6 @@
 package net.ncguy.argent;
 
+import aurelienribon.tweenengine.TweenManager;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import net.ncguy.argent.content.ContentManager;
@@ -25,6 +26,8 @@ public class Argent {
     public static UIModule ui;
     @Deprecated
     public static InjectionModule injector;
+
+    public static TweenManager tween;
 
     // Module loading
 
@@ -118,5 +121,7 @@ public class Argent {
         public static final String bool_LIGHTDEBUG = "light.debug";
         public static final String bool_SHADOWS = "light.shadow";
     }
+
+
 
 }

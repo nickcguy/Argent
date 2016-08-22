@@ -19,6 +19,8 @@ public abstract class DnDZone extends Table {
 
     public static List<DragZone> dragZones = new ArrayList<>();
     public static List<DropZone> dropZones = new ArrayList<>();
+    public static List<DragDropZone> hybridZones = new ArrayList<>();
+
 
     private static ShapeRenderer renderer;
     protected static ShapeRenderer renderer() {
@@ -26,6 +28,17 @@ public abstract class DnDZone extends Table {
             renderer = new ShapeRenderer();
         return renderer;
     }
+
+
+    public boolean hasTag(DnDZone zone) {
+        return hasTag(zone.getTag());
+    }
+    /**
+     * Used for dropzone recognition
+     * @return
+     */
+    public abstract boolean hasTag(String tag);
+    public abstract String getTag();
 
     static {
         Argent.addOnResize(DnDZone::invalidateRenderer);
@@ -42,18 +55,26 @@ public abstract class DnDZone extends Table {
     }
 
     protected static void addZone(DnDZone zone) {
-        if(zone instanceof DragZone)
+        if(zone instanceof DragDropZone)
+            hybridZones.add((DragDropZone) zone);
+        else if(zone instanceof DragZone)
             dragZones.add((DragZone) zone);
         else if(zone instanceof DropZone)
             dropZones.add((DropZone) zone);
     }
 
-    public static List<DropZone> getTargetZones(DragZone source) {
-        return dropZones.stream().filter(source::hasTag).collect(Collectors.toList());
+    public static List<DnDZone> getTargetZones(DnDZone source) {
+        List<DnDZone> zones = new ArrayList<>();
+        zones.addAll(dropZones.stream().filter(source::hasTag).collect(Collectors.toList()));
+        zones.addAll(hybridZones.stream().filter(source::hasTag).collect(Collectors.toList()));
+        zones.remove(source); // Just in case, should only happen with hybrid zones
+        return zones;
     }
 
     @Inject
     protected DragAndDrop dnd;
+
+    public DragAndDrop dnd() { return dnd; }
 
     public DnDZone() {
         super(VisUI.getSkin());
@@ -62,5 +83,36 @@ public abstract class DnDZone extends Table {
     }
 
     public abstract void highlight();
+
+    public abstract void onDrop_Safe(Object object);
+    public abstract void onHover(TargetDragPayload dragPayload);
+    public abstract void onReset(TargetResetPayload resetPayload);
+
+    public static class TargetDragPayload {
+        public DragAndDrop.Source src;
+        public DragAndDrop.Payload payload;
+        public float x;
+        public float y;
+        public int pointer;
+
+        public TargetDragPayload(DragAndDrop.Source src, DragAndDrop.Payload payload, float x, float y, int pointer) {
+            this.src = src;
+            this.payload = payload;
+            this.x = x;
+            this.y = y;
+            this.pointer = pointer;
+        }
+    }
+    public static class TargetResetPayload {
+        public DragAndDrop.Source src;
+        public DragAndDrop.Payload payload;
+
+        public TargetResetPayload(DragAndDrop.Source src, DragAndDrop.Payload payload) {
+            this.src = src;
+            this.payload = payload;
+        }
+    }
+
+
 }
 

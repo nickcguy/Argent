@@ -1,5 +1,7 @@
 package net.ncguy.argent.vpl;
 
+import net.ncguy.argent.vpl.annotations.NodeColour;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -16,7 +18,17 @@ public @interface NodeData {
     String category() default "";
     String[] tags() default "*";
     String[] keywords() default "";
+    String[] argNames() default "";
     boolean execIn() default true;
     boolean execOut() default true;
 
+    NodeColour colour() default @NodeColour(r = 2, g = 2, b = 2, a = 2);
+
+    /**
+     * Used to identify {@link net.ncguy.argent.vpl.struct.IdentifierObject} types safely
+     * @return
+     */
+    Class[] outputTypes() default Object.class;
+
+    int outPins() default 1;
 }

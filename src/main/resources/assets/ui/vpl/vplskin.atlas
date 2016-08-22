@@ -2,10 +2,10 @@
 vplskin.png
 format: RGBA8888
 filter: Nearest,Nearest
-repeat: xy
+repeat: none
 Node_Body
   rotate: false
-  xy: 0, 0
+  xy: 1, 1
   size: 62, 62
   split: 5, 5, 5, 5
   orig: 62, 62
@@ -13,7 +13,7 @@ Node_Body
   index: -1
 Node_Selected
   rotate: false
-  xy: 62, 0
+  xy: 65, 1
   size: 62, 62
   split: 18, 18, 18, 18
   orig: 62, 62
@@ -21,7 +21,7 @@ Node_Selected
   index: -1
 Node_Title_Gloss
   rotate: false
-  xy: 124, 36
+  xy: 129, 37
   size: 62, 26
   split: 10, 12, 4, 6
   orig: 62, 26
@@ -29,15 +29,15 @@ Node_Title_Gloss
   index: -1
 Node_Title
   rotate: false
-  xy: 124, 13
+  xy: 193, 40
   size: 62, 23
-  split: 6, 6, 5, 1
+  split: 6, 6, 5, 5
   orig: 62, 23
   offset: 0, 0
   index: -1
 Node_Title_Highlight
   rotate: false
-  xy: 186, 42
+  xy: 193, 18
   size: 62, 20
   split: 6, 7, 5, 4
   orig: 62, 20
@@ -45,29 +45,37 @@ Node_Title_Highlight
   index: -1
 ExecPin_Connected
   rotate: false
-  xy: 186, 26
+  xy: 129, 19
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 ExecPin_Disconnected
   rotate: false
-  xy: 202, 26
+  xy: 129, 1
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 Pin_Connected
   rotate: false
-  xy: 124, 2
+  xy: 147, 24
   size: 15, 11
   orig: 15, 11
   offset: 0, 0
   index: -1
 Pin_Disconnected
   rotate: false
-  xy: 186, 15
+  xy: 147, 11
   size: 15, 11
   orig: 15, 11
+  offset: 0, 0
+  index: -1
+Node_Invalidate
+  rotate: false
+  xy: 164, 23
+  size: 12, 12
+  split: 2, 2, 2, 2
+  orig: 12, 12
   offset: 0, 0
   index: -1

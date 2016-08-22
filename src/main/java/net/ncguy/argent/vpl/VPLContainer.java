@@ -24,9 +24,11 @@ public class VPLContainer extends WidgetGroup {
 
     int panKey = Input.Keys.SHIFT_LEFT;
     VPLPane pane;
+    private String[] tags;
 
-    public VPLContainer() {
+    public VPLContainer(String... tags) {
         super();
+        this.tags = tags;
         init();
     }
 
@@ -36,7 +38,7 @@ public class VPLContainer extends WidgetGroup {
 
         addListener(this.listener);
 
-        pane = new VPLPane(this, "*");
+        pane = new VPLPane(this, this.tags);
 
         addActor(pane);
         pane.setSize(gridSize, gridSize);
@@ -46,7 +48,6 @@ public class VPLContainer extends WidgetGroup {
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
-        setDebug(true);
         super.draw(batch, parentAlpha);
     }
 
@@ -58,8 +59,10 @@ public class VPLContainer extends WidgetGroup {
 
         @Override
         public void touchDragged(InputEvent event, float x, float y, int pointer) {
-            pane.moveBy(Gdx.input.getDeltaX(), -Gdx.input.getDeltaY());
-            panePosition.set(pane.getX(), pane.getY());
+//            if(Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
+                pane.moveBy(Gdx.input.getDeltaX(), -Gdx.input.getDeltaY());
+                panePosition.set(pane.getX(), pane.getY());
+//            }
         }
     };
 

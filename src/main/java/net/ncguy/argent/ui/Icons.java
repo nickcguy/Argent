@@ -158,6 +158,7 @@ public class Icons {
         PIN("Pin_Disconnected"),
         PIN_EXEC_CONNECTED("ExecPin_Connected"),
         PIN_EXEC("ExecPin_Disconnected"),
+        NODE_INVALIDATE("Node_Invalidate"),
         ;
         Node(String name) {
             this.name = name;

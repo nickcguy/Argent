@@ -21,16 +21,16 @@ public class VPLPane extends Group {
     Drawable bg;
     ShaderProgram shader;
     private VPLContainer parent;
-    protected String tag;
+    protected String[] tag;
     VPLGraph graph;
     Rectangle gridBounds;
 
-    public VPLPane(VPLContainer parent, String tag) {
+    public VPLPane(VPLContainer parent, String... tags) {
         this.parent = parent;
-        this.tag = tag;
+        this.tag = tags;
         bg = DrawableFactory.grid();
         shader = AppUtils.Shader.loadShader("2d/graph");
-        graph = new VPLGraph(tag);
+        graph = new VPLGraph(this, tag);
 
         Argent.addOnKeyDown(keycode -> {
             if(keycode == Input.Keys.P) {

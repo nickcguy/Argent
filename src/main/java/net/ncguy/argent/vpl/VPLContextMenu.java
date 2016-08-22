@@ -32,7 +32,11 @@ public class VPLContextMenu extends SearchableList<Method> {
 
     public void setMethods(List<Method> methods) {
         clearItems();
-        methods.forEach(m -> {
+        methods.stream().sorted((m1, m2) -> {
+            String s1 = VPLManager.instance().getDisplayName(m1);
+            String s2 = VPLManager.instance().getDisplayName(m2);
+            return s1.compareToIgnoreCase(s2);
+        }).forEach(m -> {
             Item<Method> item = new Item<>(null, VPLManager.instance().getDisplayName(m), m, VPLManager.instance().getKeywords(m));
             addItem(item);
         });

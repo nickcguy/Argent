@@ -5,12 +5,15 @@ import com.badlogic.gdx.graphics.Color;
 /**
  * Created by Guy on 18/08/2016.
  */
-public interface IStructDescriptor<T, U> {
+public abstract class IStructDescriptor {
 
-    Color colour();
-    T makeStruct(U[] args);
-    U breakStruct(T t, int pinId);
+    protected Color colour;
 
-    int outPins();
+    public Color colour() {
+        return colour;
+    }
+//    T makeStruct(U[] args);
+//    U breakStruct(T value, int pinId);
+
 
 }

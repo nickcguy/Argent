@@ -44,4 +44,7 @@ public class Renderer2D {
         }
         renderer.end();
     }
+
+    public ShapeRenderer getRenderer() { return renderer; }
+
 }

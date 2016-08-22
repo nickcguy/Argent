@@ -9,6 +9,7 @@ import net.ncguy.argent.data.tree.TreeObjectWrapper;
 import net.ncguy.argent.data.tree.TreePopulator;
 import net.ncguy.argent.data.tree.VisitableTree;
 import net.ncguy.argent.data.tree.sample.PrintIndentedVisitor;
+import net.ncguy.argent.tween.TweenModule;
 import net.ncguy.screen.LoaderScreen;
 
 import java.util.ArrayList;
@@ -20,7 +21,7 @@ public class ArgentSample extends ArgentGame {
 
     @Override
     public void create() {
-
+        super.create();
         ArrayList<TreeTest> testList = new ArrayList<>();
         testList.add(new TreeTest("a1|a2|a3", "test 1"));
         testList.add(new TreeTest("a1|a2|a3", "test 2"));
@@ -41,6 +42,7 @@ public class ArgentSample extends ArgentGame {
 
         forest.accept(new PrintIndentedVisitor<>(0));
 
+        Argent.loadModule(new TweenModule());
         Argent.loadModule(new ContentModule());
         setScreen(new LoaderScreen(this));
     }
