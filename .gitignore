@@ -6,6 +6,7 @@
 # Package Files #
 *.jar
 !libs/*.jar
+!gradle/wrapper/*.jar
 *.war
 *.ear
 
