@@ -12,13 +12,13 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
-import net.ncguy.argent.Argent;
+import net.ncguy.argent.GlobalSettings;
 import net.ncguy.argent.editor.widgets.component.ComponentWidget;
 import net.ncguy.argent.editor.widgets.component.LightWidget;
 import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.utils.AppUtils;
 
-import static net.ncguy.argent.Argent.VarKeys.bool_LIGHTDEBUG;
+import static net.ncguy.argent.GlobalSettings.VarKeys.bool_LIGHTDEBUG;
 
 /**
  * Created by Guy on 29/07/2016.
@@ -118,7 +118,7 @@ public class LightComponent implements ArgentComponent {
 
     @Override
     public void getRenderables(Array<Renderable> renderables, Pool<Renderable> pool) {
-        if(Argent.hasBoolVar(bool_LIGHTDEBUG))
+        if(GlobalSettings.hasBoolVar(bool_LIGHTDEBUG))
             debugInstance().getRenderables(renderables, pool);
     }
 

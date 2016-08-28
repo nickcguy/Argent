@@ -7,7 +7,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 import com.kotcrab.vis.ui.VisUI;
 import com.kotcrab.vis.ui.layout.GridGroup;
-import com.kotcrab.vis.ui.widget.Separator;
 import com.kotcrab.vis.ui.widget.tabbedpane.Tab;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.assets.ArgMaterial;
@@ -28,7 +27,6 @@ import java.util.function.Consumer;
 public class MaterialTab extends Tab implements MaterialImportEvent.MaterialImportListener, MaterialRefreshEvent.MaterialRefreshListener, MaterialReloadEvent.MaterialReloadListener {
 
     private Table content;
-    private GridGroup projectGrid;
     private GridGroup globalGrid;
     private Consumer<ArgMaterial> onSelect;
 
@@ -41,17 +39,11 @@ public class MaterialTab extends Tab implements MaterialImportEvent.MaterialImpo
         Argent.event.register(this);
         content = new Table(VisUI.getSkin());
         content.align(Align.topLeft);
-        projectGrid = new GridGroup(60, 4);
-        projectGrid.setTouchable(Touchable.enabled);
         globalGrid = new GridGroup(60, 4);
         globalGrid.setTouchable(Touchable.enabled);
 
-        CollapsibleGridGroup projectGridGroup = new CollapsibleGridGroup("Project", projectGrid);
-        CollapsibleGridGroup globalGridGroup = new CollapsibleGridGroup("Global", globalGrid);
+        CollapsibleGridGroup globalGridGroup = new CollapsibleGridGroup("Materials", globalGrid);
 
-        content.add("Materials").left().pad(5).row();
-        content.add(new Separator()).expandX().fillX().row();
-        content.add(projectGridGroup).expandX().fillX().row();
         content.add(globalGridGroup).expandX().fillX().row();
 
 //        content.add("Materials").left().pad(5).row();
@@ -77,10 +69,8 @@ public class MaterialTab extends Tab implements MaterialImportEvent.MaterialImpo
         new MaterialReloadEvent().fire();
     }
 
-    private void addLocalMtlItem(ArgMaterial mtl) {
-        projectGrid.addActor(genItem(mtl));
-    }
-    private void addGlobalMtlItem(ArgMaterial mtl) {
+
+    private void addMtlItem(ArgMaterial mtl) {
         globalGrid.addActor(genItem(mtl));
     }
 
@@ -108,18 +98,22 @@ public class MaterialTab extends Tab implements MaterialImportEvent.MaterialImpo
 
     @Override
     public void onMaterialImport(MaterialImportEvent event) {
-        addLocalMtlItem(event.getMtl());
+        addMtlItem(event.getMtl());
     }
 
     @Override
     public void onMaterialRefresh(MaterialRefreshEvent event) {
-        reloadMaterials();
+        reconstructMaterialGrid();
     }
 
     @Override
     public void onMaterialReload(MaterialReloadEvent event) {
-        projectGrid.clearChildren();
-        globalGrid.clearChildren();
-        projectManager.global().mtls.forEach(this::addGlobalMtlItem);
+        reconstructMaterialGrid();
     }
+
+    public void reconstructMaterialGrid() {
+        globalGrid.clearChildren();
+        projectManager.current().mtls.forEach(this::addMtlItem);
+    }
+
 }

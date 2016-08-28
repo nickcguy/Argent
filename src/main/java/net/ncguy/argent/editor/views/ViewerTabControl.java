@@ -56,6 +56,10 @@ public class ViewerTabControl extends Table implements TabbedPaneListener {
             if(tab instanceof ViewTab)
                 ((ViewTab) tab).onOpen();
         }
+
+//        tabContent.toBack();
+        tabPane.getTable().toFront();
+        editorUI.fixLayering();
     }
 
     @Override
@@ -71,4 +75,7 @@ public class ViewerTabControl extends Table implements TabbedPaneListener {
     public SceneViewer getSceneViewer() {
         return sceneViewer;
     }
+
+
+
 }

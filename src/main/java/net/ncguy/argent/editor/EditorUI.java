@@ -2,10 +2,12 @@ package net.ncguy.argent.editor;
 
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.kotcrab.vis.ui.VisUI;
 import com.kotcrab.vis.ui.widget.file.FileChooser;
@@ -69,6 +71,11 @@ public class EditorUI extends Stage {
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
+        Argent.onResize(this::resize);
+        init();
+    }
+
+    public void init() {
         root = new Table(VisUI.getSkin());
         root.setFillParent(true);
         root.align(Align.center | Align.left);
@@ -91,14 +98,13 @@ public class EditorUI extends Stage {
         statusBar = new StatusBar();
         root.add(statusBar).expandX().fillX().height(25).row();
 
-        Argent.onResize(this::resize);
 
         setupInput();
     }
 
     public InputManager getInputManager() { return inputManager; }
 
-    private void setupInput() {
+    public void setupInput() {
         inputManager.clear();
         addListener(Argent.globalListener);
         inputManager.addProcessor(this);
@@ -158,5 +164,24 @@ public class EditorUI extends Stage {
 
     public Toaster getToaster() {
         return toaster;
+    }
+
+    public void reset() {
+        clearChildren(root);
+
+        init();
+    }
+
+    public void clearChildren(Group group) {
+        if(!group.hasChildren()) return;
+        group.getChildren().forEach(child -> {
+            if(child instanceof Group) clearChildren((Group) child);
+            if(child instanceof Disposable) ((Disposable) child).dispose();
+        });
+        group.clearChildren();
+    }
+
+    public void fixLayering() {
+        menuBar.getTable().toFront();
     }
 }

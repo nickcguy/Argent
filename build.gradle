@@ -67,8 +67,9 @@ task testFatJar(type: Jar) {
 
 ext {
     appName = "ArgentEngine"
-    gdxVersion = '1.9.3'
+    gdxVersion = '1.9.4'
     ashleyVersion = '1.7.0'
+    visUIVersion = '1.2.1'
 }
 
 dependencies {
@@ -83,7 +84,7 @@ dependencies {
     provided "com.badlogicgames.gdx:gdx-bullet-platform:$gdxVersion:natives-desktop"
     provided "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
 
-    provided "com.kotcrab.vis:vis-ui:1.1.4"
+    provided "com.kotcrab.vis:vis-ui:$visUIVersion"
 
     compile("org.lwjgl.lwjgl:lwjgl_util:2.9.3") {
         exclude group: "org.lwjgl.lwjgl", module: "lwjgl"

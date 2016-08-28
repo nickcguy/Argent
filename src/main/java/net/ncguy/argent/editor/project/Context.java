@@ -1,5 +1,6 @@
 package net.ncguy.argent.editor.project;
 
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import net.ncguy.argent.Argent;
@@ -20,6 +21,8 @@ import java.util.List;
  */
 public class Context implements Disposable {
 
+    public String path;
+
     public Array<ArgModel> models;
     public Array<ArgMaterial> mtls;
     public Array<Terrain> terrains;
@@ -28,7 +31,11 @@ public class Context implements Disposable {
     protected ProjectManager projectManager;
 
     public String getFilePath() {
-        return Registry.ASSETS_DIR;
+        return path;
+    }
+
+    public String getContentPath() {
+        return getFilePath()+"Content/";
     }
 
     public Context(ProjectManager projectManager) {
@@ -37,14 +44,24 @@ public class Context implements Disposable {
         mtls = new Array<>();
         textures = new Array<>();
         terrains = new Array<>();
-        load();
     }
 
     public void load() {
-        String path = Registry.MATERIALS_DIR;
+        // Contextual Assets
+        Argent.content.clear();
+        Argent.content.addDirectoryRoot(getContentPath(), Texture.class, "png", "jpg");
+        Argent.content.start();
+        while(!Argent.content.update());
+
+        // Materials
         mtls.clear();
-        List<ArgMaterial> mtls = projectManager.getRegistry().loadMaterials(path);
-        mtls.stream().peek(mtl -> mtl.localAsset = false).forEach(this.mtls::add);
+        List<ArgMaterial> mtls = projectManager.getRegistry().loadMaterials(getContentPath() + "materials/");
+        mtls.forEach(this.mtls::add);
+
+        // Textures
+        textures.clear();
+        List<ArgTexture> texs = projectManager.getRegistry().loadTextures(getContentPath() + "textures/");
+        texs.forEach(this.textures::add);
     }
 
     public void copyFrom(Context other) {
@@ -102,4 +119,5 @@ public class Context implements Disposable {
         textures.forEach(this.textures::add);
         return textures;
     }
+
 }

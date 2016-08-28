@@ -2,6 +2,7 @@ package net.ncguy.argent.injector;
 
 import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop;
 import net.ncguy.argent.Argent;
+import net.ncguy.argent.ArgentGame;
 import net.ncguy.argent.editor.CommandHistory;
 import net.ncguy.argent.editor.EditorUI;
 import net.ncguy.argent.editor.project.ProjectManager;
@@ -30,7 +31,7 @@ public class InjectionStore {
 
     private static Field findTargetField(Class cls) {
         for (Field field : InjectionStore.class.getDeclaredFields()) {
-            if(field.getType().equals(cls)) return field;
+            if(field.getType().isAssignableFrom(cls)) return field;
         }
         return null;
     }
@@ -44,6 +45,7 @@ public class InjectionStore {
     private static ToolManager toolManager;
     private static DragAndDrop dragAndDrop;
     private static Toaster toaster;
+    private static ArgentGame game;
 
 
 }

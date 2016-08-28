@@ -41,7 +41,7 @@ public class AttrPane extends Table implements MaterialComponentChangeEvent.Mate
     private TextButton addAttrBtn;
     private SearchableList<Attribute> mtlAttributeList;
 
-    private static List<Long> attrTypes = new ArrayList<>();
+    private static List<Long> attrTypes;
     private ArgMaterial argMtl;
 
     public AttrPane(MaterialViewer viewer, EditorUI editorUI) {
@@ -76,9 +76,12 @@ public class AttrPane extends Table implements MaterialComponentChangeEvent.Mate
         });
 
 //            Field typeField = Attribute.class.getDeclaredField("types");
-        Array<String> types = ReflectionUtils.getValue(null, Attribute.class, "types", Array.class);
-        if(types != null)
-            types.forEach(a -> attrTypes.add(Attribute.getAttributeType(a)));
+        if(attrTypes == null) {
+            attrTypes = new ArrayList<>();
+            Array<String> types = ReflectionUtils.getValue(null, Attribute.class, "types", Array.class);
+            if (types != null)
+                types.forEach(a -> attrTypes.add(Attribute.getAttributeType(a)));
+        }
 
         mtlAttributeList.setChangeListener(attr -> {
             ArgMaterial mtl = viewer.getArgMaterial();

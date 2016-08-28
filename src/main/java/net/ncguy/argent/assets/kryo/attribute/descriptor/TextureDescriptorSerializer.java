@@ -41,7 +41,7 @@ public class TextureDescriptorSerializer extends Serializer<TextureDescriptor> {
         String ref = input.readString();
         Texture tex;
         if(ref.toLowerCase().startsWith("cache_")) {
-            tex = TextureCache.get(ref);
+            tex = TextureCache.get(ref.replace("cache_", ""));
         }else{
             tex = Argent.content.get(ref, Texture.class);
         }

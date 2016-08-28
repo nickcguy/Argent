@@ -18,4 +18,8 @@ public class RayTraceRenderer extends AbstractWorldRenderer {
 
     }
 
+    @Override
+    public void dispose() {
+
+    }
 }

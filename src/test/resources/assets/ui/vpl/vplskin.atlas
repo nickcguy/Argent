@@ -1,81 +1,82 @@
 
 vplskin.png
+size: 256,64
 format: RGBA8888
 filter: Nearest,Nearest
 repeat: none
-Node_Body
-  rotate: false
-  xy: 1, 1
-  size: 62, 62
-  split: 5, 5, 5, 5
-  orig: 62, 62
-  offset: 0, 0
-  index: -1
-Node_Selected
-  rotate: false
-  xy: 65, 1
-  size: 62, 62
-  split: 18, 18, 18, 18
-  orig: 62, 62
-  offset: 0, 0
-  index: -1
-Node_Title_Gloss
-  rotate: false
-  xy: 129, 37
-  size: 62, 26
-  split: 10, 12, 4, 6
-  orig: 62, 26
-  offset: 0, 0
-  index: -1
-Node_Title
-  rotate: false
-  xy: 193, 40
-  size: 62, 23
-  split: 6, 6, 5, 5
-  orig: 62, 23
-  offset: 0, 0
-  index: -1
-Node_Title_Highlight
-  rotate: false
-  xy: 193, 18
-  size: 62, 20
-  split: 6, 7, 5, 4
-  orig: 62, 20
-  offset: 0, 0
-  index: -1
 ExecPin_Connected
   rotate: false
-  xy: 129, 19
+  xy: 186, 25
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 ExecPin_Disconnected
   rotate: false
-  xy: 129, 1
+  xy: 202, 25
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
+Node_Body
+  rotate: false
+  xy: 0, 1
+  size: 62, 62
+  split: 5, 5, 5, 5
+  orig: 62, 62
+  offset: 0, 0
+  index: -1
+Node_Invalidate
+  rotate: false
+  xy: 201, 11
+  size: 12, 12
+  split: 2, 2, 2, 2
+  orig: 12, 12
+  offset: 0, 0
+  index: -1
+Node_Selected
+  rotate: false
+  xy: 62, 1
+  size: 62, 62
+  split: 18, 18, 18, 18
+  orig: 62, 62
+  offset: 0, 0
+  index: -1
+Node_Title
+  rotate: false
+  xy: 124, 12
+  size: 62, 23
+  split: 6, 6, 5, 5
+  orig: 62, 23
+  offset: 0, 0
+  index: -1
+Node_Title_Gloss
+  rotate: false
+  xy: 124, 37
+  size: 62, 26
+  split: 10, 12, 4, 6
+  orig: 62, 26
+  offset: 0, 0
+  index: -1
+Node_Title_Highlight
+  rotate: false
+  xy: 186, 43
+  size: 62, 20
+  split: 6, 7, 5, 4
+  orig: 62, 20
+  offset: 0, 0
+  index: -1
 Pin_Connected
   rotate: false
-  xy: 147, 24
+  xy: 186, 12
   size: 15, 11
   orig: 15, 11
   offset: 0, 0
   index: -1
 Pin_Disconnected
   rotate: false
-  xy: 147, 11
+  xy: 218, 30
   size: 15, 11
   orig: 15, 11
-  offset: 0, 0
-  index: -1
-Node_Invalidate
-  rotate: false
-  xy: 164, 23
-  size: 12, 12
-  split: 2, 2, 2, 2
-  orig: 12, 12
   offset: 0, 0
   index: -1

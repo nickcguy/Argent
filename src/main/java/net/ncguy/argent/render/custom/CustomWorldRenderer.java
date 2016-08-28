@@ -43,4 +43,7 @@ public class CustomWorldRenderer<T extends WorldEntity> extends AbstractWorldRen
         return stack;
     }
 
+    @Override
+    public void dispose() {
+    }
 }

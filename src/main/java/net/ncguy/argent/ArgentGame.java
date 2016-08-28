@@ -3,19 +3,33 @@ package net.ncguy.argent;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import net.ncguy.argent.injector.InjectionStore;
 
 /**
  * Created by Guy on 15/07/2016.
  */
 public abstract class ArgentGame extends Game {
 
+    public ArgentGame() {}
+
     @Override
-    public void create() {}
+    public void create() {
+        Argent.loadDefaultModules();
+        try {
+            InjectionStore.setGlobal(this);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void setScreenNow(Screen screen) {
+        Argent.loadModule(new CoreModule());
+        super.setScreen(screen);
+    }
 
     @Override
     public void setScreen(Screen screen) {
-        Argent.loadModule(new CoreModule());
-        super.setScreen(screen);
+        Gdx.app.postRunnable(() -> setScreenNow(screen));
     }
 
     @Override

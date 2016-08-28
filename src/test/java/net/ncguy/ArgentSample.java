@@ -4,12 +4,10 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.ArgentGame;
-import net.ncguy.argent.content.ContentModule;
 import net.ncguy.argent.data.tree.TreeObjectWrapper;
 import net.ncguy.argent.data.tree.TreePopulator;
 import net.ncguy.argent.data.tree.VisitableTree;
 import net.ncguy.argent.data.tree.sample.PrintIndentedVisitor;
-import net.ncguy.argent.tween.TweenModule;
 import net.ncguy.screen.LoaderScreen;
 
 import java.util.ArrayList;
@@ -42,8 +40,7 @@ public class ArgentSample extends ArgentGame {
 
         forest.accept(new PrintIndentedVisitor<>(0));
 
-        Argent.loadModule(new TweenModule());
-        Argent.loadModule(new ContentModule());
+        Argent.loadDefaultModules();
         setScreen(new LoaderScreen(this));
     }
 

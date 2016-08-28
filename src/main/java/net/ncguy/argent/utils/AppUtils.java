@@ -18,6 +18,10 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import net.ncguy.argent.entity.attributes.PickerIDAttribute;
 
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+
 /**
  * Created by Guy on 21/07/2016.
  */
@@ -253,6 +257,18 @@ public class AppUtils {
         public static <T> boolean arrayContains(T[] arr, T obj) {
             for (T t : arr) if(obj.equals(t)) return true;
             return false;
+        }
+
+        public static void openExplorer(String file) {
+            openExplorer(new File(file));
+        }
+
+        public static void openExplorer(File file) {
+            try {
+                Desktop.getDesktop().open(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
     }

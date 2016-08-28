@@ -3,7 +3,9 @@ package net.ncguy.argent.ui;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.kotcrab.vis.ui.VisUI;
 import net.ncguy.argent.IModule;
 import net.ncguy.argent.content.ContentModule;
@@ -18,6 +20,8 @@ public class UIModule extends IModule {
     private static FileHandle fontHandle = Gdx.files.internal("assets/ui/fonts/roboto-medium.ttf");
     private static FileHandle nodeHandle = Gdx.files.internal("assets/ui/vpl/vplskin.atlas");
 
+    private static FileHandle borderHandle = Gdx.files.internal("assets/ui/tiledBorder/tiledBorder.atlas");
+
     public static FileHandle handle() { return handle; }
     public static void handle(FileHandle handle) { UIModule.handle = handle; }
 
@@ -29,11 +33,25 @@ public class UIModule extends IModule {
         VisUI.load(handle);
         FreeTypeFontGenerator gen = new FreeTypeFontGenerator(fontHandle);
         FreeTypeFontGenerator.FreeTypeFontParameter params = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        params.size = 16;
+        BitmapFont font16 = gen.generateFont(params);
         params.size = 12;
         BitmapFont font12 = gen.generateFont(params);
-        VisUI.getSkin().add("default", font12, BitmapFont.class);
+
+//        Label.LabelStyle style = new Label.LabelStyle();
+//        style.font = font12;
+//        style.fontColor = Color.WHITE;
+//        VisUI.getSkin().add("small", style, Label.LabelStyle.class);
+
+        VisUI.getSkin().get("default", Label.LabelStyle.class).font = font16;
+        VisUI.getSkin().get("small", Label.LabelStyle.class).font = font12;
+
+        TextureAtlas borderAtlas = new TextureAtlas(borderHandle);
+        VisUI.getSkin().addRegions(borderAtlas);
+
         gen.dispose();
         Icons.init();
+
     }
 
     @Override

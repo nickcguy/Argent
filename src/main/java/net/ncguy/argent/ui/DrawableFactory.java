@@ -1,9 +1,9 @@
 package net.ncguy.argent.ui;
 
-        import com.badlogic.gdx.graphics.Texture;
-        import com.badlogic.gdx.graphics.g2d.TextureRegion;
-        import com.badlogic.gdx.scenes.scene2d.utils.TiledDrawable;
-        import net.ncguy.argent.Argent;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.utils.TiledDrawable;
 
 /**
  * Created by Guy on 18/08/2016.
@@ -11,7 +11,7 @@ package net.ncguy.argent.ui;
 public class DrawableFactory {
 
     public static TiledDrawable grid() {
-        return new TiledDrawable(new TextureRegion(Argent.content.get("Texture_grid", Texture.class)));
+        return new TiledDrawable(new TextureRegion(new Texture(Gdx.files.internal("assets/icons/grid.png"))));
     }
 
 }

@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.ui.Widget;
+import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import net.ncguy.argent.editor.EditorUI;
 import net.ncguy.argent.render.AbstractWorldRenderer;
@@ -11,7 +12,7 @@ import net.ncguy.argent.render.AbstractWorldRenderer;
 /**
  * Created by Guy on 27/07/2016.
  */
-public class RenderWidget extends Widget {
+public class RenderWidget extends Widget implements Disposable {
 
     private ScreenViewport viewport;
     private EditorUI ui;
@@ -62,5 +63,11 @@ public class RenderWidget extends Widget {
     protected void sizeChanged() {
         super.sizeChanged();
 //        viewport.update((int)getWidth(), (int)getHeight());
+    }
+
+    @Override
+    public void dispose() {
+        if(renderer != null)
+            renderer.dispose();
     }
 }

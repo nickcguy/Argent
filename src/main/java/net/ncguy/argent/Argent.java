@@ -4,12 +4,21 @@ import aurelienribon.tweenengine.TweenManager;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import net.ncguy.argent.content.ContentManager;
+import net.ncguy.argent.content.ContentModule;
 import net.ncguy.argent.event.EventBus;
+import net.ncguy.argent.event.EventModule;
 import net.ncguy.argent.injector.InjectionModule;
+import net.ncguy.argent.tween.TweenModule;
 import net.ncguy.argent.ui.UIModule;
 import net.ncguy.argent.vpl.VPLManager;
+import net.ncguy.argent.vpl.VPLModule;
+import net.ncguy.argent.world.ProjectModule;
 
-import java.util.*;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -29,18 +38,19 @@ public class Argent {
 
     public static TweenManager tween;
 
-    // Module loading
-
     private static Map<Class<? extends IModule>, IModule> loadedModules = new HashMap<>();
 
     public static Map<Class<? extends IModule>, IModule> loadedModules() { return loadedModules; }
+
+    // Module loading
 
     public static void loadModule(IModule module) {
         if(!isModuleLoaded(module.getClass())) {
             for (Class<IModule> dep : module.dependencies()) {
                 try {
-                    loadModule(dep.newInstance());
-                } catch (InstantiationException | IllegalAccessException e) {
+                    System.out.println(dep.getSimpleName());
+                    loadModule(dep.getConstructor().newInstance());
+                } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
                     e.printStackTrace();
                 }
             }
@@ -102,26 +112,15 @@ public class Argent {
     };
 
 
-    private static List<String> boolVars = new ArrayList<>();
-    public static void addBoolVar(String key) {
-        boolVars.add(key);
+    public static void loadDefaultModules() {
+        Argent.loadModule(new ContentModule());
+        Argent.loadModule(new EventModule());
+        Argent.loadModule(new VPLModule());
+        Argent.loadModule(new UIModule());
+        Argent.loadModule(new InjectionModule());
+        Argent.loadModule(new TweenModule());
+        Argent.loadModule(new ProjectModule());
     }
-    public static void removeBoolVar(String key) {
-        boolVars.remove(key);
-    }
-    public static void toggleBoolVar(String key) {
-        if(hasBoolVar(key)) removeBoolVar(key);
-        else addBoolVar(key);
-    }
-    public static boolean hasBoolVar(String key) {
-        return boolVars.contains(key);
-    }
-
-    public static class VarKeys {
-        public static final String bool_LIGHTDEBUG = "light.debug";
-        public static final String bool_SHADOWS = "light.shadow";
-    }
-
 
 
 }

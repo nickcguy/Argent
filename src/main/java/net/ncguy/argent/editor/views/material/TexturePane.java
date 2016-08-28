@@ -65,7 +65,7 @@ public class TexturePane extends Table {
     public void loadTextures() {
         gridGroup.clearChildren();
         System.out.println("Loading textures");
-        editorUI.projectManager.global().textures().forEach(tex -> {
+        editorUI.projectManager.current().textures().forEach(tex -> {
             AssetItem<ArgTexture> item = new AssetItem<>(tex);
             gridGroup.addActor(item);
         });

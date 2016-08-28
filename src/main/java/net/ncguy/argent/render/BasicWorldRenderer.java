@@ -38,4 +38,7 @@ public class BasicWorldRenderer<T extends WorldEntity> extends AbstractWorldRend
         batch.end();
     }
 
+    @Override public void dispose() {
+        world.dispose();
+    }
 }

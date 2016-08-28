@@ -7,7 +7,7 @@ import net.ncguy.argent.injector.InjectionStore;
 /**
  * Created by Guy on 15/07/2016.
  */
-public class WorldModule extends IModule {
+public class ProjectModule extends IModule {
 
     @Override
     public void init() {
@@ -21,7 +21,7 @@ public class WorldModule extends IModule {
 
     @Override
     public String moduleName() {
-        return "World";
+        return "Project";
     }
 
 }

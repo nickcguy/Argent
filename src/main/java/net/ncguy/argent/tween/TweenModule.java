@@ -3,8 +3,10 @@ package net.ncguy.argent.tween;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenManager;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.IModule;
+import net.ncguy.argent.tween.accessor.ActorTweenAccessor;
 import net.ncguy.argent.tween.accessor.ColorTweenAccessor;
 
 /**
@@ -16,6 +18,7 @@ public class TweenModule extends IModule {
     public void init() {
         Argent.tween = new TweenManager();
         Tween.registerAccessor(Color.class, new ColorTweenAccessor());
+        Tween.registerAccessor(Actor.class, new ActorTweenAccessor());
     }
 
     @Override

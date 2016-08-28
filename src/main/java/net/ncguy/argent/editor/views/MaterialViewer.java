@@ -95,9 +95,19 @@ public class MaterialViewer extends ViewTab {
         cfgTbl.add(new Separator()).expandX().fillX().padBottom(5).row();
         cfgTbl.add(texCfgSplit).top().expand().fill().padBottom(5).row();
 
+        Table sidebarTable = new Table(VisUI.getSkin());
+        sidebarTable.add(this.materialTab.getContentTable()).grow().row();
 
+        TextButton addMaterialBtn = new TextButton("New Material", VisUI.getSkin());
+        addMaterialBtn.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                editorUI.projectManager.current().addMaterial(new ArgMaterial(new Material()));
+            }
+        });
+        sidebarTable.add(addMaterialBtn).growX();
 
-        this.table.add(this.materialTab.getContentTable()).width(300).expandY().fillY();
+        this.table.add(sidebarTable).width(300).expandY().fillY();
         this.table.add(widget3D).expand().fill();
         this.table.add(cfgTbl).top().right().expandY().fillY().width(300).row();
 

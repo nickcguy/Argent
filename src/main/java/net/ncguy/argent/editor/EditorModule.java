@@ -9,7 +9,7 @@ import net.ncguy.argent.event.EventModule;
 import net.ncguy.argent.injector.InjectionModule;
 import net.ncguy.argent.injector.InjectionStore;
 import net.ncguy.argent.ui.UIModule;
-import net.ncguy.argent.world.WorldModule;
+import net.ncguy.argent.world.ProjectModule;
 
 /**
  * Created by Guy on 17/07/2016.
@@ -47,6 +47,6 @@ public class EditorModule extends IModule {
 
     @Override
     public Class<IModule>[] dependencies() {
-        return new Class[]{EventModule.class, InjectionModule.class, WorldModule.class, EntityModule.class, UIModule.class};
+        return new Class[]{EventModule.class, InjectionModule.class, ProjectModule.class, EntityModule.class, UIModule.class};
     }
 }

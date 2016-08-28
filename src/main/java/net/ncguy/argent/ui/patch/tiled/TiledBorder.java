@@ -1,11 +1,11 @@
 package net.ncguy.argent.ui.patch.tiled;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.utils.BaseDrawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TiledDrawable;
-import net.ncguy.argent.Argent;
+import com.badlogic.gdx.utils.Array;
+import com.kotcrab.vis.ui.VisUI;
 
 /**
  * Created by Guy on 01/08/2016.
@@ -15,8 +15,10 @@ public class TiledBorder extends BaseDrawable {
     protected TiledDrawable[] tiles = new TiledDrawable[9];
 
     public TiledBorder(String ref) {
+        Array<TextureRegion> regions = VisUI.getSkin().getRegions(ref);
         for (int i = 0; i < tiles.length; i++) {
-            tiles[i] = new TiledDrawable(new TextureRegion(Argent.content.get(ref+"_"+i, Texture.class)));
+            tiles[i] = new TiledDrawable(regions.get(i));
+//            tiles[i] = new TiledDrawable(new TextureRegion(Argent.content.get(ref+"_"+i, Texture.class)));
         }
     }
 

@@ -3,6 +3,7 @@ package net.ncguy.argent.render;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.utils.Disposable;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.injector.InjectionModule;
@@ -16,7 +17,7 @@ import java.util.Set;
 /**
  * Created by Guy on 15/07/2016.
  */
-public abstract class AbstractWorldRenderer<T extends WorldEntity> {
+public abstract class AbstractWorldRenderer<T extends WorldEntity> implements Disposable {
 
     protected GameWorld<T> world;
     protected PerspectiveCamera camera;

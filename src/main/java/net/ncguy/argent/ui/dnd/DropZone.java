@@ -13,7 +13,7 @@ public class DropZone<T> extends DnDZone {
 
     protected Class<T> cls;
     protected String[] tags;
-    protected TiledBorder border = new TiledBorder("Texture_TiledBorder");
+    protected TiledBorder border = new TiledBorder("TiledBorder");
     protected Consumer<T> onDrop;
     protected Consumer<TargetDragPayload> onHover;
     protected Consumer<TargetResetPayload> onReset;

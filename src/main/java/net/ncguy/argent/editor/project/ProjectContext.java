@@ -1,17 +1,19 @@
 package net.ncguy.argent.editor.project;
 
+import net.ncguy.argent.project.ProjectMeta;
+
 /**
  * Created by Guy on 27/07/2016.
  */
 public class ProjectContext extends Context {
 
-
+    public ProjectMeta meta;
     public String name;
     public EditorScene currScene;
 
     @Override
     public String getFilePath() {
-        return Registry.PROJECTS_DIR + getName() + "/";
+        return getMeta().path();
     }
 
     public ProjectContext(ProjectManager manager) {
@@ -26,13 +28,6 @@ public class ProjectContext extends Context {
     }
 
     @Override
-    public void load() {
-        this.mtls.clear();
-//        List<ArgMaterial> mtls = projectManager.getRegistry().loadMaterials(getFilePath() + "materials/");
-//        mtls.forEach(this.mtls::add);
-    }
-
-    @Override
     public void copyFrom(Context other) {
         super.copyFrom(other);
         if(other instanceof ProjectContext) {
@@ -43,5 +38,12 @@ public class ProjectContext extends Context {
     }
 
 
-
+    public ProjectMeta getMeta() {
+        if(meta == null) {
+            meta = new ProjectMeta();
+            meta.name = this.name;
+            meta.path = this.path;
+        }
+        return meta;
+    }
 }

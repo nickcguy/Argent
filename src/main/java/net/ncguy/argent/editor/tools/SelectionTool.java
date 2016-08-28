@@ -1,5 +1,6 @@
 package net.ncguy.argent.editor.tools;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -7,7 +8,6 @@ import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
-import net.ncguy.argent.Argent;
 import net.ncguy.argent.editor.CommandHistory;
 import net.ncguy.argent.editor.project.ProjectManager;
 import net.ncguy.argent.editor.tools.picker.WorldEntityPicker;
@@ -22,7 +22,7 @@ public class SelectionTool extends Tool {
 
     public SelectionTool(ProjectManager projectManager, CommandHistory history, WorldEntityPicker picker) {
         super(projectManager, history);
-        this.icon = new TextureRegionDrawable(new TextureRegion(Argent.content.get("Texture_tool_selection", Texture.class)));
+        this.icon = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("assets/icons/tool_selection.png"))));
         this.wePicker = picker;
     }
 

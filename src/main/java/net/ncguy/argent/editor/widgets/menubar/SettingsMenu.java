@@ -4,7 +4,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.kotcrab.vis.ui.widget.Menu;
 import com.kotcrab.vis.ui.widget.MenuItem;
-import net.ncguy.argent.Argent;
+import net.ncguy.argent.GlobalSettings;
 import net.ncguy.argent.editor.EditorUI;
 
 /**
@@ -27,13 +27,13 @@ public class SettingsMenu extends Menu {
         displayLights = new MenuItem("Display Lights", new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                Argent.toggleBoolVar(Argent.VarKeys.bool_LIGHTDEBUG);
+                GlobalSettings.toggleBoolVar(GlobalSettings.VarKeys.bool_LIGHTDEBUG);
             }
         });
         displayShadows = new MenuItem("Display Shadows [NYI]", new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                Argent.toggleBoolVar(Argent.VarKeys.bool_SHADOWS);
+                GlobalSettings.toggleBoolVar(GlobalSettings.VarKeys.bool_SHADOWS);
             }
         });
 

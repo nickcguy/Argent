@@ -4,7 +4,7 @@ import net.ncguy.argent.IModule;
 import net.ncguy.argent.entity.components.ArgentComponent;
 import net.ncguy.argent.entity.components.ComponentData;
 import net.ncguy.argent.injector.InjectionStore;
-import net.ncguy.argent.world.WorldModule;
+import net.ncguy.argent.world.ProjectModule;
 import org.reflections.Reflections;
 
 import java.util.Set;
@@ -34,7 +34,7 @@ public class EntityModule extends IModule {
 
     @Override
     public Class<IModule>[] dependencies() {
-        return new Class[]{WorldModule.class};
+        return new Class[]{ProjectModule.class};
     }
 
 }

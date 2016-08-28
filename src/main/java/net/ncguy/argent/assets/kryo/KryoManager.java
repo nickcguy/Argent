@@ -12,6 +12,8 @@ import net.ncguy.argent.assets.kryo.attribute.BlendingAttributeSerializer;
 import net.ncguy.argent.assets.kryo.attribute.ColourAttributeSerializer;
 import net.ncguy.argent.assets.kryo.attribute.TextureAttributeSerializer;
 import net.ncguy.argent.assets.kryo.attribute.descriptor.TextureDescriptorSerializer;
+import net.ncguy.argent.editor.project.Registry;
+import net.ncguy.argent.project.ProjectMeta;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,6 +46,9 @@ public class KryoManager {
         kryo.register(ColorAttribute.class, new ColourAttributeSerializer());
         kryo.register(TextureAttribute.class, new TextureAttributeSerializer());
         kryo.register(TextureDescriptor.class, new TextureDescriptorSerializer());
+
+        kryo.register(ProjectMeta.class, new ProjectMeta.MetaSerializer());
+        kryo.register(Registry.RegistryFile.class, new Registry.RegistrySerializer());
     }
 
     public <T> T load(File file, Class<T> cls) throws FileNotFoundException {

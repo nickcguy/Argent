@@ -3,8 +3,6 @@ package net.ncguy.argent.content;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.graphics.Texture;
-import net.ncguy.argent.editor.project.Registry;
 import net.ncguy.argent.utils.FileUtils;
 
 import java.util.*;
@@ -37,8 +35,6 @@ public class ContentManager {
         assetMap = new HashMap<>();
         fileRoots = Collections.synchronizedSet(new LinkedHashSet<>());
         hasLoaded = true;
-
-        addDirectoryRoot(Registry.TEXTURES_DIR, Texture.class, true, "png", "jpg");
     }
 
     public void addDirectoryRoot(String root, Class<?> assetType, String... extensionFilters) {
@@ -87,6 +83,15 @@ public class ContentManager {
             }
             canUpdate = true;
         }).start();
+    }
+
+    public void clear() {
+        manager.clear();
+        assetMap.clear();
+        fileRoots.clear();
+        hasLoaded = false;
+        hasFinished = false;
+        canUpdate = false;
     }
 
     public <T> T get(String ref, Class<T> cls) {

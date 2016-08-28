@@ -63,10 +63,10 @@ public abstract class DnDZone extends Table {
             dropZones.add((DropZone) zone);
     }
 
-    public static List<DnDZone> getTargetZones(DnDZone source) {
-        List<DnDZone> zones = new ArrayList<>();
-        zones.addAll(dropZones.stream().filter(source::hasTag).collect(Collectors.toList()));
-        zones.addAll(hybridZones.stream().filter(source::hasTag).collect(Collectors.toList()));
+    public static List<DnDZone> getTargetZones(final DnDZone source) {
+        final List<DnDZone> zones = new ArrayList<>();
+        zones.addAll(dropZones.stream().filter(z -> z.hasTag(source.getTag())).collect(Collectors.toList()));
+        zones.addAll(hybridZones.stream().filter(z -> z.hasTag(source.getTag())).collect(Collectors.toList()));
         zones.remove(source); // Just in case, should only happen with hybrid zones
         return zones;
     }

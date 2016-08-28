@@ -303,6 +303,21 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         return (int) height();
     }
 
+    @Override
+    public void dispose() {
+        super.dispose();
+
+        textureMRT.dispose();
+        textureBatch.dispose();
+        textureProgram.dispose();
+
+        lightingMRT.dispose();
+        lightingBatch.dispose();
+        lightingProgram.dispose();
+
+        screenProgram.dispose();
+    }
+
     public static class FBOAttachment {
         public int id;
         public String name;

@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.Model;
 import net.ncguy.ArgentSample;
 import net.ncguy.argent.Argent;
+import net.ncguy.argent.project.ProjectSelectorScreen;
 import net.ncguy.argent.utils.FileUtils;
 
 import java.util.List;
@@ -27,7 +28,7 @@ public class LoaderScreen implements Screen {
         Argent.content.setOnFinish((manager) -> {
             System.out.println("Loaded assets");
             Argent.content.assetMap().forEach((k, v) -> System.out.printf("\t%s: %s\n", k, v));
-            this.game.setScreen(new GameScreen());
+            this.game.setScreen(new ProjectSelectorScreen());
         });
         List<FileHandle> handles = FileUtils.getAllHandlesInDirectory(Gdx.files.internal("assets"));
         System.out.println("All file handles");

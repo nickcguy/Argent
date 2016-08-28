@@ -23,7 +23,7 @@ public class ArgentMenuBar extends MenuBar {
     public ArgentMenuBar(EditorUI editorUI) {
         super();
         this.editorUI = editorUI;
-        fileMenu = new FileMenu(editorUI);
+        fileMenu = new FileMenu();
         editMenu = new EditMenu(editorUI);
         toolMenu = new ToolMenu(editorUI);
         settingsMenu = new SettingsMenu(editorUI);

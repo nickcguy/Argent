@@ -38,7 +38,7 @@ public class ArgMaterial extends ArgAsset<Material> {
     }
 
     public String path() {
-        return projectManager.global().getFilePath() + "materials/" + this.fileName + Registry.MATERIAL_EXT;
+        return projectManager.current().getFilePath() + "materials/" + this.fileName + Registry.MATERIAL_EXT;
     }
 
     public static ArgMaterial load(File file) {
@@ -56,7 +56,7 @@ public class ArgMaterial extends ArgAsset<Material> {
     }
 
     public void save() {
-        save(new File(getProjectManager().global().getFilePath() + "materials/" + (this.fileName = asset.id) + Registry.MATERIAL_EXT));
+        save(new File(getProjectManager().current().getFilePath() + "materials/" + (this.fileName = asset.id) + Registry.MATERIAL_EXT));
     }
 
     public void save(File file) {
@@ -86,9 +86,9 @@ public class ArgMaterial extends ArgAsset<Material> {
             @Override
             public void clicked(InputEvent event, float x, float y) {
 //                if(localAsset)
-                    getProjectManager().global().removeMaterial(ArgMaterial.this, true);
+                    getProjectManager().current().removeMaterial(ArgMaterial.this, true);
 //                else projectManager.global().removeMaterial(ArgMaterial.this);
-                getProjectManager().global().refresh();
+                getProjectManager().current().refresh();
 
             }
         });
