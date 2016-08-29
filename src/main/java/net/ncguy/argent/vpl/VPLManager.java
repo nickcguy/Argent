@@ -7,6 +7,9 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import net.ncguy.argent.utils.AppUtils;
 import net.ncguy.argent.vpl.annotations.NodeColour;
+import net.ncguy.argent.vpl.annotations.NodeData;
+import net.ncguy.argent.vpl.annotations.ShaderNodeData;
+import net.ncguy.argent.vpl.compiler.IShaderNode;
 import net.ncguy.argent.vpl.nodes.BasicNodeFunctions;
 import net.ncguy.argent.vpl.nodes.FunctionalNodes;
 import net.ncguy.argent.vpl.nodes.shader.FinalShaderNode;
@@ -45,7 +48,6 @@ public class VPLManager {
         registerStruct(Vector3.class, new Vector3Descriptor());
         registerStruct(Color.class, new ColourDescriptor());
         registerStruct(Quaternion.class, new QuaternionDescriptor());
-        registerStruct(FinalShaderNode.TextureData.class, new ShaderTextureDataDescriptor());
         registerStruct(String.class, new StringDescriptor());
 
         final List<Method> methods = new ArrayList<>();
@@ -138,6 +140,106 @@ public class VPLManager {
         return AppUtils.General.arrayContains(data.tags(), tag);
     }
 
+    public String getDisplayName(VPLNode node) {
+        if(node.method != null) return getDisplayName(node.method);
+        if(node.getClass().isAnnotationPresent(NodeData.class)) {
+            NodeData data = node.getClass().getAnnotation(NodeData.class);
+            return data.value();
+        }
+        return node.getClass().getSimpleName();
+    }
+
+    public String getCategory(VPLNode node) {
+        if(node.method != null) return getCategory(node.method);
+        if(node.getClass().isAnnotationPresent(NodeData.class)) {
+            NodeData data = node.getClass().getAnnotation(NodeData.class);
+            return data.category();
+        }
+        return "";
+    }
+
+    public String[] getTags(VPLNode node) {
+        if(node.method != null) return getTags(node.method);
+        if(node.getClass().isAnnotationPresent(NodeData.class)) {
+            NodeData data = node.getClass().getAnnotation(NodeData.class);
+            return data.tags();
+        }
+        return new String[]{"*"};
+    }
+
+    public String[] getKeywords(VPLNode node) {
+        if(node.method != null) return getKeywords(node.method);
+        if(node.getClass().isAnnotationPresent(NodeData.class)) {
+            NodeData data = node.getClass().getAnnotation(NodeData.class);
+            return data.keywords();
+        }
+        return new String[]{""};
+    }
+    public boolean canExecIn(VPLNode node) {
+        if(node.method != null) return canExecIn(node.method);
+        if(node.getClass().isAnnotationPresent(NodeData.class)) {
+            NodeData data = node.getClass().getAnnotation(NodeData.class);
+            return data.execIn();
+        }
+        return true;
+    }
+    public boolean canExecOut(VPLNode node) {
+        if(node.method != null) return canExecOut(node.method);
+        if(node.getClass().isAnnotationPresent(NodeData.class)) {
+            NodeData data = node.getClass().getAnnotation(NodeData.class);
+            return data.execOut();
+        }
+        return true;
+    }
+
+    public int getOutPins(VPLNode node) {
+        if(node.method != null) return getOutPins(node.method);
+        if(node.getClass().isAnnotationPresent(NodeData.class)) {
+            NodeData data = node.getClass().getAnnotation(NodeData.class);
+            return data.outPins();
+        }
+        return 1;
+    }
+
+    public NodeColour getNodeColourData(VPLNode node) {
+        if(node.method != null) return getNodeColourData(node.method);
+        if(node.getClass().isAnnotationPresent(NodeData.class)) {
+            NodeData data = node.getClass().getAnnotation(NodeData.class);
+            return data.colour();
+        }
+        return null;
+    }
+
+    public Class<?>[] getOutputTypes(VPLNode node) {
+        if(node.method != null) return getOutputTypes(node.method);
+        if(node.getClass().isAnnotationPresent(NodeData.class)) {
+            NodeData data = node.getClass().getAnnotation(NodeData.class);
+            return data.outputTypes();
+        }
+        return new Class[]{Object.class};
+    }
+    public Class<?> getOutputTypeOfPin(int pinId, VPLNode node) {
+        Class<?>[] types = getOutputTypes(node);
+        return types[MathUtils.clamp(pinId, 0, types.length - 1)];
+    }
+
+    public String[] getArgNames(VPLNode node) {
+        if(node.method != null) return getArgNames(node.method);
+        if(node.getClass().isAnnotationPresent(NodeData.class)) {
+            NodeData data = node.getClass().getAnnotation(NodeData.class);
+            return data.argNames();
+        }
+        return new String[0];
+    }
+
+    public NodeData getNodeData(VPLNode node) {
+        if(node.method != null) return getNodeData(node.method);
+        if(node.getClass().isAnnotationPresent(NodeData.class))
+            return node.getClass().getAnnotation(NodeData.class);
+        return null;
+    }
+
+
     public String getDisplayName(Method method) {
         if(!method.isAnnotationPresent(NodeData.class)) return method.getName();
         NodeData data = method.getAnnotation(NodeData.class);
@@ -216,5 +318,35 @@ public class VPLManager {
         if(!method.isAnnotationPresent(NodeData.class)) return new String[0];
         NodeData data = method.getAnnotation(NodeData.class);
         return data.argNames();
+    }
+
+    public NodeData getNodeData(Method method) {
+        if(!method.isAnnotationPresent(NodeData.class)) return null;
+        return method.getAnnotation(NodeData.class);
+    }
+
+    public boolean isShaderNode(VPLNode<?> node) {
+        if(node instanceof IShaderNode) return true;
+        if(node.method == null) {
+            if(node.getClass().isAnnotationPresent(ShaderNodeData.class))
+                return true;
+        }else{
+            if(node.method.isAnnotationPresent(ShaderNodeData.class))
+                return true;
+        }
+        return false;
+    }
+
+    public ShaderNodeData.Packet getShaderNodeData(VPLNode<?> node) {
+        if(!isShaderNode(node)) return null;
+        if(node instanceof IShaderNode) {
+            IShaderNode n = (IShaderNode)node;
+            return new ShaderNodeData.Packet(n.getUniforms(), n.getFragment(), n.getVariable());
+        }
+        if(node.method == null) {
+            return new ShaderNodeData.Packet(node.getClass().getAnnotation(ShaderNodeData.class));
+        }else{
+            return new ShaderNodeData.Packet(node.method.getAnnotation(ShaderNodeData.class));
+        }
     }
 }

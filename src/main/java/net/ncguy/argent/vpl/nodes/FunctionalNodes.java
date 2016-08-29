@@ -1,7 +1,7 @@
 package net.ncguy.argent.vpl.nodes;
 
 import net.ncguy.argent.utils.RandomString;
-import net.ncguy.argent.vpl.NodeData;
+import net.ncguy.argent.vpl.annotations.NodeData;
 import net.ncguy.argent.vpl.VPLNode;
 
 /**

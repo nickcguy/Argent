@@ -11,11 +11,13 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.ui.Cell;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.kotcrab.vis.ui.VisUI;
 import net.ncguy.argent.utils.ReflectionUtils;
 import net.ncguy.argent.vpl.annotations.NodeColour;
+import net.ncguy.argent.vpl.annotations.NodeData;
 import net.ncguy.argent.vpl.struct.IdentifierObject;
 
 import java.lang.reflect.InvocationTargetException;
@@ -42,7 +44,7 @@ public class VPLNode<T> extends Table {
     protected Set<VPLPin> pinSet;
     protected Vector2 position;
     protected Label titleLabel;
-    protected NodeData nodeData;
+    public NodeData nodeData;
     protected NodeColour titleColourData;
     public transient Color titleColour;
     protected NodeType type;
@@ -57,16 +59,19 @@ public class VPLNode<T> extends Table {
         position = new Vector2();
         buildTable();
         attachInputListener();
-        nodeData = method.getAnnotation(NodeData.class);
+        nodeData = VPLManager.instance().getNodeData(this);
         titleColourData = nodeData.colour();
         titleColour = VPLManager.instance().getNodeColour(titleColourData);
         discernType();
     }
 
-    private void discernType() {
+    protected void discernType() {
         Class<?> outType = this.method.getReturnType();
         int inputs = method.getParameterTypes().length - 2;
+        discernType(outType, inputs);
+    }
 
+    protected void discernType(Class outType, int inputs) {
         if(outType.equals(Void.TYPE)) {
             if(inputs <= 0) {
                 this.type = NodeType.EXEC;
@@ -107,7 +112,7 @@ public class VPLNode<T> extends Table {
     }
 
     private String getTitle() {
-        return VPLManager.instance().getDisplayName(this.method);
+        return VPLManager.instance().getDisplayName(this);
     }
 
     private void buildTable() {
@@ -128,9 +133,9 @@ public class VPLNode<T> extends Table {
         if(w > width) width = w;
 
         add(headerTable).expandX().fillX().colspan(3).row();
-        add(inputTable).left().padLeft(2).minWidth(this.width);
+        add(inputTable).left().padLeft(2).minWidth(this.width).top().left();
         add("").expand().fill().minWidth(width*2.5f);
-        add(outputTable).right().padRight(2).minWidth(this.width);
+        add(outputTable).right().padRight(2).minWidth(this.width).top().right();
         pack();
 
         setTouchable(Touchable.enabled);
@@ -145,16 +150,16 @@ public class VPLNode<T> extends Table {
         resetIndex();
         buildOutput();
         resetIndex();
-        assertTables();
+//        assertTables();
     }
 
-    private void buildInput() {
-        if(VPLManager.instance().canExecIn(this.method))
+    protected void buildInput() {
+        if(VPLManager.instance().canExecIn(this))
             addPin(inputTable, EXEC, INPUT);
         Class<?>[] paramTypes = method.getParameterTypes();
         Parameter[] params = method.getParameters();
         String[] names = new String[params.length-2];
-        String[] argNames = VPLManager.instance().getArgNames(this.method);
+        String[] argNames = VPLManager.instance().getArgNames(this);
 
         for (int i = 0; i < names.length; i++) {
             String name = params[i+2].getName();
@@ -166,17 +171,17 @@ public class VPLNode<T> extends Table {
         for (int i = 0; i < names.length; i++)
             addPin(inputTable, paramTypes[i+2], names[i], INPUT);
     }
-    private void buildOutput() {
-        if(VPLManager.instance().canExecOut(this.method))
+    protected void buildOutput() {
+        if(VPLManager.instance().canExecOut(this))
             addPin(outputTable, EXEC, OUTPUT);
         Class<?> returnType = method.getReturnType();
         if(returnType.equals(Void.TYPE)) return;
-        int pins = VPLManager.instance().getOutPins(method);
+        int pins = VPLManager.instance().getOutPins(this);
         boolean mutable = returnType.equals(IdentifierObject.class);
         int index = 0;
         while (pins > 0) {
             if(mutable)
-                returnType = VPLManager.instance().getOutputTypeOfPin(index++, method);
+                returnType = VPLManager.instance().getOutputTypeOfPin(index++, this);
             addPin(outputTable, returnType, COMPOUND, OUTPUT);
             pins--;
         }
@@ -231,37 +236,41 @@ public class VPLNode<T> extends Table {
         addListener(listener);
     }
 
-    private void addPin(Table table, VPLPin.Types... types) {
-        addPin(table, new VPLPin(index(), this, types));
+    protected VPLPin addPin(Table table, VPLPin.Types... types) {
+        return addPin(table, new VPLPin(index(), this, types));
     }
-    private void addPin(Table table, Class<?> cls, VPLPin.Types... types) {
-        addPin(table, cls, cls.getSimpleName(), types);
+    protected VPLPin addPin(Table table, Class<?> cls, VPLPin.Types... types) {
+        return addPin(table, cls, cls.getSimpleName(), types);
     }
-    private void addPin(Table table, Class<?> cls, String label, VPLPin.Types... types) {
+    protected VPLPin addPin(Table table, Class<?> cls, String label, VPLPin.Types... types) {
         VPLPin pin = new VPLPin(index(), this, types);
         pin.cls = cls;
         pin.label = label;
-        addPin(table, pin);
+        return addPin(table, pin);
     }
 
-    private void addPin(Table table, VPLPin pin) {
+    protected VPLPin addPin(Table table, VPLPin pin) {
         pinSet.add(pin);
         addElement(table, pin, pin.label, pin.is(INPUT));
+        return pin;
     }
-    private void addElement(Table table, Actor actor) {
-        addElement(table, actor, true);
+    protected Cell addElement(Table table, Actor actor) {
+        return addElement(table, actor, true);
     }
-    private void addElement(Table table, Actor actor, boolean actorOnLeft) {
-        addElement(table, actor, "", actorOnLeft);
+    protected Cell addElement(Table table, Actor actor, boolean actorOnLeft) {
+        return addElement(table, actor, "", actorOnLeft);
     }
-    private void addElement(Table table, Actor actor, String label, boolean actorOnLeft) {
+    protected Cell addElement(Table table, Actor actor, String label, boolean actorOnLeft) {
+        Cell cell;
         if(actorOnLeft) {
-            table.add(actor).left().expandX().fillX().pad(4).size(16);
+            cell = table.add(actor).left().expandX().fillX().pad(4).size(16);
             table.add(label).left().expandX().fillX().pad(4).row();
         } else{
             table.add(label).left().expandX().fillX().pad(4);
-            table.add(actor).left().expandX().fillX().pad(4).size(16).row();
+            cell = table.add(actor).left().expandX().fillX().pad(4).size(16);
+            cell.row();
         }
+        return cell;
     }
 
     @Override
@@ -285,7 +294,7 @@ public class VPLNode<T> extends Table {
         step();
     }
 
-    private T fetchData(VPLNode node) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, InstantiationException {
+    public T fetchData(VPLNode node) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, InstantiationException {
         Class<?>[] types = method.getParameterTypes();
         Object[] arg = new Object[types.length];
         arg[0] = this;
@@ -372,6 +381,17 @@ public class VPLNode<T> extends Table {
 
         public final Color colour;
 
+    }
+
+
+    public Set<VPLNode<?>> getConnectedNodes() {
+        Set<VPLNode<?>> nodes = new LinkedHashSet<>();
+        getConnectedNodes(nodes);
+        return nodes;
+    }
+
+    public void getConnectedNodes(Set<VPLNode<?>> nodes) {
+        pinSet.forEach(pin -> pin.connectedPins.forEach(p -> nodes.add(p.parentNode)));
     }
 
 }

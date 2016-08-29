@@ -17,6 +17,7 @@ import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import net.ncguy.argent.entity.attributes.PickerIDAttribute;
+import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
 import java.io.File;
@@ -247,7 +248,7 @@ public class AppUtils {
     public static class GL {
 
         public static float getTime() {
-            return (float) -(Math.PI/2);
+            return (float) GLFW.glfwGetTime();
         }
 
     }

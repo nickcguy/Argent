@@ -1,6 +1,4 @@
-package net.ncguy.argent.vpl;
-
-import net.ncguy.argent.vpl.annotations.NodeColour;
+package net.ncguy.argent.vpl.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -21,6 +19,7 @@ public @interface NodeData {
     String[] argNames() default "";
     boolean execIn() default true;
     boolean execOut() default true;
+    String[] extras() default "";
 
     NodeColour colour() default @NodeColour(r = 2, g = 2, b = 2, a = 2);
 

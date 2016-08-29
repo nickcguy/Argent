@@ -3,8 +3,8 @@ package net.ncguy.argent.vpl.struct;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.MathUtils;
 import net.ncguy.argent.vpl.IStructDescriptor;
-import net.ncguy.argent.vpl.NodeData;
 import net.ncguy.argent.vpl.VPLNode;
+import net.ncguy.argent.vpl.annotations.NodeData;
 
 /**
  * Created by Guy on 19/08/2016.

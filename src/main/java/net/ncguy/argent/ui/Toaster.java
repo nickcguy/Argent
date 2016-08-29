@@ -15,7 +15,7 @@ import static net.ncguy.argent.ui.Toaster.ToastType.*;
  */
 public class Toaster implements StringPacketEvent.StringPacketListener {
 
-    enum ToastType { SUCCESS, INFO, ERROR }
+    public enum ToastType { SUCCESS, INFO, ERROR }
 
     private ToastManager toastManager;
 

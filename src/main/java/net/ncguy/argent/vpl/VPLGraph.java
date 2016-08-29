@@ -12,18 +12,26 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Selection;
 import net.ncguy.argent.injector.ArgentInjector;
 import net.ncguy.argent.injector.Inject;
+import net.ncguy.argent.ui.SearchableList;
 import net.ncguy.argent.ui.Toaster;
+import net.ncguy.argent.vpl.compiler.VPLCompiler;
+import net.ncguy.argent.vpl.nodes.factory.NodeFactory;
+import net.ncguy.argent.vpl.nodes.shader.FinalShaderNode;
+import net.ncguy.argent.vpl.nodes.shader.TextureCoordinatesNode;
+import net.ncguy.argent.vpl.nodes.widget.TextureNode;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by Guy on 19/08/2016.
  */
 public class VPLGraph extends Group {
 
-    List<VPLNode> nodes;
+    public List<VPLNode> nodes;
     List<Method> nodeMethods;
     String[] tags;
     VPLContextMenu menu;
@@ -33,6 +41,8 @@ public class VPLGraph extends Group {
     public boolean draggingPin = false;
     public VPLPane pane;
     public VPLNodeContextMenu nodeContextMenu;
+
+    public VPLCompiler compiler;
 
     @Inject
     public Toaster toaster;
@@ -46,9 +56,17 @@ public class VPLGraph extends Group {
         this.nodeMethods = VPLManager.instance().getNodesWithTags(tags);
         this.menu = new VPLContextMenu(this);
         this.menu.setMethods(this.nodeMethods);
+
+        this.menu.addItem(new SearchableList.Item<>(null, "Texture Node", new NodeFactory(TextureNode.class)));
+        this.menu.addItem(new SearchableList.Item<>(null, "Shader Node", new NodeFactory(FinalShaderNode.class)));
+        this.menu.addItem(new SearchableList.Item<>(null, "TexCoords Node", new NodeFactory(TextureCoordinatesNode.class)));
+
         this.menu.setChangeListener(item -> {
-            Method m = item.value;
-            addNode(m);
+            Object obj = item.value;
+            if(obj instanceof Method)
+                addNode((Method)obj);
+            else if(obj instanceof NodeFactory)
+                addNode(((NodeFactory)obj).construct(this));
         });
 
         addListener(menuListener);
@@ -115,4 +133,14 @@ public class VPLGraph extends Group {
         node.remove();
         this.nodes.remove(node);
     }
+
+    public Set<VPLNode<?>> getNetworkedNodes(VPLNode<?> node) {
+        final Set<VPLNode<?>> nodes = node.getConnectedNodes();
+        nodes.stream().collect(Collectors.toList()).forEach(n -> getNetworkedNodes(nodes, n));
+        return nodes;
+    }
+    public void getNetworkedNodes(Set<VPLNode<?>> list, VPLNode<?> node) {
+        node.getConnectedNodes(list);
+    }
+
 }

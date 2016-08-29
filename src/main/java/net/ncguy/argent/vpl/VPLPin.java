@@ -31,8 +31,9 @@ public class VPLPin extends Group {
 
     public static int splineFidelity = 250;
     private Vector2 position = new Vector2();
+    protected List<VPLPinListener> listeners;
 
-    enum Types {
+    public enum Types {
         EXEC,
         INPUT,
         OUTPUT,
@@ -111,6 +112,7 @@ public class VPLPin extends Group {
     protected Color colour;
     protected Tween colourTween;
     protected String label;
+    protected boolean useNativeColour = true;
 
     public VPLPin(int id, VPLNode parentNode, Types... types) {
         this.id = id;
@@ -126,18 +128,26 @@ public class VPLPin extends Group {
         init();
     }
 
+    public VPLNode getParentNode() {
+        return parentNode;
+    }
+
     public void connect(VPLPin pin) {
         boolean canConnect = canConnect(pin);
         if(!canConnect) return;
         if(connectedPins.contains(pin)) return;
         connectedPins.add(pin);
         pin.connect(this);
+
+        listeners.forEach(l -> l.connected(pin));
     }
 
     public void disconnect(VPLPin p) {
         if(!connectedPins.contains(p)) return;
         connectedPins.remove(p);
         p.disconnect(this);
+
+        listeners.forEach(l -> l.disconnected(p));
     }
 
     public void disconnectAll() {
@@ -146,6 +156,7 @@ public class VPLPin extends Group {
     }
 
     private void init() {
+        listeners = new ArrayList<>();
         connectedPins = new ArrayList<>();
         zone = new DragDropZone<>("pin", VPLPin.class, "pin");
         zone.dnd().setTapSquareSize(.1f);
@@ -216,8 +227,18 @@ public class VPLPin extends Group {
         VPLNodeRenderable.instance().renderTweenSpline(batch, splineFidelity, getColour(), this.colour, points);
     }
 
+    public VPLPin useNativeColour(boolean use) {
+        this.useNativeColour = use;
+        return this;
+    }
+    public boolean useNativeColour() {
+        return this.useNativeColour;
+    }
+
     public Color getColour() {
-        return this.selfColour.set(VPLManager.instance().getColour(cls));
+        if(useNativeColour)
+            this.selfColour.set(VPLManager.instance().getPinColour(this));
+        return this.selfColour;
     }
 
     public void setColour(Color colour) {
@@ -289,6 +310,13 @@ public class VPLPin extends Group {
 
     public void invokeNode() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, InstantiationException {
         parentNode.invokeSelf(this.id);
+    }
+
+    public void addPinListener(VPLPinListener listener) {
+        listeners.add(listener);
+    }
+    public void removePinListener(VPLPinListener listener) {
+        listeners.remove(listener);
     }
 
 }

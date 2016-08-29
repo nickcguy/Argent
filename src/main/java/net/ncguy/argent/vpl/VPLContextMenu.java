@@ -1,16 +1,23 @@
 package net.ncguy.argent.vpl;
 
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.kotcrab.vis.ui.VisUI;
 import net.ncguy.argent.ui.SearchableList;
+import net.ncguy.argent.vpl.compiler.ShaderProgramCompiler;
+import net.ncguy.argent.vpl.nodes.shader.FinalShaderNode;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by Guy on 19/08/2016.
  */
-public class VPLContextMenu extends SearchableList<Method> {
+public class VPLContextMenu extends SearchableList<Object> {
 
     private VPLGraph vplGraph;
 
@@ -37,7 +44,7 @@ public class VPLContextMenu extends SearchableList<Method> {
             String s2 = VPLManager.instance().getDisplayName(m2);
             return s1.compareToIgnoreCase(s2);
         }).forEach(m -> {
-            Item<Method> item = new Item<>(null, VPLManager.instance().getDisplayName(m), m, VPLManager.instance().getKeywords(m));
+            Item<Object> item = new Item<>(null, VPLManager.instance().getDisplayName(m), m, VPLManager.instance().getKeywords(m));
             addItem(item);
         });
     }
@@ -46,4 +53,22 @@ public class VPLContextMenu extends SearchableList<Method> {
         return (OrthographicCamera) vplGraph.getStage().getCamera();
     }
 
+    @Override
+    public void preListWidget() {
+        TextButton button = new TextButton("Compile Shader", VisUI.getSkin());
+        button.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                if(vplGraph.compiler == null)
+                    vplGraph.compiler = new ShaderProgramCompiler();
+                VPLNode node;
+                List<VPLNode> collect = vplGraph.nodes.stream().filter(n -> n instanceof FinalShaderNode).collect(Collectors.toList());
+                if(collect.size() <= 0) return;
+                node = collect.get(0);
+                if(node != null)
+                    vplGraph.compiler.compile(vplGraph, node);
+            }
+        });
+        add(button).growX().row();
+    }
 }

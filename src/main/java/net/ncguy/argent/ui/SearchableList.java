@@ -73,9 +73,13 @@ public class SearchableList<T> extends Table {
         itemTreeParent.setBackground("default-pane");
         searchFieldParent.setBackground("default-pane");
 
+        preSearchWidget();
         add(searchFieldParent).pad(4).expandX().fillX().row();
+        postSearchWidget();
         add(new Separator()).expandX().fillX().row();
+        preListWidget();
         add(this.scroller).pad(4).expand().fill().row();
+        postListWidget();
 
         this.itemTree.addListener(new ChangeListener() {
             @Override
@@ -84,6 +88,11 @@ public class SearchableList<T> extends Table {
             }
         });
     }
+
+    public void preSearchWidget() {}
+    public void postSearchWidget() {}
+    public void preListWidget() {}
+    public void postListWidget() {}
 
     private void stage_onClick(InputEvent event, float x, float y) {
         Vector2 stageCoords = new Vector2(x, y);

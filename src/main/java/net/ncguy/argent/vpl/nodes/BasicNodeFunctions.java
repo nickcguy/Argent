@@ -1,6 +1,8 @@
 package net.ncguy.argent.vpl.nodes;
 
-import net.ncguy.argent.vpl.NodeData;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.math.Vector2;
+import net.ncguy.argent.vpl.annotations.NodeData;
 import net.ncguy.argent.vpl.VPLNode;
 
 /**
@@ -25,6 +27,14 @@ public class BasicNodeFunctions {
     public static String toString(VPLNode node, int pinId, Object obj) {
         if(obj == null) return "null";
         return obj.toString();
+    }
+
+    @NodeData(value = "Screenspace Cursor Position", execIn = false, execOut = false, argNames = "Position")
+    public static Vector2 getScreenspaceCursorPos(VPLNode node, int pinId) {
+        Vector2 pos = new Vector2(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY());
+        pos.x /= Gdx.graphics.getWidth();
+        pos.y /= Gdx.graphics.getHeight();
+        return pos;
     }
 
 }

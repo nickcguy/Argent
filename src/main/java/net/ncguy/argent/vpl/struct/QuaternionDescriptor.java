@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Quaternion;
 import net.ncguy.argent.vpl.IStructDescriptor;
-import net.ncguy.argent.vpl.NodeData;
+import net.ncguy.argent.vpl.annotations.NodeData;
 import net.ncguy.argent.vpl.VPLNode;
 
 /**
