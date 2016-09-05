@@ -10,6 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.kotcrab.vis.ui.VisUI;
 import com.kotcrab.vis.ui.widget.Separator;
 import net.ncguy.argent.assets.ArgMaterial;
+import net.ncguy.argent.assets.ArgShader;
 import net.ncguy.argent.editor.EditorUI;
 import net.ncguy.argent.editor.views.material.AttrPane;
 import net.ncguy.argent.editor.views.material.TexturePane;
@@ -61,7 +62,7 @@ public class MaterialViewer extends ViewTab {
 
         ArgentRenderer renderer = new ArgentRenderer(materialWorld);
         previewEntity = new WorldEntity();
-        previewEntity.add(previewMesh = new PrimitiveCubeModelComponent(previewEntity, selectedMtl = new ArgMaterial(new Material(), false)));
+        previewEntity.add(previewMesh = new PrimitiveCubeModelComponent(previewEntity, new ArgShader("", "")));
         materialWorld.addInstance(previewEntity);
 
         this.materialTab.setOnSelect(this::onSelect);
@@ -139,14 +140,14 @@ public class MaterialViewer extends ViewTab {
         previewMesh = newComponent;
         previewEntity.add(previewMesh);
         if(selectedMtl != null)
-            previewMesh.setMaterial(selectedMtl);
+            previewMesh.setMaterial(new ArgShader("", ""));
     }
 
     public void onSelect(ArgMaterial mtl) {
         if(mtl == null) editorUI.getToaster().error("Material is null");
         if(selectedMtl != null) selectedMtl.save();
         selectedMtl = mtl;
-        previewMesh.setMaterial(mtl);
+        previewMesh.setMaterial(new ArgShader("", ""));
         this.attrPane.onMaterialSelect(mtl);
     }
 

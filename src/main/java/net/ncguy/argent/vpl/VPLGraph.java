@@ -10,14 +10,13 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Selection;
+import net.ncguy.argent.event.StringPacketEvent;
 import net.ncguy.argent.injector.ArgentInjector;
-import net.ncguy.argent.injector.Inject;
 import net.ncguy.argent.ui.SearchableList;
-import net.ncguy.argent.ui.Toaster;
 import net.ncguy.argent.vpl.compiler.VPLCompiler;
 import net.ncguy.argent.vpl.nodes.factory.NodeFactory;
-import net.ncguy.argent.vpl.nodes.shader.FinalShaderNode;
-import net.ncguy.argent.vpl.nodes.shader.TextureCoordinatesNode;
+import net.ncguy.argent.vpl.nodes.shader.*;
+import net.ncguy.argent.vpl.nodes.widget.FloatNode;
 import net.ncguy.argent.vpl.nodes.widget.TextureNode;
 
 import java.lang.reflect.Method;
@@ -33,34 +32,21 @@ public class VPLGraph extends Group {
 
     public List<VPLNode> nodes;
     List<Method> nodeMethods;
-    String[] tags;
+    public String[] tags;
     VPLContextMenu menu;
     Vector2 pos = new Vector2();
     public Rectangle bounds;
     public Selection<VPLNode> nodeSelection;
     public boolean draggingPin = false;
-    public VPLPane pane;
     public VPLNodeContextMenu nodeContextMenu;
 
     public VPLCompiler compiler;
 
-    @Inject
-    public Toaster toaster;
-
-    public VPLGraph(VPLPane pane, String... tags) {
+    public VPLGraph(String... tags) {
         ArgentInjector.inject(this);
         this.nodeContextMenu = new VPLNodeContextMenu(this);
-        this.pane = pane;
-        this.tags = tags;
         this.nodes = new ArrayList<>();
-        this.nodeMethods = VPLManager.instance().getNodesWithTags(tags);
         this.menu = new VPLContextMenu(this);
-        this.menu.setMethods(this.nodeMethods);
-
-        this.menu.addItem(new SearchableList.Item<>(null, "Texture Node", new NodeFactory(TextureNode.class)));
-        this.menu.addItem(new SearchableList.Item<>(null, "Shader Node", new NodeFactory(FinalShaderNode.class)));
-        this.menu.addItem(new SearchableList.Item<>(null, "TexCoords Node", new NodeFactory(TextureCoordinatesNode.class)));
-
         this.menu.setChangeListener(item -> {
             Object obj = item.value;
             if(obj instanceof Method)
@@ -69,10 +55,36 @@ public class VPLGraph extends Group {
                 addNode(((NodeFactory)obj).construct(this));
         });
 
+        refreshMenu(tags);
+
         addListener(menuListener);
         nodeSelection = new Selection<>();
         nodeSelection.setMultiple(true);
         attachListener();
+    }
+
+    public void setTags(String... tags) {
+        this.tags = tags;
+    }
+    public void refreshMenu(String... tags) {
+        setTags(tags);
+        refreshMenu();
+    }
+    public void refreshMenu() {
+
+        this.nodeMethods = VPLManager.instance().getNodesWithTags(this.tags);
+        this.menu.clearItems();
+        this.menu.setMethods(this.nodeMethods);
+
+        // TODO Use VPLManager to manage this
+        this.menu.addItem(new SearchableList.Item<>(null, "Texture Node", new NodeFactory(TextureNode.class)));
+        this.menu.addItem(new SearchableList.Item<>(null, "Shader Node", new NodeFactory(FinalShaderNode.class)));
+        this.menu.addItem(new SearchableList.Item<>(null, "TexCoords Node", new NodeFactory(TextureCoordinatesNode.class)));
+        this.menu.addItem(new SearchableList.Item<>(null, "Passthrough", new NodeFactory(VariablePassthroughNode.class)));
+        this.menu.addItem(new SearchableList.Item<>(null, "Make Colour", new NodeFactory(MakeColourNode.class)));
+        this.menu.addItem(new SearchableList.Item<>(null, "Break Colour", new NodeFactory(BreakColourNode.class)));
+        this.menu.addItem(new SearchableList.Item<>(null, "1-", new NodeFactory(OneMinusNode.class)));
+        this.menu.addItem(new SearchableList.Item<>(null, "Float", new NodeFactory(FloatNode.class)));
     }
 
     private void attachListener() {
@@ -92,6 +104,13 @@ public class VPLGraph extends Group {
         VPLNodeRenderable.instance().renderSplines(batch, this);
     }
 
+    public void updateNodes() {
+        clearChildren();
+        this.nodes.forEach(node -> {
+            addActor(node);
+            node.setPosition(node.position.x, node.position.y);
+        });
+    }
     public void addNode(VPLNode node) {
         this.nodes.add(node);
         addActor(node);
@@ -141,6 +160,44 @@ public class VPLGraph extends Group {
     }
     public void getNetworkedNodes(Set<VPLNode<?>> list, VPLNode<?> node) {
         node.getConnectedNodes(list);
+    }
+
+    public void removeAllNodes() {
+        nodes.stream().collect(Collectors.toList()).forEach(this::removeNode);
+    }
+
+    public List<VPLPin> getAllPins() {
+        List<VPLPin> set = new ArrayList<>();
+        nodes.forEach(node -> set.addAll(node.pinSet));
+        return set.stream().distinct().collect(Collectors.toList());
+    }
+
+    public List<VPLPin> getAllConnectedPins() {
+        List<VPLPin> set = new ArrayList<>();
+        nodes.forEach(node -> {
+            Set<VPLPin> pin = node.pinSet;
+            pin.stream().filter(VPLPin::isConnected).forEach(set::add);
+        });
+        return set.stream().distinct().collect(Collectors.toList());
+    }
+
+
+    protected StringPacketEvent toastPacket = new StringPacketEvent();
+
+    public void info(String msg) {
+        toastPacket.key = "toast|info";
+        toastPacket.payload = msg;
+        toastPacket.fire();
+    }
+    public void error(String msg) {
+        toastPacket.key = "toast|error";
+        toastPacket.payload = msg;
+        toastPacket.fire();
+    }
+    public void success(String msg) {
+        toastPacket.key = "toast|success";
+        toastPacket.payload = msg;
+        toastPacket.fire();
     }
 
 }

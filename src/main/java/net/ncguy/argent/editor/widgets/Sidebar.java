@@ -10,6 +10,7 @@ import net.ncguy.argent.editor.EditorUI;
 import net.ncguy.argent.editor.widgets.sidebar.DebugTab;
 import net.ncguy.argent.editor.widgets.sidebar.MaterialTab;
 import net.ncguy.argent.editor.widgets.sidebar.OutlineTab;
+import net.ncguy.argent.editor.widgets.sidebar.ShaderTab;
 
 /**
  * Created by Guy on 27/07/2016.
@@ -23,6 +24,7 @@ public class Sidebar extends Table implements TabbedPaneListener {
 
     private OutlineTab outline;
     private MaterialTab materials;
+    private ShaderTab shaders;
     private DebugTab debug;
 
     private EditorUI editorUI;
@@ -35,6 +37,7 @@ public class Sidebar extends Table implements TabbedPaneListener {
         tabbedPane = new TabbedPane(style);
         outline = new OutlineTab(editorUI);
         materials = new MaterialTab();
+        shaders = new ShaderTab();
         debug = new DebugTab(editorUI);
 
         setupUI();
@@ -51,6 +54,7 @@ public class Sidebar extends Table implements TabbedPaneListener {
 
         tabbedPane.add(outline);
         tabbedPane.add(materials);
+        tabbedPane.add(shaders);
         tabbedPane.add(debug);
 
         add(tabbedPane.getTable()).width(width).top().left().row();

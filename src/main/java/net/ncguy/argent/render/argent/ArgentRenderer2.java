@@ -90,7 +90,7 @@ public class ArgentRenderer2<T extends WorldEntity> extends BasicWorldRenderer<T
             finalBatch = new ModelBatch(new DefaultShaderProvider() {
                 @Override
                 protected Shader createShader(Renderable renderable) {
-                    return new ArgentShader(renderable, finalProgram);
+                    return new ArgentLightShader(renderable, finalProgram);
                 }
             });
         }

@@ -6,7 +6,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.kotcrab.vis.ui.VisUI;
-import net.ncguy.argent.assets.ArgMaterial;
+import net.ncguy.argent.assets.ArgShader;
 import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.entity.components.model.primitive.PrimitivePlaneModelComponent;
 import net.ncguy.argent.ui.FloatFieldWithLabel;
@@ -21,7 +21,7 @@ public class PrimitivePlaneModelWidget extends ComponentWidget<PrimitivePlaneMod
     private FloatFieldWithLabel width;
     private FloatFieldWithLabel height;
     private CheckBox twoSided;
-    private DropZone<ArgMaterial> mtlDropZone;
+    private DropZone<ArgShader> mtlDropZone;
 
     public PrimitivePlaneModelWidget(PrimitivePlaneModelComponent component) {
         super(component, "Plane Primitive");
@@ -37,7 +37,7 @@ public class PrimitivePlaneModelWidget extends ComponentWidget<PrimitivePlaneMod
         width = new FloatFieldWithLabel("Width", size, false);
         height = new FloatFieldWithLabel("Height", size, false);
         twoSided = new CheckBox("Two Sided", VisUI.getSkin());
-        mtlDropZone = new DropZone<>(ArgMaterial.class, "mtl");
+        mtlDropZone = new DropZone<>(ArgShader.class, "shader");
         mtlDropZone.setOnDrop(component::setMaterial);
     }
     protected void setupUI() {

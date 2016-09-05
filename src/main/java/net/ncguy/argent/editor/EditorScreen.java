@@ -22,9 +22,9 @@ public class EditorScreen implements Screen {
     @Inject ProjectManager projectManager;
     @Inject EditorUI editorUI;
 
+
     @Override
     public void show() {
-
         Argent.loadModule(new EditorModule());
 
         ArgentInjector.inject(this);

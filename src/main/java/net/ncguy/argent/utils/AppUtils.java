@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
+import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.TextureDescriptor;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.*;
@@ -22,6 +23,15 @@ import org.lwjgl.glfw.GLFW;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.badlogic.gdx.Input.Keys.SHIFT_LEFT;
+import static com.badlogic.gdx.Input.Keys.SHIFT_RIGHT;
+import static net.ncguy.argent.utils.AppUtils.Reference.UNIFORMS;
 
 /**
  * Created by Guy on 21/07/2016.
@@ -63,6 +73,10 @@ public class AppUtils {
             pos.x = Gdx.input.getX();
             pos.y = Gdx.graphics.getHeight() - Gdx.input.getY();
             return pos;
+        }
+
+        public static boolean isShiftPressed() {
+            return Gdx.input.isKeyPressed(SHIFT_LEFT) || Gdx.input.isKeyPressed(SHIFT_RIGHT);
         }
 
         /**
@@ -219,10 +233,14 @@ public class AppUtils {
             return compileShader(vertHandle.readString(), fragHandle.readString());
         }
         public static ShaderProgram compileShader(String vert, String frag) {
+            return compileShader(vert, frag, false);
+        }
+        public static ShaderProgram compileShader(String vert, String frag, boolean keep) {
             ShaderProgram.pedantic = false;
             ShaderProgram prg = new ShaderProgram(vert, frag);
             System.out.println(prg.getLog());
-            if(!prg.isCompiled()) return null;
+            if(!keep)
+                if(!prg.isCompiled()) return null;
             return prg;
         }
         public static Color bindPickerAttribute(Attributes combinedAttributes) {
@@ -240,6 +258,46 @@ public class AppUtils {
             }else{
                 TextureDescriptor<Texture> descriptor = new TextureDescriptor<>(TextureCache.white(), Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest, Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
                 return shader.context.textureBinder.bind(descriptor);
+            }
+        }
+
+
+        public static Map<BaseShader.Uniform, BaseShader.Setter> detectUniforms(String vert, String frag) {
+            List<String> uniformLines = new ArrayList<>();
+            uniformPass(vert, uniformLines); // Vertex Pass
+            uniformPass(frag, uniformLines); // Fragment Pass
+
+            Map<BaseShader.Uniform, BaseShader.Setter> uniforms = new HashMap<>();
+
+            uniformLines.forEach(line -> {
+                String[] lineArr = null;
+//                lineArr = line.split(" ");
+                // TODO investigate why I did this last version
+                if(line.startsWith("layout")) {
+                    lineArr = line.split("=")[1].split(" ");
+                }else{
+                    lineArr = line.split("=")[0].split(" ");
+                }
+                Map.Entry<BaseShader.Uniform, BaseShader.Setter> entry = getUniformSet(lineArr[lineArr.length-1].replace(";", ""));
+                if(entry != null)
+                    uniforms.put(entry.getKey(), entry.getValue());
+            });
+
+            return uniforms;
+        }
+
+        public static Map.Entry<BaseShader.Uniform, BaseShader.Setter> getUniformSet(String name) {
+            for (Map.Entry<BaseShader.Uniform, BaseShader.Setter> entry : UNIFORMS().entrySet()) {
+                if(entry.getKey().alias.equals(name))
+                    return entry;
+            }
+            return null;
+        }
+
+        private static void uniformPass(String body, List<String> list) {
+            for (String line : body.replace("\r", "").split("\n")) {
+                if(line.contains("uniform "))
+                    list.add(line);
             }
         }
 
@@ -272,6 +330,32 @@ public class AppUtils {
             }
         }
 
+    }
+
+    public static class Reference {
+        private static Map<BaseShader.Uniform, BaseShader.Setter> UNIFORMS;
+        public static final Map<BaseShader.Uniform, BaseShader.Setter> UNIFORMS() {
+            if(UNIFORMS == null) {
+                Map<BaseShader.Uniform, BaseShader.Setter> m = new HashMap<>();
+
+                Field[] fields = DefaultShader.Inputs.class.getDeclaredFields();
+                for (Field field : fields) {
+                    try {
+                        String fName = field.getName();
+                        Class<?> cls = DefaultShader.Setters.class;
+                        Field f = cls.getField(fName);
+                        if(f == null) continue;
+                        BaseShader.Uniform uniform = (BaseShader.Uniform) field.get(null);
+                        BaseShader.Setter setter = (BaseShader.Setter)f.get(null);
+                        m.put(uniform, setter);
+                    } catch (IllegalAccessException | NoSuchFieldException e) {
+                        e.printStackTrace();
+                    }
+                }
+                UNIFORMS = m;
+            }
+            return UNIFORMS;
+        }
     }
 
 }

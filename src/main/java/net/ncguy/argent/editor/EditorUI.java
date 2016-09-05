@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -41,7 +40,6 @@ public class EditorUI extends Stage {
     private StatusBar statusBar;
     private ViewerTabControl viewer;
 
-    private DragAndDrop dnd;
 
     private DebugPreview debug;
 
@@ -59,12 +57,6 @@ public class EditorUI extends Stage {
     public EditorUI() {
         super(new ScreenViewport());
         ArgentInjector.inject(this);
-        dnd = new DragAndDrop();
-        try {
-            InjectionStore.setGlobal(dnd);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
         toaster = new Toaster(this);
         try {
             InjectionStore.setGlobal(toaster);

@@ -2,6 +2,7 @@ package net.ncguy.argent.vpl;
 
 import aurelienribon.tweenengine.Tween;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.MathUtils;
@@ -14,7 +15,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop;
 import com.kotcrab.vis.ui.VisUI;
 import net.ncguy.argent.Argent;
+import net.ncguy.argent.event.StringPacketEvent;
 import net.ncguy.argent.ui.dnd.DragDropZone;
+import net.ncguy.argent.utils.AppUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -58,7 +61,10 @@ public class VPLPin extends Group {
         if(match(pin, INPUT)) return "Both inputs";
         if(match(pin, OUTPUT)) return "Both outputs";
         if(xorMatch(pin, EXEC)) return "Not both execs";
-        if(this.atCapacity() || pin.atCapacity()) return "At capacity";
+        boolean thisAtCapacity = this.atCapacity();
+        boolean pinAtCapacity = pin.atCapacity();
+
+        if(thisAtCapacity || pinAtCapacity) return "At capacity";
         if(xorMatch(pin, ARRAY)) return "Not both arrays";
 
         if(this.is(EXEC) && pin.is(EXEC)) return "";
@@ -74,7 +80,15 @@ public class VPLPin extends Group {
         String canConnect_D = canConnect_D(pin);
         if(canConnect_D.length() == 0)
             return true;
-        parentNode.graph.toaster.error(canConnect_D);
+        if(Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT)) {
+            if("At capacity".equalsIgnoreCase(canConnect_D)) {
+                List<VPLPin> temp = this.connectedPins.stream().collect(Collectors.toList());
+                Gdx.app.postRunnable(() -> temp.forEach(this::disconnect));
+                return true;
+            }
+        }
+        new StringPacketEvent("toast|error", canConnect_D).fire();
+//        parentNode.graph.toaster.error(canConnect_D);
 //        System.out.println("VPLPin.canConnect >> "+canConnect_D);
 
         return false;
@@ -83,7 +97,7 @@ public class VPLPin extends Group {
     public boolean atCapacity() {
         if(this.is(COMPOUND))
             return false;
-        return this.connectedPins.size() < 0;
+        return this.connectedPins.size() > 0;
     }
 
     public boolean xorMatch(VPLPin pin, Types type) {
@@ -101,10 +115,10 @@ public class VPLPin extends Group {
         typeMask = mask;
     }
 
-    protected int id;
-    protected int typeMask;
+    public int id;
+    public int typeMask;
     protected VPLNode parentNode;
-    protected Class<?> cls;
+    public Class<?> cls;
     protected List<VPLPin> connectedPins;
     protected DragDropZone<VPLPin> zone;
     protected boolean renderDraggedSpline = false;
@@ -135,9 +149,13 @@ public class VPLPin extends Group {
     public void connect(VPLPin pin) {
         boolean canConnect = canConnect(pin);
         if(!canConnect) return;
+        forceConnect(pin);
+    }
+
+    public void forceConnect(VPLPin pin) {
         if(connectedPins.contains(pin)) return;
         connectedPins.add(pin);
-        pin.connect(this);
+        pin.forceConnect(this);
 
         listeners.forEach(l -> l.connected(pin));
     }
@@ -189,6 +207,10 @@ public class VPLPin extends Group {
         addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                if(button == Input.Buttons.RIGHT) {
+                    if(AppUtils.Input.isShiftPressed())
+                        disconnectAll();
+                }
                 event.stop();
                 return false;
             }

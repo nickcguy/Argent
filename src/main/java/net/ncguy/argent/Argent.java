@@ -5,6 +5,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import net.ncguy.argent.content.ContentManager;
 import net.ncguy.argent.content.ContentModule;
+import net.ncguy.argent.diagnostics.DiagnosticsModule;
 import net.ncguy.argent.event.EventBus;
 import net.ncguy.argent.event.EventModule;
 import net.ncguy.argent.injector.InjectionModule;
@@ -33,11 +34,11 @@ public class Argent {
     public static EventBus event;
     public static VPLManager vpl;
     public static UIModule ui;
+    public static DiagnosticsModule diagnostics;
     @Deprecated
     public static InjectionModule injector;
 
     public static TweenManager tween;
-
     private static Map<Class<? extends IModule>, IModule> loadedModules = new HashMap<>();
 
     public static Map<Class<? extends IModule>, IModule> loadedModules() { return loadedModules; }
@@ -120,6 +121,8 @@ public class Argent {
         Argent.loadModule(new InjectionModule());
         Argent.loadModule(new TweenModule());
         Argent.loadModule(new ProjectModule());
+
+        Argent.loadModule(new DiagnosticsModule());
     }
 
 

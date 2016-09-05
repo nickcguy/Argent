@@ -8,7 +8,6 @@ import com.badlogic.gdx.math.Vector3;
 import net.ncguy.argent.utils.AppUtils;
 import net.ncguy.argent.vpl.annotations.NodeColour;
 import net.ncguy.argent.vpl.annotations.NodeData;
-import net.ncguy.argent.vpl.annotations.ShaderNodeData;
 import net.ncguy.argent.vpl.compiler.IShaderNode;
 import net.ncguy.argent.vpl.nodes.BasicNodeFunctions;
 import net.ncguy.argent.vpl.nodes.FunctionalNodes;
@@ -326,27 +325,7 @@ public class VPLManager {
     }
 
     public boolean isShaderNode(VPLNode<?> node) {
-        if(node instanceof IShaderNode) return true;
-        if(node.method == null) {
-            if(node.getClass().isAnnotationPresent(ShaderNodeData.class))
-                return true;
-        }else{
-            if(node.method.isAnnotationPresent(ShaderNodeData.class))
-                return true;
-        }
-        return false;
+        return node instanceof IShaderNode;
     }
 
-    public ShaderNodeData.Packet getShaderNodeData(VPLNode<?> node) {
-        if(!isShaderNode(node)) return null;
-        if(node instanceof IShaderNode) {
-            IShaderNode n = (IShaderNode)node;
-            return new ShaderNodeData.Packet(n.getUniforms(), n.getFragment(), n.getVariable());
-        }
-        if(node.method == null) {
-            return new ShaderNodeData.Packet(node.getClass().getAnnotation(ShaderNodeData.class));
-        }else{
-            return new ShaderNodeData.Packet(node.method.getAnnotation(ShaderNodeData.class));
-        }
-    }
 }

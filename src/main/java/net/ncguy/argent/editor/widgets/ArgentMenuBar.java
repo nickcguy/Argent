@@ -3,10 +3,7 @@ package net.ncguy.argent.editor.widgets;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.kotcrab.vis.ui.widget.MenuBar;
 import net.ncguy.argent.editor.EditorUI;
-import net.ncguy.argent.editor.widgets.menubar.EditMenu;
-import net.ncguy.argent.editor.widgets.menubar.FileMenu;
-import net.ncguy.argent.editor.widgets.menubar.SettingsMenu;
-import net.ncguy.argent.editor.widgets.menubar.ToolMenu;
+import net.ncguy.argent.editor.widgets.menubar.*;
 
 /**
  * Created by Guy on 27/07/2016.
@@ -17,6 +14,7 @@ public class ArgentMenuBar extends MenuBar {
     private EditMenu editMenu;
     private ToolMenu toolMenu;
     private SettingsMenu settingsMenu;
+    private RendererMenu rendererMenu;
 
     private EditorUI editorUI;
 
@@ -27,11 +25,13 @@ public class ArgentMenuBar extends MenuBar {
         editMenu = new EditMenu(editorUI);
         toolMenu = new ToolMenu(editorUI);
         settingsMenu = new SettingsMenu(editorUI);
+        rendererMenu = new RendererMenu(editorUI);
 
         addMenu(fileMenu);
         addMenu(editMenu);
         addMenu(toolMenu);
         addMenu(settingsMenu);
+        addMenu(rendererMenu);
     }
 
     @Override

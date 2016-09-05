@@ -8,6 +8,7 @@ import net.ncguy.argent.vpl.VPLNode;
 import net.ncguy.argent.vpl.compiler.IShaderNode;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import static net.ncguy.argent.vpl.VPLPin.Types.COMPOUND;
 import static net.ncguy.argent.vpl.VPLPin.Types.OUTPUT;
@@ -17,6 +18,10 @@ import static net.ncguy.argent.vpl.VPLPin.Types.OUTPUT;
  */
 @NodeData(value = "Texture Coordinates", execIn = false, execOut = false, tags = "shader", argNames = "UV", outputTypes = Vector2.class)
 public class TextureCoordinatesNode extends VPLNode<Vector2> implements IShaderNode {
+
+    public TextureCoordinatesNode(VPLGraph graph, Method method) {
+        this(graph);
+    }
 
     public TextureCoordinatesNode(VPLGraph graph) {
         super(graph, null);
@@ -47,12 +52,21 @@ public class TextureCoordinatesNode extends VPLNode<Vector2> implements IShaderN
     }
 
     @Override
+    public void resetStaticCache() {
+        injected = false;
+    }
+
+    private static boolean injected = false;
+
+    @Override
     public String getUniforms() {
+        if(injected) return "";
+        injected = true;
         return "in vec2 TexCoords;";
     }
 
     @Override
-    public String getVariable() {
+    public String getVariable(int pinId) {
         return "TexCoords";
     }
 

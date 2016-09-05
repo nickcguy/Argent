@@ -6,9 +6,11 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop;
 import com.kotcrab.vis.ui.VisUI;
 import net.ncguy.argent.IModule;
 import net.ncguy.argent.content.ContentModule;
+import net.ncguy.argent.injector.InjectionStore;
 
 /**
  * Created by Guy on 17/07/2016.
@@ -52,6 +54,12 @@ public class UIModule extends IModule {
         gen.dispose();
         Icons.init();
 
+        DragAndDrop dnd = new DragAndDrop();
+        try {
+            InjectionStore.setGlobal(dnd);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

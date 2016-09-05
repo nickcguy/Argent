@@ -1,9 +1,10 @@
 package net.ncguy.argent.entity.components.model.primitive;
 
+import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
-import net.ncguy.argent.assets.ArgMaterial;
+import net.ncguy.argent.assets.ArgShader;
 import net.ncguy.argent.editor.widgets.component.ComponentWidget;
 import net.ncguy.argent.editor.widgets.component.PrimitiveCubeModelWidget;
 import net.ncguy.argent.entity.WorldEntity;
@@ -25,8 +26,8 @@ public class PrimitiveCubeModelComponent extends ModelComponent {
         applyModel();
     }
 
-    public PrimitiveCubeModelComponent(WorldEntity entity, ArgMaterial mtl) {
-        super(entity, mtl);
+    public PrimitiveCubeModelComponent(WorldEntity entity, ArgShader shader) {
+        super(entity, shader);
         applyModel();
     }
 
@@ -45,7 +46,7 @@ public class PrimitiveCubeModelComponent extends ModelComponent {
     }
 
     public void applyModel() {
-        Model model = new ModelBuilder().createBox(width, height, depth, mtl.getAsset(), attributes);
+        Model model = new ModelBuilder().createBox(width, height, depth, new Material(), attributes);
         setModel(model);
     }
 

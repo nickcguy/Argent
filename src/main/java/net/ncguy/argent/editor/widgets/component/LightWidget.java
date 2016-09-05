@@ -34,6 +34,8 @@ public class LightWidget extends ComponentWidget<LightComponent> {
     private FloatFieldWithLabel posZ;
 
     private TextButton colBtn;
+    private TextButton ambBtn;
+    private TextButton spcBtn;
 
     private Spinner linear;
     private Spinner quadratic;
@@ -54,6 +56,8 @@ public class LightWidget extends ComponentWidget<LightComponent> {
         posY = new FloatFieldWithLabel("y", size, true);
         posZ = new FloatFieldWithLabel("z", size, true);
         colBtn = new TextButton("#FFFFFF", VisUI.getSkin());
+        ambBtn = new TextButton("#FFFFFF", VisUI.getSkin());
+        spcBtn = new TextButton("#FFFFFF", VisUI.getSkin());
 
         SpinnerModel linearModel = new SimpleFloatSpinnerModel(1, 0.1f, 65536, .1f, 1);
         linear = new Spinner("", linearModel);
@@ -85,6 +89,12 @@ public class LightWidget extends ComponentWidget<LightComponent> {
 
         collapsibleContent.add("Colour: ").padRight(5).padBottom(pad).left();
         collapsibleContent.add(colBtn).padBottom(pad).colspan(3).expandX().fillX().row();
+
+        collapsibleContent.add("Ambient: ").padRight(5).padBottom(pad).left();
+        collapsibleContent.add(ambBtn).padBottom(pad).colspan(3).expandX().fillX().row();
+
+        collapsibleContent.add("Specular: ").padRight(5).padBottom(pad).left();
+        collapsibleContent.add(spcBtn).padBottom(pad).colspan(3).expandX().fillX().row();
     }
     protected void setupListeners() {
         posX.addListener(new TranslateListener(projectManager, commandHistory, this::getTranslation));
@@ -126,6 +136,65 @@ public class LightWidget extends ComponentWidget<LightComponent> {
                     }
                 });
                 ColourPickerWrapper.instance().open(colBtn);
+            }
+        });
+
+        ambBtn.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                Color oldColour = component.getColour().cpy();
+                ColourPickerWrapper.instance().colour(oldColour);
+                ColourPickerWrapper.instance().editAlpha(false);
+                ColourPickerWrapper.instance().setListener(new ColorPickerAdapter(){
+                    @Override
+                    public void canceled(Color oldColor) {
+                        ambBtn.setText(oldColor.toString());
+                        component.setAmbient(oldColor);
+                    }
+
+                    @Override
+                    public void changed(Color newColor) {
+                        ambBtn.setText(newColor.toString());
+                        component.setAmbient(newColor);
+                    }
+
+                    @Override
+                    public void finished(Color newColor) {
+                        ambBtn.setText(newColor.toString());
+                        component.setAmbient(newColor);
+                        ColourPickerWrapper.instance().setListener(null);
+                    }
+                });
+                ColourPickerWrapper.instance().open(ambBtn);
+            }
+        });
+        spcBtn.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                Color oldColour = component.getColour().cpy();
+                ColourPickerWrapper.instance().colour(oldColour);
+                ColourPickerWrapper.instance().editAlpha(false);
+                ColourPickerWrapper.instance().setListener(new ColorPickerAdapter(){
+                    @Override
+                    public void canceled(Color oldColor) {
+                        spcBtn.setText(oldColor.toString());
+                        component.setSpecular(oldColor);
+                    }
+
+                    @Override
+                    public void changed(Color newColor) {
+                        spcBtn.setText(newColor.toString());
+                        component.setSpecular(newColor);
+                    }
+
+                    @Override
+                    public void finished(Color newColor) {
+                        spcBtn.setText(newColor.toString());
+                        component.setSpecular(newColor);
+                        ColourPickerWrapper.instance().setListener(null);
+                    }
+                });
+                ColourPickerWrapper.instance().open(ambBtn);
             }
         });
 

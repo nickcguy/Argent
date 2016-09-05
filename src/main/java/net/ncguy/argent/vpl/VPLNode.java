@@ -14,6 +14,8 @@ import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Cell;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Output;
 import com.kotcrab.vis.ui.VisUI;
 import net.ncguy.argent.utils.ReflectionUtils;
 import net.ncguy.argent.vpl.annotations.NodeColour;
@@ -36,13 +38,13 @@ import static net.ncguy.argent.vpl.VPLPin.Types.*;
 public class VPLNode<T> extends Table {
 
     protected transient VPLGraph graph;
-    protected transient Method method;
-    protected boolean continuous;
+    public transient Method method;
+    public boolean continuous;
     protected transient T value;
     protected float width = 28;
     protected transient Table headerTable, inputTable, outputTable;
-    protected Set<VPLPin> pinSet;
-    protected Vector2 position;
+    public Set<VPLPin> pinSet;
+    public Vector2 position;
     protected Label titleLabel;
     public NodeData nodeData;
     protected NodeColour titleColourData;
@@ -115,7 +117,7 @@ public class VPLNode<T> extends Table {
         return VPLManager.instance().getDisplayName(this);
     }
 
-    private void buildTable() {
+    protected void buildTable() {
         inputTable = new Table(VisUI.getSkin());
         outputTable = new Table(VisUI.getSkin());
 
@@ -350,6 +352,12 @@ public class VPLNode<T> extends Table {
     public List<VPLPin> getSidedPins(int mask) {
         return pinSet.stream().filter(p -> p.is(mask) && !(p.is(EXEC))).collect(Collectors.toList());
     }
+    public List<VPLPin> getSidedPins_includeExec(VPLPin.Types type) {
+        return getSidedPins_includeExec(type.getBit());
+    }
+    public List<VPLPin> getSidedPins_includeExec(int mask) {
+        return pinSet.stream().filter(p -> p.is(mask)).collect(Collectors.toList());
+    }
 
     public List<VPLPin> getInputPins() {
         return getSidedPins(INPUT);
@@ -358,11 +366,22 @@ public class VPLNode<T> extends Table {
         return getSidedPins(OUTPUT);
     }
 
+    public List<VPLPin> getInputPins_includeExec() {
+        return getSidedPins_includeExec(INPUT);
+    }
+    public List<VPLPin> getOutputPins_includeExec() {
+        return getSidedPins_includeExec(OUTPUT);
+    }
+
     public int getPinIndex(VPLNode node) {
         List<VPLPin> pins = getOutputPins();
         for (int i = 0; i < pins.size(); i++) {
             VPLPin pin = pins.get(i);
-            if(pin.parentNode.equals(node)) return i;
+            for (VPLPin vplPin : pin.getConnectedPins()) {
+
+                VPLNode that = vplPin.parentNode;
+                if(that.equals(node)) return i;
+            }
         }
         return -1;
     }
@@ -392,6 +411,14 @@ public class VPLNode<T> extends Table {
 
     public void getConnectedNodes(Set<VPLNode<?>> nodes) {
         pinSet.forEach(pin -> pin.connectedPins.forEach(p -> nodes.add(p.parentNode)));
+    }
+
+    public void writeToFile(Kryo kryo, Output output) {
+
+    }
+
+    public void readFromFile(Kryo kryo, com.esotericsoftware.kryo.io.Input input) {
+
     }
 
 }

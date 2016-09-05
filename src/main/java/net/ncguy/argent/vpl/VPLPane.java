@@ -22,7 +22,7 @@ public class VPLPane extends Group {
     ShaderProgram shader;
     private VPLContainer parent;
     protected String[] tag;
-    VPLGraph graph;
+    public VPLGraph graph;
     Rectangle gridBounds;
 
     public VPLPane(VPLContainer parent, String... tags) {
@@ -30,7 +30,7 @@ public class VPLPane extends Group {
         this.tag = tags;
         bg = DrawableFactory.grid();
         shader = AppUtils.Shader.loadShader("2d/graph");
-        graph = new VPLGraph(this, tag);
+        graph = new VPLGraph(tag);
 
         Argent.addOnKeyDown(keycode -> {
             if(keycode == Input.Keys.P) {
@@ -48,6 +48,16 @@ public class VPLPane extends Group {
     protected void sizeChanged() {
         graph.setWidth(getWidth());
         graph.setHeight(getHeight());
+    }
+
+    public void switchGraph(VPLGraph graph) {
+        this.graph.remove();
+        this.graph = graph;
+        if(graph != null) {
+            addActor(graph);
+            graph.bounds = gridBounds;
+            sizeChanged();
+        }
     }
 
     @Override

@@ -6,7 +6,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.kotcrab.vis.ui.VisUI;
-import net.ncguy.argent.assets.ArgMaterial;
+import net.ncguy.argent.assets.ArgShader;
 import net.ncguy.argent.editor.project.ProjectContext;
 import net.ncguy.argent.editor.widgets.component.commands.BasicCommand;
 import net.ncguy.argent.entity.WorldEntity;
@@ -28,7 +28,7 @@ public class PrimitiveSphereModelWidget extends ComponentWidget<PrimitiveSphereM
     private FloatFieldWithLabel depth;
     private FloatFieldWithLabel divU;
     private FloatFieldWithLabel divV;
-    DropZone<ArgMaterial> mtlDropZone;
+    DropZone<ArgShader> mtlDropZone;
 
     public PrimitiveSphereModelWidget(PrimitiveSphereModelComponent component) {
         super(component, "Sphere Primitive");
@@ -46,7 +46,7 @@ public class PrimitiveSphereModelWidget extends ComponentWidget<PrimitiveSphereM
         depth = new FloatFieldWithLabel("z", size, true);
         divU = new FloatFieldWithLabel("u", size, false);
         divV = new FloatFieldWithLabel("v", size, false);
-        mtlDropZone = new DropZone<>(ArgMaterial.class, "mtl");
+        mtlDropZone = new DropZone<>(ArgShader.class, "shader");
 
         mtlDropZone.setOnDrop(component::setMaterial);
     }

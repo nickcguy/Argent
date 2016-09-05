@@ -23,7 +23,7 @@ public class VPLContainer extends WidgetGroup {
     Toaster toaster;
 
     int panKey = Input.Keys.SHIFT_LEFT;
-    VPLPane pane;
+    public VPLPane pane;
     private String[] tags;
 
     public VPLContainer(String... tags) {
@@ -48,6 +48,7 @@ public class VPLContainer extends WidgetGroup {
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
+        toBack();
         super.draw(batch, parentAlpha);
     }
 

@@ -8,17 +8,25 @@ import com.badlogic.gdx.graphics.g3d.utils.TextureDescriptor;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.minlog.Log;
+import net.ncguy.argent.assets.ArgShader;
+import net.ncguy.argent.assets.ArgTexture;
 import net.ncguy.argent.assets.kryo.attribute.BlendingAttributeSerializer;
 import net.ncguy.argent.assets.kryo.attribute.ColourAttributeSerializer;
 import net.ncguy.argent.assets.kryo.attribute.TextureAttributeSerializer;
 import net.ncguy.argent.assets.kryo.attribute.descriptor.TextureDescriptorSerializer;
 import net.ncguy.argent.editor.project.Registry;
 import net.ncguy.argent.project.ProjectMeta;
+import net.ncguy.argent.vpl.VPLGraph;
+import net.ncguy.argent.vpl.VPLNode;
+import net.ncguy.argent.vpl.VPLPin;
+import org.reflections.Reflections;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.lang.reflect.Modifier;
 
 /**
  * Created by Guy on 01/08/2016.
@@ -40,12 +48,27 @@ public class KryoManager {
     }
 
     private void register() {
+        kryo.setReferences(true);
+        Log.DEBUG();
+
 //        kryo.register(ArgMaterial.class, new ArgMaterialSerializer());
         kryo.register(Material.class, new MaterialSerializer());
         kryo.register(BlendingAttribute.class, new BlendingAttributeSerializer());
         kryo.register(ColorAttribute.class, new ColourAttributeSerializer());
         kryo.register(TextureAttribute.class, new TextureAttributeSerializer());
         kryo.register(TextureDescriptor.class, new TextureDescriptorSerializer());
+
+        kryo.register(ArgTexture.class, new ArgTextureSerializer());
+        kryo.register(ArgShader.class, new ArgShaderSerializer());
+        kryo.register(VPLGraph.class, new VPLGraphSerializer());
+        kryo.register(VPLNode.class, new VPLNodeSerializer<>());
+
+        new Reflections("").getSubTypesOf(VPLNode.class).forEach(cls -> {
+            if(!Modifier.isAbstract(cls.getModifiers()))
+                kryo.register(cls, new VPLNodeSerializer());
+        });
+
+        kryo.register(VPLPin.class, new VPLPinSerializer());
 
         kryo.register(ProjectMeta.class, new ProjectMeta.MetaSerializer());
         kryo.register(Registry.RegistryFile.class, new Registry.RegistrySerializer());

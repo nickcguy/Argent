@@ -17,7 +17,7 @@ public class BasicNodeFunctions {
 
     @NodeData(value = "Toast message", argNames = "Text")
     public static void toast(VPLNode node, int pinId, String text) {
-        node.getGraph().toaster.info(text);
+        node.getGraph().info(text);
     }
 
     @NodeData(value = "Exec node", execIn = false, execOut = true, outPins = 0)

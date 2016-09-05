@@ -17,7 +17,7 @@ import net.ncguy.argent.utils.AppUtils;
 /**
  * Created by Guy on 29/07/2016.
  */
-public class ArgentShader extends BaseShader {
+public class ArgentLightShader extends BaseShader {
 
     public Renderable renderable;
 
@@ -29,7 +29,7 @@ public class ArgentShader extends BaseShader {
         super.end();
     }
 
-    public ArgentShader(final Renderable renderable, final ShaderProgram shaderProgramModelBorder)  {
+    public ArgentLightShader(final Renderable renderable, final ShaderProgram shaderProgramModelBorder)  {
         this.renderable = renderable;
         this.program = shaderProgramModelBorder;
         register(DefaultShader.Inputs.worldTrans, DefaultShader.Setters.worldTrans);

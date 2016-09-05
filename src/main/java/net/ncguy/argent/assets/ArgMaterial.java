@@ -18,12 +18,6 @@ import java.io.FileNotFoundException;
  */
 public class ArgMaterial extends ArgAsset<Material> {
 
-    public transient boolean localAsset = true;
-    protected String fileName;
-
-    public String getFileName() {
-        return fileName;
-    }
 
     public ArgMaterial() {
         super();
@@ -107,7 +101,7 @@ public class ArgMaterial extends ArgAsset<Material> {
 
     @Override
     public String tag() {
-        return "mtl";
+        return "shader";
     }
 
     @Override

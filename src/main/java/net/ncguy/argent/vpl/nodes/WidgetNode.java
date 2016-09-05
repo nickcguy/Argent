@@ -4,11 +4,16 @@ import net.ncguy.argent.vpl.VPLGraph;
 import net.ncguy.argent.vpl.VPLNode;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * Created by Guy on 28/08/2016.
  */
 public abstract class WidgetNode<T> extends VPLNode<T> {
+
+    public WidgetNode(VPLGraph graph, Method method) {
+        this(graph);
+    }
 
     public WidgetNode(VPLGraph graph) {
         super(graph, null);

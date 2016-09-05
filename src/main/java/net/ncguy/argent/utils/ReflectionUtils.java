@@ -3,6 +3,7 @@ package net.ncguy.argent.utils;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,6 +59,34 @@ public class ReflectionUtils {
         if(primitiveInstances.containsKey(cls))
             return (T) primitiveInstances.get(cls);
         return cls.getConstructor().newInstance();
+    }
+
+
+    private static final Map<String, Class<?>> PRIM = Collections.unmodifiableMap(
+        new HashMap<String, Class<?>>(16) {
+            {
+                for(Class<?> cls : new Class<?>[] {
+                    void.class,
+                    boolean.class,
+                    char.class,
+                    byte.class,
+                    short.class,
+                    int.class,
+                    long.class,
+                    float.class,
+                    double.class
+                }) {
+                    put(cls.getName(), cls);
+                }
+            }
+        }
+    );
+
+    public static Class<?> forName(final String name) throws ClassNotFoundException {
+        final Class<?> prim = PRIM.get(name);
+        if(prim != null)
+            return prim;
+        return Class.forName(name);
     }
 
 }

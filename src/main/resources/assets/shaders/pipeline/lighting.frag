@@ -18,17 +18,29 @@ uniform sampler2D texModNormal;
 uniform mat4 u_projViewTrans;
 uniform mat4 u_worldTrans;
 
-struct Light {
+struct PointLight {
     vec3 Position;
     vec3 Colour;
+
+    vec3 Ambient;
+    vec3 Specular;
+
     float Linear;
     float Quadratic;
     float Intensity;
-    float Radius;
 };
 const int NR_LIGHTS = 32;
-uniform Light lights[NR_LIGHTS];
+uniform PointLight lights[NR_LIGHTS];
 uniform vec3 u_viewPos;
+
+struct Material {
+    vec4 Normal;
+    vec4 Diffuse;
+    vec4 Emissive;
+    float Specular;
+    float Ambient;
+    float Shininess;
+} material;
 
 in VS_OUT {
     vec3 Normal;
@@ -52,6 +64,30 @@ bool inRange(vec3 a, vec3 b, float range) {
     return true;
 }
 
+float Attenuate(float constant, float distance, float linear, float quadratic) {
+    return 1.0f / (constant + linear * distance + quadratic * (distance * distance));
+}
+
+vec3 CalcPointLight(PointLight l, vec3 normal, vec3 fragPos, vec3 viewDir) {
+    vec3 lightDir = normalize(l.Position - fragPos);
+    float diff = max(dot(normal, lightDir), 0.0);
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.Shininess);
+    float distance = length(l.Position - fragPos);
+    //Attenuate(l.Intensity, distance, l.Linear, l.Quadratic)
+    float attenuation = 1.0 / (1.0 + l.Linear * distance + l.Quadratic * (distance * distance));
+
+    attenuation *= l.Intensity;
+
+    vec3 ambient  = l.Ambient * material.Ambient;
+    vec3 diffuse  = l.Colour * diff * material.Diffuse.rgb;
+    vec3 specular = l.Specular * spec * material.Specular;
+    ambient  *= attenuation;
+    diffuse  *= attenuation;
+    specular *= attenuation;
+    return (ambient + diffuse + specular);
+}
+
 void main() {
 
     Position = gs_out.Position;
@@ -69,11 +105,21 @@ void main() {
     float amb = sad.g;
     float dis = sad.b;
 
+    material.Normal = nor;
+    material.Diffuse = dif;
+    material.Emissive = emi;
+    material.Specular = spc;
+    material.Ambient = amb;
+    material.Shininess = dis;
+
+
     vec3 lighting = (dif * amb * spc).rgb;
+//    vec3 lighting = vec3(0.0);
     vec3 viewDir = normalize(u_viewPos - Position.xyz);
 
 //    vec3 normal = nor.rgb;
-    vec3 normal = texture(texModNormal, Texel).rgb;
+//    vec3 normal = texture(texModNormal, Texel).rgb;
+    vec3 normal = normalize(nor.rgb);
 
     if(spc > 1.0) {
         ltgTextures.rgb = vec3(1.0, 0.0, 1.0);
@@ -84,35 +130,12 @@ void main() {
     ltgLighting = vec4(0.0, 0.0, 0.0, 1.0);
 
     for(int i = 0; i < NR_LIGHTS; i++) {
-        Light l = lights[i];
-//        l.Position = ((u_worldTrans * vec4(l.Position, 0.0))).xyz;
-        float distance = length(l.Position - Position.xyz);
-        float lMax = max(max(l.Colour.r, l.Colour.g), l.Colour.b);
-        if(distance < l.Radius) {
-            // Light diffuse
-            vec3 lightDir = normalize(l.Position - Position.xyz);
-            vec3 diffuse = max(dot(nor.rgb, lightDir), 0.0) * dif.rgb * l.Colour;
-
-            // Light specular
-            vec3 halfwayDir = normalize(lightDir + viewDir);
-            float spec = pow(max(dot(normal, halfwayDir), 0.0), 16.0);
-            vec3 specular = l.Colour * spec * spc;
-
-            // Light attenuation
-            float attenuation = 1.0 / (1.0 + l.Linear * distance + l.Quadratic * distance * distance);
-            diffuse *= attenuation;
-            specular *= attenuation;
-            vec3 modified = (diffuse + specular) * l.Intensity;
-            ltgLighting.rgb += modified.r;
-            lighting += modified;
-
-//            if(inRange(Position.xyz, l.Position, 0.1))
-//                emi.rgb = vec3(1.0);
-
-        }else{
-            lighting -= 0.001;
-        }
+        vec3 lightDiff = CalcPointLight(lights[i], normal, Position.xyz, viewDir);
+        lighting += lightDiff;
+        ltgLighting.rgb += lightDiff;
     }
+
+
 
     // Emissive
     lighting += emi.rgb;

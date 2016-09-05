@@ -2,6 +2,7 @@ package net.ncguy.argent.vpl.compiler;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import net.ncguy.argent.assets.ArgShader;
 import net.ncguy.argent.injector.ArgentInjector;
 import net.ncguy.argent.injector.Inject;
 import net.ncguy.argent.ui.Toaster;
@@ -9,7 +10,6 @@ import net.ncguy.argent.utils.AppUtils;
 import net.ncguy.argent.vpl.VPLGraph;
 import net.ncguy.argent.vpl.VPLManager;
 import net.ncguy.argent.vpl.VPLNode;
-import net.ncguy.argent.vpl.annotations.ShaderNodeData;
 import net.ncguy.argent.vpl.nodes.widget.TextureNode;
 
 import java.io.File;
@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +25,7 @@ import java.util.stream.Collectors;
 /**
  * Created by Guy on 22/08/2016.
  */
-public class ShaderProgramCompiler extends VPLCompiler<ShaderProgram> {
+public class ShaderProgramCompiler extends VPLCompiler<ArgShader> {
 
     public String vertexShader;
 
@@ -39,14 +38,17 @@ public class ShaderProgramCompiler extends VPLCompiler<ShaderProgram> {
     }
 
     public void prepare(VPLGraph graph) {
-        final int[] index = {1};
-        graph.nodes.stream().filter(n -> n instanceof TextureNode).map(n -> (TextureNode)n).forEach(n -> {
-            n.texUnit = index[0]++;
-        });
+        TextureNode.globalTexUnit = 1;
+        List<IShaderNode> nodes = graph.nodes.stream()
+                .filter(node -> node instanceof IShaderNode)
+                .map(node -> (IShaderNode) node)
+                .collect(Collectors.toList());
+        nodes.forEach(IShaderNode::resetStaticCache);
+        nodes.forEach(IShaderNode::resetCache);
     }
 
     @Override
-    public ShaderProgram compile(VPLGraph graph, VPLNode root) {
+    public ArgShader compile(VPLGraph graph, VPLNode root, ArgShader argShader) {
 
         List<VPLNode<?>> validate = validate(graph, root);
         if(validate != null) {
@@ -57,9 +59,9 @@ public class ShaderProgramCompiler extends VPLCompiler<ShaderProgram> {
 
         prepare(graph);
 
-        Map<VPLNode, AbstractMap.SimpleEntry<String, String>> fragmentMap = new HashMap<>();
+        Map<VPLNode, String> fragmentMap = new HashMap<>();
 
-        graph.nodes.stream().filter(node -> node instanceof IShaderNode).forEach(node -> fragmentMap.put(node, getShaderFragment((IShaderNode) node)));
+        graph.nodes.stream().filter(node -> node instanceof IShaderNode).forEach(node -> fragmentMap.put(node, ((IShaderNode)node).getUniforms()));
 
         StringBuilder fragmentShader = new StringBuilder();
         fragmentShader.append("#version 450\n\n");
@@ -72,79 +74,106 @@ public class ShaderProgramCompiler extends VPLCompiler<ShaderProgram> {
                 .append("layout (location = 5) out vec4 texPosition;\n")
                 .append("layout (location = 6) out vec4 texModNormal;\n\n");
 
-        fragmentMap.values().forEach(e -> fragmentShader.append(e.getKey()).append("\n"));
+        fragmentShader.append("in vec4 Position;\n");
+        fragmentShader.append("in vec3 Normal;\n");
+
+        fragmentMap.values().forEach(e -> append(fragmentShader, e, false));
 
         StringBuilder fragmentShaderBody = new StringBuilder();
 
+        fragmentShaderBody.append("\t// Single-use fragments, typically used for texture sampling\n");
+        graph.nodes.stream()
+                .filter(node -> node instanceof IShaderNode)
+                .map(node -> (IShaderNode)node)
+                .filter(IShaderNode::singleUseFragment)
+                .forEach(n -> append(fragmentShaderBody, n.getFragment()));
+
         // Diffuse
         fragmentShaderBody.append("\n");
-        ShaderNodeData.Packet diffuse = getNodePacker(root, 0);
+        IShaderNode diffuse = getNodePacker(root, 0);
         if(diffuse != null) {
-            fragmentShaderBody.append("\t").append(diffuse.fragment).append("\n");
-            fragmentShaderBody.append("\t").append("texDiffuse = ").append(diffuse.variable).append("\n");
+            append(fragmentShaderBody, diffuse.getFragment());
+            append(fragmentShaderBody, "texDiffuse = " + diffuse.getVariable(root)+";");
         }else{
-            fragmentShaderBody.append("\t").append("texDiffuse = vec4(1.0);\n");
+            append(fragmentShaderBody, "texDiffuse = vec4(1.0);");
         }
 
         // Normal
         fragmentShaderBody.append("\n");
-        ShaderNodeData.Packet normal = getNodePacker(root, 1);
+        IShaderNode normal = getNodePacker(root, 1);
         if (normal != null) {
-            fragmentShaderBody.append("\t").append(normal.fragment).append("\n");
-            fragmentShaderBody.append("\t").append("texNormal = ").append(normal.variable).append("\n");
+            append(fragmentShaderBody, normal.getFragment());
+            append(fragmentShaderBody, "texNormal = " + normal.getVariable(root)+";");
         }else{
-            fragmentShaderBody.append("\t").append("texNormal = vec4(1.0);\n");
+            append(fragmentShaderBody, "texNormal = vec4(1.0);");
         }
 
         // spcAmbDis
 
         // Specular
         fragmentShaderBody.append("\n");
-        ShaderNodeData.Packet spec = getNodePacker(root, 2);
+        IShaderNode spec = getNodePacker(root, 2);
         if(spec != null) {
-            fragmentShaderBody.append("\t").append(spec.fragment).append("\n");
-            fragmentShaderBody.append("\t").append("float internal_specular = ").append(spec.variable).append("\n");
+            append(fragmentShaderBody, spec.getFragment());
+            append(fragmentShaderBody, "float internal_specular = " + spec.getVariable(root)+";");
         }else{
-            fragmentShaderBody.append("\t").append("float internal_specular = 0.0;\n");
+            append(fragmentShaderBody, "float internal_specular = 0.0;");
         }
         // Ambient
-        ShaderNodeData.Packet amb = getNodePacker(root, 3);
+        IShaderNode amb = getNodePacker(root, 3);
         if(amb != null) {
-            fragmentShaderBody.append("\t").append(amb.fragment).append("\n");
-            fragmentShaderBody.append("\t").append("float internal_ambient = ").append(amb.variable).append("\n");
+            append(fragmentShaderBody, amb.getFragment());
+            append(fragmentShaderBody, "float internal_ambient = "+amb.getVariable(root)+";");
         }else{
-            fragmentShaderBody.append("\t").append("float internal_ambient = 0.0;\n");
+            append(fragmentShaderBody, "float internal_ambient = 0.0;");
         }
         // Displacement
-        ShaderNodeData.Packet dis = getNodePacker(root, 4);
+        IShaderNode dis = getNodePacker(root, 4);
         if(dis != null) {
-            fragmentShaderBody.append("\t").append(dis.fragment).append("\n");
-            fragmentShaderBody.append("\t").append("float internal_displacement = ").append(dis.variable).append("\n");
+            append(fragmentShaderBody, dis.getFragment());
+            append(fragmentShaderBody, "float internal_displacement = "+dis.getVariable(root)+";");
+//            fragmentShaderBody.append("\t").append(dis.getFragment()).append("\n");
+//            fragmentShaderBody.append("\t").append("float internal_displacement = ").append(dis.getVariable(root)).append("\n");
         }else{
-            fragmentShaderBody.append("\t").append("float internal_displacement = 0.0;\n");
+            append(fragmentShaderBody, "float internal_displacement = 0.0;");
+//            fragmentShaderBody.append("\t").append("float internal_displacement = 0.0;\n");
         }
         fragmentShaderBody.append("\n");
-        fragmentShaderBody.append("\t").append("texSpcAmbDis = vec4(internal_specular, internal_ambient, internal_displacement, 1.0);\n");
+        append(fragmentShaderBody, "texSpcAmbDis = vec4(internal_specular, internal_ambient, internal_displacement, 1.0);");
 
         // Emissive
         fragmentShaderBody.append("\n");
-        ShaderNodeData.Packet emi = getNodePacker(root, 5);
+        IShaderNode emi = getNodePacker(root, 5);
         if(emi != null) {
-            fragmentShaderBody.append("\t").append(emi.fragment).append("\n");
-            fragmentShaderBody.append("\t").append("texEmissive = ").append(emi.variable).append("\n");
+            append(fragmentShaderBody, emi.getFragment());
+            append(fragmentShaderBody, "texEmissive = "+emi.getVariable(root)+";");
         }else{
-            fragmentShaderBody.append("\t").append("texEmissive = vec4(vec3(0.0), 1.0);\n");
+            append(fragmentShaderBody, "texEmissive = vec4(vec3(0.0), 1.0);");
         }
 
         // Reflection
         fragmentShaderBody.append("\n");
-        ShaderNodeData.Packet ref = getNodePacker(root, 6);
+        IShaderNode ref = getNodePacker(root, 6);
         if(ref != null) {
-            fragmentShaderBody.append("\t").append(ref.fragment).append("\n");
-            fragmentShaderBody.append("\t").append("texReflection = ").append(ref.variable).append("\n");
+            append(fragmentShaderBody, ref.getFragment());
+            append(fragmentShaderBody, "texReflection = "+ref.getVariable(root)+";");
         }else{
-            fragmentShaderBody.append("\t").append("texReflection = vec4(vec3(0.0), 1.0);\n");
+            append(fragmentShaderBody, "texReflection = vec4(vec3(0.0), 1.0);");
         }
+
+        // World position
+        fragmentShaderBody.append("\n");
+        IShaderNode pos = getNodePacker(root, 7);
+        if(pos != null) {
+            append(fragmentShaderBody, pos.getFragment());
+            append(fragmentShaderBody, f("texPosition = vec4(%s, 1.0);", pos.getVariable(root)));
+        }else{
+            append(fragmentShaderBody, "texPosition = vec4(Position.xyz, 1.0);");
+        }
+
+        // Indistinct variable allocation
+        append(fragmentShaderBody, "vec3 norm = Normal * texNormal.rgb;");
+        append(fragmentShaderBody, "texModNormal = vec4(norm, 1.0);");
 
 //        fragmentMap.values().forEach(e -> {
 //            String uniforms = e.getKey();
@@ -165,7 +194,39 @@ public class ShaderProgramCompiler extends VPLCompiler<ShaderProgram> {
             e.printStackTrace();
         }
 
-        return AppUtils.Shader.compileShader(this.vertexShader, shader);
+        ShaderProgram prg = AppUtils.Shader.compileShader(this.vertexShader, shader, true);
+
+        String log = prg.getLog();
+        String[] lines = log.split("\n");
+        if(lines.length > 0) {
+            if(lines[0].replace(" ", "").length() > 0) {
+                toaster.error("Shader compiled with errors");
+                for (String line : lines) {
+                    toaster.error(line);
+                }
+            }
+        }
+
+        if(argShader == null)
+            argShader = new ArgShader(prg);
+
+        argShader.vertexShaderSource = vertexShader;
+        argShader.fragmentShaderSource = shader;
+
+        return argShader;
+    }
+
+    private String f(String format, String... args) {
+        return String.format(format, args);
+    }
+
+    private void append(StringBuilder sb, String text) {
+        append(sb, text, true);
+    }
+    private void append(StringBuilder sb, String text, boolean indent) {
+        if(text.replace(" ", "").length() <= 0) return;
+        if(indent) sb.append("\t");
+        sb.append(text).append("\n");
     }
 
     public List<VPLNode<?>> validate(VPLGraph graph, VPLNode<?> root) {
@@ -175,11 +236,13 @@ public class ShaderProgramCompiler extends VPLCompiler<ShaderProgram> {
         return null;
     }
 
-    public ShaderNodeData.Packet getNodePacker(VPLNode root, int index) {
+    public IShaderNode getNodePacker(VPLNode root, int index) {
         VPLNode node = root.getInputNodeAtPin(index);
         if(node == null) return null;
         if(node == root) return null;
-        return VPLManager.instance().getShaderNodeData(node);
+        if(VPLManager.instance().isShaderNode(node))
+            return (IShaderNode)node;
+        return null;
     }
 
     private void debug(String shader) throws IOException {
@@ -188,10 +251,6 @@ public class ShaderProgramCompiler extends VPLCompiler<ShaderProgram> {
         Files.deleteIfExists(path);
 
         Files.write(path, shader.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
-    }
-
-    public AbstractMap.SimpleEntry<String, String> getShaderFragment(IShaderNode node) {
-        return new AbstractMap.SimpleEntry<>(node.getUniforms(), node.getFragment());
     }
 
     private void toast(Toaster.ToastType type, String toast) {

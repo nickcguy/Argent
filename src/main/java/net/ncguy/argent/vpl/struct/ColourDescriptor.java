@@ -21,7 +21,7 @@ public class ColourDescriptor extends IStructDescriptor {
     }
 
     @NodeData(value = "Break Colour", execIn = false, execOut = false, outPins = 4, argNames = "Colour")
-    public static Float breakStruct(VPLNode node, int pinId, Color col) {
+    public static float breakStruct(VPLNode node, int pinId, Color col) {
         switch (MathUtils.clamp(pinId, 0, 3)) {
             case 0: return col.r;
             case 1: return col.g;

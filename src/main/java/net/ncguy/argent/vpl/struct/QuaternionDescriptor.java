@@ -23,7 +23,7 @@ public class QuaternionDescriptor extends IStructDescriptor {
     }
 
     @NodeData(value = "Break Quaternion", execIn = false, execOut = false, outPins = 4, argNames = "Quaternion")
-    public static Float breakStruct(VPLNode node, int pinId, Quaternion vec) {
+    public static float breakStruct(VPLNode node, int pinId, Quaternion vec) {
         switch (MathUtils.clamp(pinId, 0, 3)) {
             case 0: return vec.x;
             case 1: return vec.y;

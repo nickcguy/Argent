@@ -8,7 +8,14 @@ import net.ncguy.argent.vpl.VPLNode;
  */
 public abstract class VPLCompiler<T> {
 
-    public abstract T compile(VPLGraph graph, VPLNode rootNode);
+    /**
+     *
+     * @param graph The containing graph
+     * @param rootNode the node to start the compilation from
+     * @param target the compile target, can be used for mutable objects
+     * @return the compiled result, or target if it is set
+     */
+    public abstract T compile(VPLGraph graph, VPLNode rootNode, T target);
 
     public void invokeNode(VPLNode node) {
         if(node == null) return;

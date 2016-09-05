@@ -11,6 +11,8 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import net.ncguy.argent.Argent;
+import net.ncguy.argent.GlobalSettings;
+import net.ncguy.argent.assets.ArgentShaderProvider;
 import net.ncguy.argent.editor.widgets.DebugPreview;
 import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.entity.components.ArgentComponent;
@@ -31,7 +33,7 @@ import java.util.List;
 public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T> {
 
     MultiTargetFrameBuffer textureMRT;
-    ModelBatch textureBatch;
+    ModelBatch textureBatch, mutableTextureBatch;
     ShaderProgram textureProgram;
 
     MultiTargetFrameBuffer lightingMRT;
@@ -87,7 +89,8 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     @Override
     public ModelBatch batch() {
         if(modelBatch == null) {
-            screenProgram = AppUtils.Shader.loadGeometryShader("pipeline/screen");
+            if(GlobalSettings.useGeometryShader) screenProgram = AppUtils.Shader.loadGeometryShader("pipeline/screen");
+            else screenProgram = AppUtils.Shader.loadShader("pipeline/screen");
             modelBatch = new ModelBatch(new DefaultShaderProvider() {
                 @Override
                 protected Shader createShader(Renderable renderable) {
@@ -126,6 +129,10 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     }
 
     private void renderToMRT(MultiTargetFrameBuffer mrt, ModelBatch batch, float delta) {
+        renderToMRT(mrt, batch, delta, false);
+    }
+
+    private void renderToMRT(MultiTargetFrameBuffer mrt, ModelBatch batch, float delta, boolean useComponents) {
         mrt.begin();
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT);
@@ -136,7 +143,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     }
 
     public void renderTexture(float delta) {
-        renderToMRT(textureMRT, textureBatch, delta);
+        renderToMRT(textureMRT, mutableTextureBatch, delta, true);
     }
     public void renderLighting(float delta) {
         renderToMRT(lightingMRT, lightingBatch, delta);
@@ -172,12 +179,28 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
                     colour.g,
                     colour.b
             };
+            Color ambient = l.getAmbient();
+            float[] amb = new float[]{
+                    ambient.r,
+                    ambient.g,
+                    ambient.b
+            };
+            Color specular = l.getSpecular();
+            float[] spc = new float[]{
+                    specular.r,
+                    specular.g,
+                    specular.b
+            };
             shaderProgram.setUniform3fv(key+".Position", pos, 0, pos.length);
             shaderProgram.setUniform3fv(key+".Colour", col, 0, col.length);
+
+            shaderProgram.setUniform3fv(key+".Ambient", amb, 0, amb.length);
+            shaderProgram.setUniform3fv(key+".Specular", spc, 0, spc.length);
+
             shaderProgram.setUniformf(key+".Linear", l.getLinear());
             shaderProgram.setUniformf(key+".Quadratic", l.getQuadratic());
             shaderProgram.setUniformf(key+".Intensity", l.getIntensity());
-            shaderProgram.setUniformf(key+".Radius", l.getRadius());
+//            shaderProgram.setUniformf(key+".Radius", l.getRadius());
             i[0]++;
         });
     }
@@ -190,8 +213,13 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
 
     public void applyLightingToQuad() {
         screenProgram.begin();
-        bindToMRT(lightingMRT, screenProgram, 7, ltg_ATTACHMENTS);
+        bindToMRT(lightingMRT, screenProgram, 0, ltg_ATTACHMENTS);
+        applyFinalTextureToQuad(ltg_ATTACHMENTS[GlobalSettings.rendererIndex()], 0);
         screenProgram.end();
+    }
+
+    private void applyFinalTextureToQuad(FBOAttachment attachment, int offset) {
+        screenProgram.setUniformi("ltgFinalColour", attachment.id + offset);
     }
 
     private void bindToMRT(MultiTargetFrameBuffer mrt, ShaderProgram shader, FBOAttachment... attachments) {
@@ -247,13 +275,19 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
             textureBatch.dispose();
             textureBatch = null;
         }
-        textureProgram = AppUtils.Shader.loadGeometryShader("pipeline/texture");
+        if(mutableTextureBatch != null) {
+            mutableTextureBatch.dispose();
+            mutableTextureBatch = null;
+        }
+        if(GlobalSettings.useGeometryShader) textureProgram = AppUtils.Shader.loadGeometryShader("pipeline/texture");
+        else textureProgram = AppUtils.Shader.loadShader("pipeline/texture");
         textureBatch = new ModelBatch(new DefaultShaderProvider() {
             @Override
             protected Shader createShader(Renderable renderable) {
                 return new SmartTextureShader(renderable, textureProgram);
             }
         });
+        mutableTextureBatch = new ModelBatch(new ArgentShaderProvider());
     }
     public void refreshLightingShader() {
         if(lightingProgram != null) {
@@ -264,11 +298,12 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
             lightingBatch.dispose();
             lightingBatch = null;
         }
-        lightingProgram = AppUtils.Shader.loadGeometryShader("pipeline/lighting");
+        if(GlobalSettings.useGeometryShader) lightingProgram = AppUtils.Shader.loadGeometryShader("pipeline/lighting");
+        else lightingProgram = AppUtils.Shader.loadShader("pipeline/lighting");
         lightingBatch = new ModelBatch(new DefaultShaderProvider() {
             @Override
             protected Shader createShader(Renderable renderable) {
-                return new ArgentShader(renderable, lightingProgram);
+                return new ArgentLightShader(renderable, lightingProgram);
             }
         });
     }

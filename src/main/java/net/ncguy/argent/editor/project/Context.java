@@ -6,10 +6,12 @@ import com.badlogic.gdx.utils.Disposable;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.assets.ArgMaterial;
 import net.ncguy.argent.assets.ArgModel;
+import net.ncguy.argent.assets.ArgShader;
 import net.ncguy.argent.assets.ArgTexture;
 import net.ncguy.argent.entity.terrain.Terrain;
 import net.ncguy.argent.event.MaterialImportEvent;
 import net.ncguy.argent.event.MaterialRefreshEvent;
+import net.ncguy.argent.event.shader.NewShaderEvent;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,6 +29,7 @@ public class Context implements Disposable {
     public Array<ArgMaterial> mtls;
     public Array<Terrain> terrains;
     public Array<ArgTexture> textures;
+    public Array<ArgShader> shaders;
 
     protected ProjectManager projectManager;
 
@@ -44,6 +47,7 @@ public class Context implements Disposable {
         mtls = new Array<>();
         textures = new Array<>();
         terrains = new Array<>();
+        shaders = new Array<>();
     }
 
     public void load() {
@@ -55,13 +59,17 @@ public class Context implements Disposable {
 
         // Materials
         mtls.clear();
-        List<ArgMaterial> mtls = projectManager.getRegistry().loadMaterials(getContentPath() + "materials/");
+        List<ArgMaterial> mtls = projectManager.getRegistry().loadMaterials(getMaterialPath());
         mtls.forEach(this.mtls::add);
 
         // Textures
         textures.clear();
-        List<ArgTexture> texs = projectManager.getRegistry().loadTextures(getContentPath() + "textures/");
+        List<ArgTexture> texs = projectManager.getRegistry().loadTextures(getTexturePath());
         texs.forEach(this.textures::add);
+
+        shaders.clear();
+        List<ArgShader> shdrs = projectManager.getRegistry().loadShaders(getShaderPath());
+        shdrs.forEach(this.shaders::add);
     }
 
     public void copyFrom(Context other) {
@@ -120,4 +128,20 @@ public class Context implements Disposable {
         return textures;
     }
 
+    public String getMaterialPath() {
+        return getContentPath()+"materials/";
+    }
+
+    public String getTexturePath() {
+        return getContentPath()+"textures/";
+    }
+
+    public String getShaderPath() {
+        return getContentPath()+"shaders/";
+    }
+
+    public void addShader(ArgShader argShader) {
+        this.shaders.add(argShader);
+        new NewShaderEvent(argShader).fire();
+    }
 }

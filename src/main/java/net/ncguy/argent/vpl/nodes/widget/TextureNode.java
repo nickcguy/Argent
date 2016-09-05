@@ -3,12 +3,17 @@ package net.ncguy.argent.vpl.nodes.widget;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.TextureData;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Cell;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.minlog.Log;
 import com.kotcrab.vis.ui.VisUI;
 import net.ncguy.argent.assets.ArgTexture;
 import net.ncguy.argent.utils.TextureCache;
@@ -19,6 +24,7 @@ import net.ncguy.argent.vpl.nodes.WidgetNode;
 import net.ncguy.argent.vpl.struct.IdentifierObject;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 
 import static net.ncguy.argent.vpl.VPLPin.Types.INPUT;
@@ -31,12 +37,15 @@ import static net.ncguy.argent.vpl.VPLPin.Types.OUTPUT;
 extras = {"file", "assets/shaders/graph/fragments/textureSample.frag"})
 public class TextureNode extends WidgetNode<Object> implements IShaderNode {
 
-    public int texUnit = 0;
     Image textureZone;
     AssetSelector<ArgTexture> textureAssetSelector;
     ArgTexture selected;
     Image texelPreview;
     VPLPin uvPin;
+
+    public TextureNode(VPLGraph graph, Method method) {
+        super(graph, method);
+    }
 
     public TextureNode(VPLGraph graph) {
         super(graph);
@@ -52,10 +61,7 @@ public class TextureNode extends WidgetNode<Object> implements IShaderNode {
                 return manager.current().textures();
             }
         };
-        textureAssetSelector.setChangeListener(item -> {
-            selected = item.value;
-            textureZone.setDrawable(item.value.icon());
-        });
+        textureAssetSelector.setChangeListener(item -> selectTexture(item.value));
 
         textureZone = new Image();
         if(selected != null)
@@ -95,6 +101,11 @@ public class TextureNode extends WidgetNode<Object> implements IShaderNode {
         textureZone.setDebug(true);
     }
 
+    public void selectTexture(ArgTexture tex) {
+        selected = tex;
+        textureZone.setDrawable(tex.icon());
+    }
+
     @Override
     public void act(float delta) {
 //        setTexelPreviewRegion();
@@ -102,12 +113,16 @@ public class TextureNode extends WidgetNode<Object> implements IShaderNode {
     }
 
     @Override
+    public void invokeSelf(int pin) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, InstantiationException {
+    }
+
+    @Override
     protected void buildOutput() {
         addPin(outputTable, Color.class, "Colour", OUTPUT);
-        addPin(outputTable, Float.class, "Red", OUTPUT).useNativeColour(false).getColour().set(.84f, .21f, .24f, 1f);
-        addPin(outputTable, Float.class, "Green", OUTPUT).useNativeColour(false).getColour().set(.24f, .84f, .21f, 1f);
-        addPin(outputTable, Float.class, "Blue", OUTPUT).useNativeColour(false).getColour().set(.21f, .24f, .84f, 1f);
-        addPin(outputTable, Float.class, "Alpha", OUTPUT).useNativeColour(false).getColour().set(.84f, .84f, .84f, 1f);
+        addPin(outputTable, Float.class, "Red", OUTPUT).useNativeColour(false).getColour().set(VPLReference.PinColours.RED);
+        addPin(outputTable, Float.class, "Green", OUTPUT).useNativeColour(false).getColour().set(VPLReference.PinColours.GREEN);
+        addPin(outputTable, Float.class, "Blue", OUTPUT).useNativeColour(false).getColour().set(VPLReference.PinColours.BLUE);
+        addPin(outputTable, Float.class, "Alpha", OUTPUT).useNativeColour(false).getColour().set(VPLReference.PinColours.ALPHA);
     }
 
     @Override
@@ -145,8 +160,35 @@ public class TextureNode extends WidgetNode<Object> implements IShaderNode {
         Color.rgba8888ToColor(texelPreview.getColor(), pixel);
     }
 
+    @Override
+    public void writeToFile(Kryo kryo, Output output) {
+        kryo.writeObject(output, selected);
+    }
+
+    @Override
+    public void readFromFile(Kryo kryo, Input input) {
+        selectTexture(kryo.readObject(input, ArgTexture.class));
+    }
+
     // Shader Stuff
 
+    public static int globalTexUnit = 1;
+
+    int texUnit = 0;
+    boolean fragmentUsed = false;
+
+    @Override
+    public void resetStaticCache() {
+        Log.info("Reset static cache");
+        globalTexUnit = 1;
+    }
+
+    @Override
+    public void resetCache() {
+        Log.info("Reset instance cache");
+        texUnit = globalTexUnit++;
+        fragmentUsed = false;
+    }
 
     @Override
     public String getUniforms() {
@@ -157,6 +199,8 @@ public class TextureNode extends WidgetNode<Object> implements IShaderNode {
 
     @Override
     public String getFragment() {
+        if(fragmentUsed) return "";
+        fragmentUsed = true;
         VPLNode node0 = getInputNodeAtPin(0);
         if(node0 instanceof IShaderNode)
             return String.format("texture%s_colour = texture(u_texture%s, %s);", texUnit, texUnit, ((IShaderNode)node0).getVariable());
@@ -164,7 +208,26 @@ public class TextureNode extends WidgetNode<Object> implements IShaderNode {
     }
 
     @Override
-    public String getVariable() {
-        return "texture"+texUnit+"_colour;";
+    public String getVariable(int pinId) {
+        String swizzle = "";
+        switch(pinId) {
+            case 1: swizzle = ".r";     break;
+            case 2: swizzle = ".g";     break;
+            case 3: swizzle = ".b";     break;
+            case 4: swizzle = ".a";     break;
+        }
+        return "texture"+texUnit+"_colour"+swizzle+"";
+    }
+
+    @Override
+    public boolean singleUseFragment() {
+        return true;
+    }
+
+    public void bind(ShaderProgram program) {
+        if(selected == null) return;
+        selected.texture.bind(texUnit);
+        String uniform = "u_texture"+texUnit;
+        program.setUniformi(uniform, texUnit);
     }
 }

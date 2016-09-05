@@ -1,5 +1,8 @@
 package net.ncguy.argent;
 
+import com.badlogic.gdx.math.MathUtils;
+import net.ncguy.argent.render.argent.ArgentRenderer;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +12,10 @@ import java.util.List;
 public class GlobalSettings {
 
     public static boolean binaryFileSizes = true;
+    /**
+     * Enable use of the geometry shader, currently does not work with dynamic shaders
+     */
+    public static boolean useGeometryShader = false;
 
     private static List<String> boolVars = new ArrayList<>();
 
@@ -32,5 +39,15 @@ public class GlobalSettings {
     public static class VarKeys {
         public static final String bool_LIGHTDEBUG = "light.debug";
         public static final String bool_SHADOWS = "light.shadow";
+    }
+
+    private static int rendererIndex = 1;
+    public static int rendererIndex() {
+        return rendererIndex;
+    }
+
+    public static void rendererIndex(int rendererIndex) {
+        rendererIndex = MathUtils.clamp(rendererIndex, 0, ArgentRenderer.ltg_ATTACHMENTS.length-1);
+        GlobalSettings.rendererIndex = rendererIndex;
     }
 }

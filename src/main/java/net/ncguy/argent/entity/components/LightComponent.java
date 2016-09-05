@@ -29,7 +29,7 @@ public class LightComponent implements ArgentComponent {
     WorldEntity entity;
 
     Vector3 localPosition;
-    Color colour;
+    Color colour, ambient, specular;
     float linear, quadratic, intensity;
     boolean inverse = false;
     float radius;
@@ -49,6 +49,8 @@ public class LightComponent implements ArgentComponent {
         this.entity = entity;
         this.localPosition = new Vector3(0, 1.2f, 0);
         this.colour = new Color();
+        this.ambient = new Color();
+        this.specular = new Color();
         this.linear = 1;
         this.quadratic = 1;
         this.intensity = 1;
@@ -115,6 +117,14 @@ public class LightComponent implements ArgentComponent {
     public float getIntensity() { return intensity; }
 
     public void setIntensity(float intensity) { this.intensity = intensity; }
+
+    public Color getAmbient() { return ambient; }
+
+    public void setAmbient(Color ambient) { this.ambient = ambient; }
+
+    public Color getSpecular() { return specular; }
+
+    public void setSpecular(Color specular) { this.specular = specular; }
 
     @Override
     public void getRenderables(Array<Renderable> renderables, Pool<Renderable> pool) {

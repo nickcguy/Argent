@@ -1,9 +1,10 @@
 package net.ncguy.argent.entity.components.model.primitive;
 
 import com.badlogic.gdx.graphics.GL30;
+import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector2;
-import net.ncguy.argent.assets.ArgMaterial;
+import net.ncguy.argent.assets.ArgShader;
 import net.ncguy.argent.editor.widgets.component.ComponentWidget;
 import net.ncguy.argent.editor.widgets.component.PrimitivePlaneModelWidget;
 import net.ncguy.argent.entity.WorldEntity;
@@ -25,8 +26,8 @@ public class PrimitivePlaneModelComponent extends ModelComponent {
         applyModel();
     }
 
-    public PrimitivePlaneModelComponent(WorldEntity entity, ArgMaterial mtl) {
-        super(entity, mtl);
+    public PrimitivePlaneModelComponent(WorldEntity entity, ArgShader shader) {
+        super(entity, shader);
         applyModel();
     }
 
@@ -53,12 +54,12 @@ public class PrimitivePlaneModelComponent extends ModelComponent {
 
         float w = width/2;
         float h = height/2;
-//        Model model = new ModelBuilder().createSphere(width, height, depth, divU, divV, mtl.getAsset(), Position | Normal | TextureCoordinates);
+//        Model model = new ModelBuilder().createSphere(width, height, depth, divU, divV, shader.getAsset(), Position | Normal | TextureCoordinates);
         ModelBuilder mb = new ModelBuilder();
         mb.begin();
-        mb.part("front", GL30.GL_TRIANGLES, attributes, mtl.getAsset()).rect(-w, -h, 0, w, -h, 0, w, h, 0, -w, h, 0, 0, 0, 1);
+        mb.part("front", GL30.GL_TRIANGLES, attributes, new Material()).rect(-w, -h, 0, w, -h, 0, w, h, 0, -w, h, 0, 0, 0, 1);
         if(twoSided)
-            mb.part("back", GL30.GL_TRIANGLES, attributes, mtl.getAsset()).rect(w, -h, 0, -w, -h, 0, -w, h, 0, w, h, 0, 0, 0, -1);
+            mb.part("back", GL30.GL_TRIANGLES, attributes, new Material()).rect(w, -h, 0, -w, -h, 0, -w, h, 0, w, h, 0, 0, 0, -1);
 
         setModel(mb.end());
     }

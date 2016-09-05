@@ -22,7 +22,7 @@ public class Vector3Descriptor extends IStructDescriptor {
     }
 
     @NodeData(value = "Break Vector3", execIn = false, execOut = false, outPins = 3, argNames = "Vector 3")
-    public static Float breakStruct(VPLNode node, int pinId, Vector3 vec) {
+    public static float breakStruct(VPLNode node, int pinId, Vector3 vec) {
         switch (MathUtils.clamp(pinId, 0, 2)) {
             case 0: return vec.x;
             case 1: return vec.y;

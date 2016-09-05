@@ -129,9 +129,9 @@ public class AttrPane extends Table implements MaterialComponentChangeEvent.Mate
         if(ColorAttribute.is(attr.type))
             return list.add(new ColourAttrWidget(mtl, (ColorAttribute) attr));
 //        if(ColorAttribute.is(attr.type))
-//            return list.add(new ColorAttrWidget(mtl, (ColorAttribute)attr));
+//            return list.add(new ColorAttrWidget(shader, (ColorAttribute)attr));
 //        if(BlendingAttribute.is(attr.type))
-//            return list.add(new BlendingAttrWidget(mtl, (BlendingAttribute)attr));
+//            return list.add(new BlendingAttrWidget(shader, (BlendingAttribute)attr));
         return false;
     }
 

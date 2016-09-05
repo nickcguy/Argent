@@ -16,11 +16,10 @@ out vec4 Position;
 
 void main() {
 
-	vec4 Position = u_worldTrans * a_position;
+	Position = u_worldTrans * a_position;
 	gl_Position = u_projViewTrans * Position;
 
 	TexCoords = a_texCoord0;
-    Position = Position;
     Normal = normalize(u_normalMatrix * a_normal);
 
 	Depth = gl_Position.z / u_cameraNearFar.y;

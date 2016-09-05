@@ -9,6 +9,7 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.assets.ArgMaterial;
+import net.ncguy.argent.assets.ArgShader;
 import net.ncguy.argent.assets.ArgTexture;
 import net.ncguy.argent.assets.kryo.KryoManager;
 import net.ncguy.argent.project.ProjectMeta;
@@ -36,7 +37,8 @@ public class Registry {
     public static final String MATERIALS_DIR = ASSETS_DIR + "materials/";
 
     public static final String FILE_EXT = ".argent";
-    public static final String MATERIAL_EXT = ".mtl";
+    public static final String MATERIAL_EXT = ".shader";
+    public static final String SHADER_EXT = ".shader";
 
     public static final String REGISTRY_FILE = HOME_DIR + "Registry" + FILE_EXT;
 
@@ -83,8 +85,31 @@ public class Registry {
         List<ArgTexture> list = new ArrayList<>();
         for (String ref : refs) {
             ArgTexture argTexture = new ArgTexture(Argent.content.get(ref, Texture.class));
+            argTexture.setPath(ref);
             argTexture.name(StringUtils.present(ref.replace("texture_", "")));
             list.add(argTexture);
+        }
+        return list;
+    }
+
+    public List<ArgShader> loadShaders(String path) {
+        ArrayList<ArgShader> list = new ArrayList<>();
+        File file = new File(path);
+        if(!file.exists()) {
+            file.mkdirs();
+            return list;
+        }
+        File[] children = file.listFiles();
+        if(children == null) return list;
+        for (File child : children) {
+            String ext = FileUtils.getFileExtension(child);
+            if(ext.equalsIgnoreCase(SHADER_EXT)) {
+                try{
+                    ArgShader shader = ArgShader.load(child);
+                    if(shader == null) continue;
+                    list.add(shader);
+                }catch (Exception ignored) {}
+            }
         }
         return list;
     }

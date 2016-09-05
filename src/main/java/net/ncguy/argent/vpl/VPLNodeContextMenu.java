@@ -27,7 +27,7 @@ public class VPLNodeContextMenu extends PopupMenu {
             public void changed(ChangeEvent event, Actor actor) {
                 VPLNode node = graph.nodeSelection.first();
                 if(node == null) {
-                    graph.toaster.info("No node selected");
+                    graph.info("No node selected");
                     return;
                 }
                 try {
@@ -42,7 +42,7 @@ public class VPLNodeContextMenu extends PopupMenu {
             public void changed(ChangeEvent event, Actor actor) {
                 VPLNode node = graph.nodeSelection.first();
                 if(node == null) {
-                    graph.toaster.info("No node selected");
+                    graph.info("No node selected");
                     return;
                 }
                 node.continuous = !node.continuous;
@@ -53,7 +53,7 @@ public class VPLNodeContextMenu extends PopupMenu {
             public void changed(ChangeEvent event, Actor actor) {
                 Selection<VPLNode> nodes = graph.nodeSelection;
                 if(nodes == null || nodes.size() == 0) {
-                    graph.toaster.info("No node selected");
+                    graph.info("No node selected");
                     return;
                 }
                 nodes.forEach(graph::removeNode);
@@ -66,7 +66,7 @@ public class VPLNodeContextMenu extends PopupMenu {
             public void changed(ChangeEvent event, Actor actor) {
                 Selection<VPLNode> nodes = graph.nodeSelection;
                 if(nodes == null || nodes.size() == 0) {
-                    graph.toaster.info("No node selected");
+                    graph.info("No node selected");
                     return;
                 }
                 nodes.forEach(VPLNode::toFront);
@@ -77,7 +77,7 @@ public class VPLNodeContextMenu extends PopupMenu {
             public void changed(ChangeEvent event, Actor actor) {
                 Selection<VPLNode> nodes = graph.nodeSelection;
                 if(nodes == null || nodes.size() == 0) {
-                    graph.toaster.info("No node selected");
+                    graph.info("No node selected");
                     return;
                 }
                 nodes.forEach(VPLNode::toBack);

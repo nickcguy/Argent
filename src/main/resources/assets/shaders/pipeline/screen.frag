@@ -6,6 +6,8 @@ uniform sampler2D ltgPosition;
 uniform sampler2D ltgTextures;
 uniform sampler2D ltgLighting;
 
+uniform sampler2D ltgFinalColour;
+
 uniform vec2 u_screenRes;
 
 in VS_OUT {
@@ -27,5 +29,5 @@ void main() {
     vec4 finalCol = tex;
 //    finalCol += depth;
 
-	OutputColour = finalCol;
+	OutputColour = texture(ltgFinalColour, Texel);
 }

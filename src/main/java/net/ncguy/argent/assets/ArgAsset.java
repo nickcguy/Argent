@@ -12,6 +12,11 @@ import net.ncguy.argent.injector.Inject;
 public abstract class ArgAsset<T> {
 
     protected T asset;
+    protected String fileName;
+
+    public String getFileName() {
+        return fileName;
+    }
 
     @Inject
     protected transient ProjectManager projectManager;

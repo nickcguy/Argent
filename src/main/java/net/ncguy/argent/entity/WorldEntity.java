@@ -9,9 +9,11 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
 import net.ncguy.argent.entity.components.ArgentComponent;
 import net.ncguy.argent.entity.components.ComponentData;
+import net.ncguy.argent.entity.components.model.ModelComponent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by Guy on 15/07/2016.
@@ -168,4 +170,10 @@ public class WorldEntity implements RenderableProvider {
     public int id() {
         return id;
     }
+
+
+    public List<ModelComponent> modelComponents() {
+        return components.stream().filter(c -> c instanceof ModelComponent).map(c -> (ModelComponent)c).collect(Collectors.toList());
+    }
+
 }
