@@ -119,10 +119,10 @@ public class TextureNode extends WidgetNode<Object> implements IShaderNode {
     @Override
     protected void buildOutput() {
         addPin(outputTable, Color.class, "Colour", OUTPUT);
-        addPin(outputTable, Float.class, "Red", OUTPUT).useNativeColour(false).getColour().set(VPLReference.PinColours.RED);
-        addPin(outputTable, Float.class, "Green", OUTPUT).useNativeColour(false).getColour().set(VPLReference.PinColours.GREEN);
-        addPin(outputTable, Float.class, "Blue", OUTPUT).useNativeColour(false).getColour().set(VPLReference.PinColours.BLUE);
-        addPin(outputTable, Float.class, "Alpha", OUTPUT).useNativeColour(false).getColour().set(VPLReference.PinColours.ALPHA);
+        addPin(outputTable, float.class, "Red", OUTPUT).useNativeColour(false).getColour().set(VPLReference.PinColours.RED);
+        addPin(outputTable, float.class, "Green", OUTPUT).useNativeColour(false).getColour().set(VPLReference.PinColours.GREEN);
+        addPin(outputTable, float.class, "Blue", OUTPUT).useNativeColour(false).getColour().set(VPLReference.PinColours.BLUE);
+        addPin(outputTable, float.class, "Alpha", OUTPUT).useNativeColour(false).getColour().set(VPLReference.PinColours.ALPHA);
     }
 
     @Override
@@ -201,9 +201,12 @@ public class TextureNode extends WidgetNode<Object> implements IShaderNode {
     public String getFragment() {
         if(fragmentUsed) return "";
         fragmentUsed = true;
-        VPLNode node0 = getInputNodeAtPin(0);
-        if(node0 instanceof IShaderNode)
-            return String.format("texture%s_colour = texture(u_texture%s, %s);", texUnit, texUnit, ((IShaderNode)node0).getVariable());
+        IShaderNode node0 = getNodePacker(0);
+        if(node0 != null) {
+            String pre = node0.getFragment();
+            String var = node0.getVariable(this);
+            return String.format("%stexture%s_colour = texture(u_texture%s, %s);", pre, texUnit, texUnit, var);
+        }
         return "Error, this line will cause\na crash, this crash is caused by "+this.getClass().getCanonicalName();
     }
 
@@ -224,6 +227,7 @@ public class TextureNode extends WidgetNode<Object> implements IShaderNode {
         return true;
     }
 
+    @Override
     public void bind(ShaderProgram program) {
         if(selected == null) return;
         selected.texture.bind(texUnit);

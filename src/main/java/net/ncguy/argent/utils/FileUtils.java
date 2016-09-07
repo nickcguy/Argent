@@ -119,6 +119,7 @@ public class FileUtils {
     }
 
     public static void traverseFileTree(Path root, Consumer<TraversalStep> onFileStep) throws IOException {
+        if(!Files.exists(root)) return;
         Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {

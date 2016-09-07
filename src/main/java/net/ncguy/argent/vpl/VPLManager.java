@@ -11,10 +11,12 @@ import net.ncguy.argent.vpl.annotations.NodeData;
 import net.ncguy.argent.vpl.compiler.IShaderNode;
 import net.ncguy.argent.vpl.nodes.BasicNodeFunctions;
 import net.ncguy.argent.vpl.nodes.FunctionalNodes;
+import net.ncguy.argent.vpl.nodes.factory.NodeFactory;
 import net.ncguy.argent.vpl.nodes.shader.FinalShaderNode;
 import net.ncguy.argent.vpl.struct.*;
 import net.ncguy.argent.vpl.struct.bridge.IStructBridge;
 import net.ncguy.argent.vpl.struct.bridge.QuaternionColourBridge;
+import org.reflections.Reflections;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -35,11 +37,13 @@ public class VPLManager {
 
     private VPLManager() {
         registeredNodes = new ArrayList<>();
+        registeredNodeFactories = new ArrayList<>();
         structDescriptors = new HashMap<>();
         structBridges = new HashMap<>();
         registerDefaultDescriptors();
         registerDefaultBridges();
         registerDefaultNodes();
+        SearchAndRegisterFactories();
     }
 
     private void registerDefaultDescriptors() {
@@ -64,6 +68,38 @@ public class VPLManager {
         registerNodeClass(BasicNodeFunctions.class);
         registerNodeClass(FinalShaderNode.class);
         registerNodeClass(FunctionalNodes.class);
+    }
+
+    private void SearchAndRegisterFactories() {
+        Reflections ref = new Reflections();
+        VPLModule.getNodeFactoryLocations().forEach(s -> {
+            ref.merge(new Reflections(s));
+        });
+        ref.getTypesAnnotatedWith(NodeData.class)
+                .stream()
+                .filter(VPLNode.class::isAssignableFrom)
+                .map(cls -> (Class<? extends VPLNode>)cls)
+                .forEach(cls -> registeredNodeFactories.add(new NodeFactory(cls)));
+
+//        this.menu.addItem(new SearchableList.Item<>(null, "Texture Node", new NodeFactory(TextureNode.class)));
+//        this.menu.addItem(new SearchableList.Item<>(null, "Shader Node", new NodeFactory(FinalShaderNode.class)));
+//        this.menu.addItem(new SearchableList.Item<>(null, "TexCoords Node", new NodeFactory(TextureCoordinatesNode.class)));
+//        this.menu.addItem(new SearchableList.Item<>(null, "Passthrough", new NodeFactory(VariablePassthroughNode.class)));
+//        this.menu.addItem(new SearchableList.Item<>(null, "Make Colour", new NodeFactory(MakeColourNode.class)));
+//        this.menu.addItem(new SearchableList.Item<>(null, "Break Colour", new NodeFactory(BreakColourNode.class)));
+//        this.menu.addItem(new SearchableList.Item<>(null, "1-", new NodeFactory(OneMinusNode.class)));
+//        this.menu.addItem(new SearchableList.Item<>(null, "Float", new NodeFactory(FloatNode.class)));
+//        this.menu.addItem(new SearchableList.Item<>(null, "Panner", new NodeFactory(PannerNode.class)));
+//        this.menu.addItem(new SearchableList.Item<>(null, "Cartesian To Polar", new NodeFactory(ToPolarNode.class)));
+//        this.menu.addItem(new SearchableList.Item<>(null, "Polar To Cartesian", new NodeFactory(ToCartesian.class)));
+//        this.menu.addItem(new SearchableList.Item<>(null, "Rotate Vector2", new NodeFactory(RotateVector2.class)));
+//
+//        this.menu.addItem(new SearchableList.Item<>(null, "Break Vector2", new NodeFactory(BreakVector2.class)));
+//        this.menu.addItem(new SearchableList.Item<>(null, "Break Vector3", new NodeFactory(BreakVector3.class)));
+//        this.menu.addItem(new SearchableList.Item<>(null, "Break Colour", new NodeFactory(BreakColour.class)));
+//        this.menu.addItem(new SearchableList.Item<>(null, "Make Vector2", new NodeFactory(MakeVector2.class)));
+//        this.menu.addItem(new SearchableList.Item<>(null, "Make Vector3", new NodeFactory(MakeVector3.class)));
+//        this.menu.addItem(new SearchableList.Item<>(null, "Make Colour", new NodeFactory(MakeColour.class)));
     }
 
     public boolean validMethod(Method method) {
@@ -91,6 +127,7 @@ public class VPLManager {
     }
 
     List<Method> registeredNodes;
+    List<NodeFactory> registeredNodeFactories;
     Map<Class, IStructDescriptor> structDescriptors;
     Map<AbstractMap.SimpleEntry<Class, Class>, IStructBridge> structBridges;
 

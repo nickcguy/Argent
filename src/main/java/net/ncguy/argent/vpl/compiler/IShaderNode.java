@@ -1,11 +1,14 @@
 package net.ncguy.argent.vpl.compiler;
 
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import net.ncguy.argent.vpl.VPLNode;
 
 /**
  * Created by Guy on 29/08/2016.
  */
 public interface IShaderNode {
+
+    default void bind(ShaderProgram program) {}
 
     default String getVariable(VPLNode invoker) {
         int index = 0;

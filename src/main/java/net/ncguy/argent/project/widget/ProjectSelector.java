@@ -67,9 +67,10 @@ public class ProjectSelector extends Table implements NewProjectEvent.NewProject
                         Actions.moveBy(-getWidth(), 0)
                 ),
                 Actions.parallel(
-                        Actions.moveBy(getWidth(), 0, tweenDuration),
+                        Actions.moveTo(getWidth(), 0, tweenDuration),
                         Actions.fadeIn(tweenDuration)
-                )
+                ),
+                Actions.run(content::invalidate)
         ));
     }
 

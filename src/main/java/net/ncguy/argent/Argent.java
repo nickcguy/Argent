@@ -11,6 +11,7 @@ import net.ncguy.argent.event.EventModule;
 import net.ncguy.argent.injector.InjectionModule;
 import net.ncguy.argent.tween.TweenModule;
 import net.ncguy.argent.ui.UIModule;
+import net.ncguy.argent.utils.NaturalOrderComparator;
 import net.ncguy.argent.vpl.VPLManager;
 import net.ncguy.argent.vpl.VPLModule;
 import net.ncguy.argent.world.ProjectModule;
@@ -112,6 +113,7 @@ public class Argent {
         }
     };
 
+    public static NaturalOrderComparator lexicographicalSorter = new NaturalOrderComparator();
 
     public static void loadDefaultModules() {
         Argent.loadModule(new ContentModule());

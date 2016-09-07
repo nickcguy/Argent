@@ -27,6 +27,10 @@ public class ProjectMeta {
         return FileUtils.getFileSizeString(this.size);
     }
 
+    public long rawSize() {
+        return this.size;
+    }
+
     public ProjectMeta calculateSize() {
         File file = new File(this.path);
         if(!file.exists()) {

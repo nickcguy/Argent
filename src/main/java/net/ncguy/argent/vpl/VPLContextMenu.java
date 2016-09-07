@@ -36,10 +36,12 @@ public class VPLContextMenu extends SearchableList<Object> {
             String s1 = VPLManager.instance().getDisplayName(m1);
             String s2 = VPLManager.instance().getDisplayName(m2);
             return s1.compareToIgnoreCase(s2);
-        }).forEach(m -> {
-            Item<Object> item = new Item<>(null, VPLManager.instance().getDisplayName(m), m, VPLManager.instance().getKeywords(m));
-            addItem(item);
-        });
+        }).forEach(this::addMethodItem);
+    }
+
+    public void addMethodItem(Method m) {
+        Item<Object> item = new Item<>(null, VPLManager.instance().getDisplayName(m), m, VPLManager.instance().getKeywords(m));
+        addItem(item);
     }
 
     private OrthographicCamera camera() {

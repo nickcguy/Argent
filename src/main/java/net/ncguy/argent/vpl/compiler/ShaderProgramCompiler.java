@@ -237,12 +237,7 @@ public class ShaderProgramCompiler extends VPLCompiler<ArgShader> {
     }
 
     public IShaderNode getNodePacker(VPLNode root, int index) {
-        VPLNode node = root.getInputNodeAtPin(index);
-        if(node == null) return null;
-        if(node == root) return null;
-        if(VPLManager.instance().isShaderNode(node))
-            return (IShaderNode)node;
-        return null;
+        return root.getNodePacker(index);
     }
 
     private void debug(String shader) throws IOException {

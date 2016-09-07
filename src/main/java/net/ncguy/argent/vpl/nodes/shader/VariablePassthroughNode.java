@@ -14,7 +14,7 @@ import static net.ncguy.argent.vpl.VPLPin.Types.*;
 /**
  * Created by Guy on 31/08/2016.
  */
-@NodeData(value = "", execIn = false, execOut = false, tags = "shader")
+@NodeData(value = "Passthrough", execIn = false, execOut = false, tags = "shader")
 public class VariablePassthroughNode extends VPLNode<Object> implements IShaderNode {
 
     public VariablePassthroughNode(VPLGraph graph, Method method) {
@@ -23,6 +23,11 @@ public class VariablePassthroughNode extends VPLNode<Object> implements IShaderN
 
     public VariablePassthroughNode(VPLGraph graph) {
         super(graph, null);
+    }
+
+    @Override
+    public String getTitle() {
+        return "";
     }
 
     @Override
@@ -73,6 +78,8 @@ public class VariablePassthroughNode extends VPLNode<Object> implements IShaderN
 
     @Override
     public String getFragment() {
-        return "";
+        IShaderNode node = getNodePacker(0);
+        if(node == null) return "";
+        return node.getFragment();
     }
 }

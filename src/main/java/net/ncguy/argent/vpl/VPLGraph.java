@@ -10,14 +10,12 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Selection;
+import net.ncguy.argent.Argent;
 import net.ncguy.argent.event.StringPacketEvent;
 import net.ncguy.argent.injector.ArgentInjector;
 import net.ncguy.argent.ui.SearchableList;
 import net.ncguy.argent.vpl.compiler.VPLCompiler;
 import net.ncguy.argent.vpl.nodes.factory.NodeFactory;
-import net.ncguy.argent.vpl.nodes.shader.*;
-import net.ncguy.argent.vpl.nodes.widget.FloatNode;
-import net.ncguy.argent.vpl.nodes.widget.TextureNode;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -74,17 +72,42 @@ public class VPLGraph extends Group {
 
         this.nodeMethods = VPLManager.instance().getNodesWithTags(this.tags);
         this.menu.clearItems();
-        this.menu.setMethods(this.nodeMethods);
 
-        // TODO Use VPLManager to manage this
-        this.menu.addItem(new SearchableList.Item<>(null, "Texture Node", new NodeFactory(TextureNode.class)));
-        this.menu.addItem(new SearchableList.Item<>(null, "Shader Node", new NodeFactory(FinalShaderNode.class)));
-        this.menu.addItem(new SearchableList.Item<>(null, "TexCoords Node", new NodeFactory(TextureCoordinatesNode.class)));
-        this.menu.addItem(new SearchableList.Item<>(null, "Passthrough", new NodeFactory(VariablePassthroughNode.class)));
-        this.menu.addItem(new SearchableList.Item<>(null, "Make Colour", new NodeFactory(MakeColourNode.class)));
-        this.menu.addItem(new SearchableList.Item<>(null, "Break Colour", new NodeFactory(BreakColourNode.class)));
-        this.menu.addItem(new SearchableList.Item<>(null, "1-", new NodeFactory(OneMinusNode.class)));
-        this.menu.addItem(new SearchableList.Item<>(null, "Float", new NodeFactory(FloatNode.class)));
+        List<Object> objs = new ArrayList<>();
+
+//        this.menu.setMethods(this.nodeMethods);
+
+//        VPLManager.instance().registeredNodeFactories.forEach(this::addFactoryItem);
+
+        objs.addAll(this.nodeMethods);
+        objs.addAll(VPLManager.instance().registeredNodeFactories.stream()
+                .filter(fac -> fac.hasTag(this.tags)).collect(Collectors.toList()));
+
+        objs.stream().sorted(this::sort).distinct().forEach(this::allocate);
+    }
+    private int sort(Object obj1, Object obj2) {
+        return Argent.lexicographicalSorter.compare(getName(obj1), getName(obj2));
+    }
+    private String getName(Object obj) {
+        if(obj instanceof Method)
+            VPLManager.instance().getDisplayName((Method) obj);
+        return obj.toString();
+    }
+    private void allocate(Object obj) {
+        if(obj instanceof Method)
+            addMethodItem((Method)obj);
+        else if(obj instanceof NodeFactory) {
+            addFactoryItem((NodeFactory)obj);
+        }
+    }
+    private void addMethodItem(Method m) {
+        SearchableList.Item<Object> item = new SearchableList.Item<>(null, VPLManager.instance().getDisplayName(m), m, VPLManager.instance().getKeywords(m));
+        this.menu.addItem(item);
+    }
+    private void addFactoryItem(NodeFactory factory) {
+        SearchableList.Item<Object> item =
+                new SearchableList.Item<>(null, factory.toString(), factory);
+        this.menu.addItem(item);
     }
 
     private void attachListener() {

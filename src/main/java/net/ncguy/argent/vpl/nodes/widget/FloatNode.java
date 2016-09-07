@@ -36,19 +36,19 @@ public class FloatNode extends WidgetNode<Float> implements IShaderNode {
 
     @Override
     protected void buildInput() {
-        model = new SimpleFloatSpinnerModel(1, 0, 1, .01f, 2);
+        model = new SimpleFloatSpinnerModel(0, -1024, 1024, .01f, 2);
         spinner = new Spinner("", model);
         addElement(inputTable, spinner).colspan(2).width(130);
     }
 
     @Override
     protected void buildOutput() {
-        addPin(outputTable, Float.class, "", OUTPUT, COMPOUND);
+        addPin(outputTable, float.class, "", OUTPUT, COMPOUND);
     }
 
     @Override
     protected void discernType() {
-        discernType(Float.class, 1);
+        discernType(float.class, 1);
     }
 
     @Override

@@ -122,7 +122,7 @@ void main() {
     vec3 normal = normalize(nor.rgb);
 
     if(spc > 1.0) {
-        ltgTextures.rgb = vec3(1.0, 0.0, 1.0);
+        ltgTextures.rgb = dif.rgb;
         ltgTextures.a = 1.0;
         return;
     }

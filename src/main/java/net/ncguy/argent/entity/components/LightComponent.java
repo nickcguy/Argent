@@ -29,6 +29,7 @@ public class LightComponent implements ArgentComponent {
     WorldEntity entity;
 
     Vector3 localPosition;
+    Vector3 worldPosition;
     Color colour, ambient, specular;
     float linear, quadratic, intensity;
     boolean inverse = false;
@@ -41,7 +42,7 @@ public class LightComponent implements ArgentComponent {
             debugModel = new ModelBuilder().createBox(.1f, .1f, .1f, new Material(ColorAttribute.createDiffuse(AppUtils.Graphics.randomColour())), VertexAttributes.Usage.Position);
             debugInstance = new ModelInstance(debugModel);
         }
-        debugInstance.transform.setToTranslation(localPosition);
+        debugInstance.transform.setToTranslation(getWorldPosition());
         return debugInstance;
     }
 
@@ -90,8 +91,11 @@ public class LightComponent implements ArgentComponent {
     }
 
     public Vector3 getWorldPosition() {
-        Vector3 pos = entity.getLocalPosition(new Vector3());
-        return pos.add(getLocalPosition());
+        if(worldPosition == null) {
+            worldPosition = localPosition.cpy();
+        }
+        worldPosition.set(localPosition).add(entity.localPosition);
+        return worldPosition;
     }
 
     public Color getColour() {
@@ -128,8 +132,10 @@ public class LightComponent implements ArgentComponent {
 
     @Override
     public void getRenderables(Array<Renderable> renderables, Pool<Renderable> pool) {
-        if(GlobalSettings.hasBoolVar(bool_LIGHTDEBUG))
+        if(GlobalSettings.hasBoolVar(bool_LIGHTDEBUG)) {
+            debugInstance().transform.setToTranslation(getWorldPosition());
             debugInstance().getRenderables(renderables, pool);
+        }
     }
 
     public float getRadius() {

@@ -12,7 +12,7 @@ import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import net.ncguy.argent.utils.AppUtils;
-import net.ncguy.argent.vpl.nodes.widget.TextureNode;
+import net.ncguy.argent.vpl.compiler.IShaderNode;
 
 import java.util.Map;
 
@@ -50,11 +50,11 @@ public class ArgentShader extends BaseShader {
     public void bind() {
         // Bind Textures
         shader.graph.nodes.stream()
-                .filter(node -> node instanceof TextureNode)
-                .map(node -> (TextureNode)node)
+                .filter(node -> node instanceof IShaderNode)
+                .map(node -> (IShaderNode)node)
                 .forEach(this::bind);
     }
-    public void bind(TextureNode node) {
+    public void bind(IShaderNode node) {
         node.bind(this.program);
     }
 

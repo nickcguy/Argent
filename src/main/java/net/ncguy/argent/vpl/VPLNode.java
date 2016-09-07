@@ -20,6 +20,7 @@ import com.kotcrab.vis.ui.VisUI;
 import net.ncguy.argent.utils.ReflectionUtils;
 import net.ncguy.argent.vpl.annotations.NodeColour;
 import net.ncguy.argent.vpl.annotations.NodeData;
+import net.ncguy.argent.vpl.compiler.IShaderNode;
 import net.ncguy.argent.vpl.struct.IdentifierObject;
 
 import java.lang.reflect.InvocationTargetException;
@@ -52,6 +53,9 @@ public class VPLNode<T> extends Table {
     protected NodeType type;
     private int index = 0;
 
+    public VPLNode(VPLGraph graph) {
+        this(graph, null);
+    }
 
     public VPLNode(VPLGraph graph, Method method) {
         super(VisUI.getSkin());
@@ -113,7 +117,7 @@ public class VPLNode<T> extends Table {
         return headerTable.getHeight();
     }
 
-    private String getTitle() {
+    public String getTitle() {
         return VPLManager.instance().getDisplayName(this);
     }
 
@@ -413,12 +417,16 @@ public class VPLNode<T> extends Table {
         pinSet.forEach(pin -> pin.connectedPins.forEach(p -> nodes.add(p.parentNode)));
     }
 
-    public void writeToFile(Kryo kryo, Output output) {
+    public void writeToFile(Kryo kryo, Output output) {}
+    public void readFromFile(Kryo kryo, com.esotericsoftware.kryo.io.Input input) {}
 
-    }
-
-    public void readFromFile(Kryo kryo, com.esotericsoftware.kryo.io.Input input) {
-
+    public IShaderNode getNodePacker(int index) {
+        VPLNode node = getInputNodeAtPin(index);
+        if(node == null) return null;
+        if(node == this) return null;
+        if(VPLManager.instance().isShaderNode(node))
+            return (IShaderNode)node;
+        return null;
     }
 
 }

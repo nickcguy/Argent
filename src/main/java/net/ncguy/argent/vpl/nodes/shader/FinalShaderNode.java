@@ -30,9 +30,9 @@ import static net.ncguy.argent.vpl.VPLPin.Types.INPUT;
         outputTypes = {
             Color.class,
             Color.class,
-            Float.class,
-            Float.class,
-            Float.class,
+            float.class,
+            float.class,
+            float.class,
             Color.class,
             Color.class,
             Vector3.class

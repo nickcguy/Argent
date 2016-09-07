@@ -64,7 +64,7 @@ public class ShaderViewer extends ViewTab implements ShaderSelectedEvent.ShaderS
     @Override
     public void onOpen() {
         content.setDebug(false, true);
-        vplContainer.setDebug(true, true);
+        vplContainer.setDebug(false, true);
     }
 
     @Override

@@ -2,6 +2,7 @@ package net.ncguy.argent.project.widget;
 
 import aurelienribon.tweenengine.Tween;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.*;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
@@ -15,6 +16,7 @@ import net.ncguy.argent.project.ProjectMeta;
 import net.ncguy.argent.project.widget.selector.ProjectWidgetContextMenu;
 import net.ncguy.argent.tween.accessor.ActorTweenAccessor;
 import net.ncguy.argent.tween.accessor.ColorTweenAccessor;
+import net.ncguy.argent.vpl.VPLReference;
 
 /**
  * Created by Guy on 25/08/2016.
@@ -44,12 +46,12 @@ public class ProjectWidget extends Table {
     private void initUI() {
         setBackground("menu-bg");
 
-        name = new Label(this.meta.name, VisUI.getSkin());
+        name = new Label("", VisUI.getSkin());
         add(name).left().expandX().fillX();
-        size = new Label(this.meta.size(), VisUI.getSkin(), "small");
+        size = new Label("", VisUI.getSkin(), "small");
         add(size).right().row();
 
-        path = new Label(this.meta.path, VisUI.getSkin(), "small");
+        path = new Label("", VisUI.getSkin(), "small");
         add(path).left().row();
 
         created = new Label("Created: " + this.meta.created, VisUI.getSkin(), "small");
@@ -77,6 +79,8 @@ public class ProjectWidget extends Table {
             child.setTouchable(Touchable.disabled);
         });
         setTouchable(Touchable.enabled);
+
+        update();
     }
 
     private void attachListeners() {
@@ -128,6 +132,9 @@ public class ProjectWidget extends Table {
     public void update() {
         this.name.setText(this.meta.name);
         this.path.setText(this.meta.path);
-        this.size.setText(this.meta.calculateSize().size());
+        this.meta.calculateSize();
+        this.size.setText(this.meta.size());
+        if(this.meta.rawSize() < 0) setColor(VPLReference.PinColours.RED);
+        else setColor(Color.WHITE);
     }
 }
