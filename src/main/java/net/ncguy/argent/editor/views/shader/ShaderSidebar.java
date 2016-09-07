@@ -72,6 +72,7 @@ public class ShaderSidebar extends Table implements GlobalShaderUpdateEvent.Glob
         addListener(new ClickListener(Input.Buttons.RIGHT) {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                if(event.isStopped()) return;
                 Vector2 pos = localToStageCoordinates(new Vector2(x, y));
                 contextMenu.showMenu(getStage(), pos.x, pos.y);
             }

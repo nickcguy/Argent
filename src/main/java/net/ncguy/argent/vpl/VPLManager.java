@@ -169,6 +169,28 @@ public class VPLManager {
         return false;
     }
 
+    public String[] getTags(Class<?> cls) {
+        if(cls.isAnnotationPresent(NodeData.class)) {
+            NodeData data = cls.getAnnotation(NodeData.class);
+            return data.tags();
+        }
+        return new String[]{"*"};
+    }
+
+    public String[] getKeywords(Class<?> cls) {
+        if(cls.isAnnotationPresent(NodeData.class)) {
+            NodeData data = cls.getAnnotation(NodeData.class);
+            return data.keywords();
+        }
+        return new String[]{""};
+    }
+
+    public String[] getMatchable(Class<?> cls) {
+        String[] keywords = getKeywords(cls);
+        String[] tags = getTags(cls);
+        return AppUtils.General.union(keywords, tags);
+    }
+
     public boolean isTaggedWith(Method method, String tag) {
         if(!method.isAnnotationPresent(NodeData.class)) return false;
         NodeData data = method.getAnnotation(NodeData.class);
@@ -211,6 +233,13 @@ public class VPLManager {
         }
         return new String[]{""};
     }
+
+    public String[] getMatchable(VPLNode node) {
+        String[] keywords = getKeywords(node);
+        String[] tags = getTags(node);
+        return AppUtils.General.union(keywords, tags);
+    }
+
     public boolean canExecIn(VPLNode node) {
         if(node.method != null) return canExecIn(node.method);
         if(node.getClass().isAnnotationPresent(NodeData.class)) {
@@ -298,6 +327,12 @@ public class VPLManager {
         if(!method.isAnnotationPresent(NodeData.class)) return new String[]{""};
         NodeData data = method.getAnnotation(NodeData.class);
         return data.keywords();
+    }
+
+    public String[] getMatchable(Method method) {
+        String[] keywords = getKeywords(method);
+        String[] tags = getTags(method);
+        return AppUtils.General.union(keywords, tags);
     }
 
     public boolean canExecIn(Method method) {

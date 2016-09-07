@@ -23,6 +23,7 @@ import org.lwjgl.glfw.GLFW;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -328,6 +329,19 @@ public class AppUtils {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+
+        public static <T> T[] union(T[] a, T[] b) {
+            T[] matchable;
+            int size = a.length + b.length;
+            matchable = (T[]) Array.newInstance(a[0].getClass(), size);
+//            matchable = new Object[a.length + b.length];
+            int i = 0;
+            for (T keyword : a)
+                matchable[i] = keyword;
+            for (T tag : b)
+                matchable[i] = tag;
+            return matchable;
         }
 
     }

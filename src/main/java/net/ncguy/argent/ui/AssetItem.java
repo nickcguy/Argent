@@ -93,6 +93,7 @@ public class AssetItem<T extends ArgAsset> extends DragZone {
             public void clicked(InputEvent event, float x, float y) {
                 Vector2 pos = localToStageCoordinates(new Vector2(x, y));
                 menu.showMenu(getStage(), pos.x, pos.y);
+                event.stop();
             }
         });
     }

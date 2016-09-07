@@ -86,7 +86,9 @@ public class VPLGraph extends Group {
         objs.stream().sorted(this::sort).distinct().forEach(this::allocate);
     }
     private int sort(Object obj1, Object obj2) {
-        return Argent.lexicographicalSorter.compare(getName(obj1), getName(obj2));
+        String s1 = getName(obj1);
+        String s2 = getName(obj2);
+        return Argent.lexicographicalSorter.compare(s1, s2);
     }
     private String getName(Object obj) {
         if(obj instanceof Method)
@@ -101,12 +103,12 @@ public class VPLGraph extends Group {
         }
     }
     private void addMethodItem(Method m) {
-        SearchableList.Item<Object> item = new SearchableList.Item<>(null, VPLManager.instance().getDisplayName(m), m, VPLManager.instance().getKeywords(m));
+        SearchableList.Item<Object> item = new SearchableList.Item<>(null, VPLManager.instance().getDisplayName(m), m, VPLManager.instance().getMatchable(m));
         this.menu.addItem(item);
     }
     private void addFactoryItem(NodeFactory factory) {
         SearchableList.Item<Object> item =
-                new SearchableList.Item<>(null, factory.toString(), factory);
+                new SearchableList.Item<>(null, factory.toString(), factory, factory.getMatchable());
         this.menu.addItem(item);
     }
 

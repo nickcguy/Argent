@@ -2,6 +2,7 @@ package net.ncguy.argent.vpl.nodes.factory;
 
 import net.ncguy.argent.utils.AppUtils;
 import net.ncguy.argent.vpl.VPLGraph;
+import net.ncguy.argent.vpl.VPLManager;
 import net.ncguy.argent.vpl.VPLNode;
 import net.ncguy.argent.vpl.annotations.NodeData;
 
@@ -35,15 +36,22 @@ public class NodeFactory {
     }
 
     public boolean hasTag(String... tags) {
+        if(tags.length == 0) return true;
         for (String tag : tags)
             if(hasTag(tag)) return true;
         return false;
     }
 
     public boolean hasTag(String tag) {
+        if(tag.length() == 0) return true;
+        if(tag.equalsIgnoreCase("*")) return true;
         if(!cls.isAnnotationPresent(NodeData.class)) return false;
         String[] tags = cls.getAnnotation(NodeData.class).tags();
         return AppUtils.General.arrayContains(tags, tag);
+    }
+
+    public String[] getMatchable() {
+        return VPLManager.instance().getMatchable(this.cls);
     }
 
 }
