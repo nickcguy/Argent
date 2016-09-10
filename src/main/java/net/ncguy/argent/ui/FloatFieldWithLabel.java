@@ -16,15 +16,19 @@ public class FloatFieldWithLabel extends TextFieldWithLabel {
     }
 
     public float getFloat() {
-        if(getText().isEmpty() ||
-                (getText().length() == 1 && (getText().startsWith("-") || getText().startsWith("."))))
-            return 0;
-        if(getText().startsWith("-.")) {
-            int sel = textField.getCursorPosition();
-            setText("-0." + getText().substring(2));
-            textField.setCursorPosition(sel);
+        try {
+            if (getText().isEmpty() ||
+                    (getText().length() == 1 && (getText().startsWith("-") || getText().startsWith("."))))
+                return 0;
+            if (getText().startsWith("-.")) {
+                int sel = textField.getCursorPosition();
+                setText("-0." + getText().substring(2));
+                textField.setCursorPosition(sel);
+            }
+            return Float.parseFloat(getText());
+        }catch (Exception e) {
+            return 0.0f;
         }
-        return Float.parseFloat(getText());
     }
 
 }

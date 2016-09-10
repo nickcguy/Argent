@@ -33,6 +33,7 @@ public class ArgentLightShader extends BaseShader {
         this.renderable = renderable;
         this.program = shaderProgramModelBorder;
         register(DefaultShader.Inputs.worldTrans, DefaultShader.Setters.worldTrans);
+        register(DefaultShader.Inputs.projTrans, DefaultShader.Setters.projTrans);
         register(DefaultShader.Inputs.projViewTrans, DefaultShader.Setters.projViewTrans);
         register(DefaultShader.Inputs.cameraNearFar, DefaultShader.Setters.cameraNearFar);
         register(new Uniform("u_time"), new LocalSetter() {

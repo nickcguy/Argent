@@ -28,9 +28,9 @@ public class DebugTab extends Tab {
     private ScrollPane scroller;
     private GridGroup group;
     private EditorUI editorUI;
-    ArgentRenderer.FBOAttachment[] attachments;
     List<Image> images;
     int imageCount = 0;
+    String[] mrtNames;
 
     public DebugTab(EditorUI editorUI) {
         super(false, false);
@@ -39,23 +39,21 @@ public class DebugTab extends Tab {
         rootContent = new Table(VisUI.getSkin()) {
             @Override
             public void act(float delta) {
+                setDebug(true, true);
                 super.act(delta);
                 if(editorUI.getRenderer() instanceof ArgentRenderer) {
                     ArgentRenderer renderer = (ArgentRenderer) editorUI.getRenderer();
-                    MultiTargetFrameBuffer texMrt = renderer.getTextureMRT();
-                    MultiTargetFrameBuffer ltgMrt = renderer.getLightingMRT();
-                    attachments = new ArgentRenderer.FBOAttachment[renderer.tex_ATTACHMENTS.length + renderer.ltg_ATTACHMENTS.length];
-                    for (int i = 0; i < attachments.length; i++) {
-                        if(i < renderer.tex_ATTACHMENTS.length)
-                            attachments[i] = renderer.tex_ATTACHMENTS[i];
-                        else {
-                            int j = i - renderer.tex_ATTACHMENTS.length;
-                            attachments[i] = renderer.ltg_ATTACHMENTS[j];
-                        }
-                    }
+                    if(mrtNames == null) mrtNames = renderer.getMrtNames();
+//                    MultiTargetFrameBuffer texMrt = renderer.getTextureMRT();
+//                    MultiTargetFrameBuffer ltgMrt = renderer.getLightingMRT();
+//                    MultiTargetFrameBuffer quadFbo = renderer.getQuadFBO();
+
+                    MultiTargetFrameBuffer[] mrts = renderer.getMrts();
+
                     final int[] index = {0};
-                    texMrt.forEach(tex -> configure(tex, index[0]++));
-                    ltgMrt.forEach(tex -> configure(tex, index[0]++));
+                    for (MultiTargetFrameBuffer mrt : mrts)
+                        mrt.forEach(tex -> configure(tex, index[0]++));
+
                     if(images.size() > index[0]) {
                         for(int i = index[0]; i < images.size(); i++)
                             images.remove(i);
@@ -82,6 +80,7 @@ public class DebugTab extends Tab {
     }
 
     private void configure(Texture tex, int index) {
+//        System.out.println(index);
         Image img;
         if(images.size() <= index) {
             img = new Image();
@@ -103,10 +102,10 @@ public class DebugTab extends Tab {
         group.clearChildren();
         final int[] index = {0};
         images.forEach(img -> {
-            index[0] = MathUtils.clamp(index[0], 0, attachments.length-1);
+            index[0] = MathUtils.clamp(index[0], 0, mrtNames.length-1);
             Table t = new Table(VisUI.getSkin());
             t.setBackground("menu-bg");
-            String label = attachments[index[0]++].name;
+            String label = mrtNames[index[0]++];
             t.add(img).expand().fill().row();
             t.add(label).expandX().fillX().row();
             group.addActor(t);

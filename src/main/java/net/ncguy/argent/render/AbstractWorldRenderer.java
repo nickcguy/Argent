@@ -9,6 +9,7 @@ import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.injector.InjectionModule;
 import net.ncguy.argent.injector.InjectionStore;
 import net.ncguy.argent.misc.FreeCamController;
+import net.ncguy.argent.utils.MultiTargetFrameBuffer;
 import net.ncguy.argent.world.GameWorld;
 
 import java.util.LinkedHashSet;
@@ -83,5 +84,12 @@ public abstract class AbstractWorldRenderer<T extends WorldEntity> implements Di
         camera().viewportWidth = width;
         camera().viewportHeight = height;
         camera().update(true);
+    }
+
+    public MultiTargetFrameBuffer[] getMrts() {
+        return new MultiTargetFrameBuffer[0];
+    }
+    public String[] getMrtNames() {
+        return new String[0];
     }
 }

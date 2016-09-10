@@ -45,6 +45,7 @@ public class TextFieldWithLabel extends Table {
         textField.setText(text);
     }
     public void setLabelText(String text) { label.setText(text); }
+    public VisTextField getField() { return textField; }
 
     @Override
     public boolean addListener(EventListener listener) {

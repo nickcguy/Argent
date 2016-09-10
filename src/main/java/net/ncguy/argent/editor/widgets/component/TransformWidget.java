@@ -112,6 +112,16 @@ public class TransformWidget extends BaseInspectorWidget {
     @Override
     public void setValues(WorldEntity e) {
 
+        int cursorposX = posX.getField().getCursorPosition();
+        int cursorposY = posY.getField().getCursorPosition();
+        int cursorposZ = posZ.getField().getCursorPosition();
+        int cursorrotX = rotX.getField().getCursorPosition();
+        int cursorrotY = rotY.getField().getCursorPosition();
+        int cursorrotZ = rotZ.getField().getCursorPosition();
+        int cursorsclX = sclX.getField().getCursorPosition();
+        int cursorsclY = sclY.getField().getCursorPosition();
+        int cursorsclZ = sclZ.getField().getCursorPosition();
+
         boolean valid = e != null;
         posX.setEditable(valid);
         posY.setEditable(valid);
@@ -138,6 +148,16 @@ public class TransformWidget extends BaseInspectorWidget {
         sclX.setText(StringUtils.formatFloat(scl.x, 2));
         sclY.setText(StringUtils.formatFloat(scl.y, 2));
         sclZ.setText(StringUtils.formatFloat(scl.z, 2));
+
+        posX.getField().setCursorPosition(cursorposX);
+        posY.getField().setCursorPosition(cursorposY);
+        posZ.getField().setCursorPosition(cursorposZ);
+        rotX.getField().setCursorPosition(cursorrotX);
+        rotY.getField().setCursorPosition(cursorrotY);
+        rotZ.getField().setCursorPosition(cursorrotZ);
+        sclX.getField().setCursorPosition(cursorsclX);
+        sclY.getField().setCursorPosition(cursorsclY);
+        sclZ.getField().setCursorPosition(cursorsclZ);
     }
 
     public static abstract class TransformListener<T> extends ChangeListener {

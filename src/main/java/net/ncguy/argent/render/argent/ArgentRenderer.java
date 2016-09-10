@@ -2,7 +2,10 @@ package net.ncguy.argent.render.argent;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.GL30;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.Shader;
@@ -40,25 +43,29 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     ModelBatch lightingBatch;
     ShaderProgram lightingProgram;
 
-//    SpriteBatch screenBatch;
-    ShaderProgram screenProgram;
+    MultiTargetFrameBuffer quadFBO;
+    ModelBatch quadBatch;
+    ShaderProgram quadProgram;
+
+    ShaderProgram screenShader;
+    //    SpriteBatch screenBatch;
 
     Vector2 size = new Vector2();
 //    Sprite screenSprite;
 
     public static final FBOAttachment tex_NORMAL = new FBOAttachment(0, "texNormal");
     public static final FBOAttachment tex_DIFFUSE = new FBOAttachment(1, "texDiffuse");
-    public static final FBOAttachment tex_SPCAMBDIS = new FBOAttachment(2, "texSpcAmbDis");
+    public static final FBOAttachment tex_SPCAMBDIS = new FBOAttachment(2, "texSpcAmbDisRef");
 //    public static final FBOAttachment tex_SPECULAR = new FBOAttachment(2, "texSpecular");
 //    public static final FBOAttachment tex_AMBIENT = new FBOAttachment(3, "texAmbient");
 //    public static final FBOAttachment tex_DISPLACEMENT = new FBOAttachment(4, "texDisplacement");
     public static final FBOAttachment tex_EMISSIVE = new FBOAttachment(3, "texEmissive");
-    public static final FBOAttachment tex_REFLECTION = new FBOAttachment(4, "texReflection");
-    public static final FBOAttachment tex_POSITION = new FBOAttachment(5, "texPosition");
-    public static final FBOAttachment tex_MODIFIEDNORMAL = new FBOAttachment(6, "texModNormal");
+//    public static final FBOAttachment tex_REFLECTION = new FBOAttachment(4, "texReflection");
+    public static final FBOAttachment tex_POSITION = new FBOAttachment(4, "texPosition");
+    public static final FBOAttachment tex_MODIFIEDNORMAL = new FBOAttachment(5, "texModNormal");
 
     public static final FBOAttachment[] tex_ATTACHMENTS = new FBOAttachment[]{
-        tex_NORMAL, tex_DIFFUSE, tex_SPCAMBDIS, tex_EMISSIVE, tex_REFLECTION, tex_POSITION, tex_MODIFIEDNORMAL
+        tex_NORMAL, tex_DIFFUSE, tex_SPCAMBDIS, tex_EMISSIVE, tex_POSITION, tex_MODIFIEDNORMAL
     };
 
     public static final FBOAttachment ltg_POSITION = new FBOAttachment(0, "ltgPosition");
@@ -66,11 +73,14 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     public static final FBOAttachment ltg_TEXTURES = new FBOAttachment(1, "ltgTextures");
     public static final FBOAttachment ltg_LIGHTING = new FBOAttachment(2, "ltgLighting");
     public static final FBOAttachment ltg_GEOMETRY = new FBOAttachment(3, "ltgGeometry");
+    public static final FBOAttachment ltg_REFLECTION = new FBOAttachment(4, "ltgReflection");
 
 
     public static final FBOAttachment[] ltg_ATTACHMENTS = new FBOAttachment[] {
-        ltg_POSITION, ltg_TEXTURES, ltg_LIGHTING, ltg_GEOMETRY
+        ltg_POSITION, ltg_TEXTURES, ltg_LIGHTING, ltg_GEOMETRY, ltg_REFLECTION
     };
+
+    public static final int previousFrameIndex = 8;
 
     public ArgentRenderer(GameWorld<T> world) {
         super(world);
@@ -89,12 +99,12 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     @Override
     public ModelBatch batch() {
         if(modelBatch == null) {
-            if(GlobalSettings.useGeometryShader) screenProgram = AppUtils.Shader.loadGeometryShader("pipeline/screen");
-            else screenProgram = AppUtils.Shader.loadShader("pipeline/screen");
+            if(GlobalSettings.useGeometryShader) screenShader = AppUtils.Shader.loadGeometryShader("pipeline/screen");
+            else screenShader = AppUtils.Shader.loadShader("pipeline/screen");
             modelBatch = new ModelBatch(new DefaultShaderProvider() {
                 @Override
                 protected Shader createShader(Renderable renderable) {
-                    return new ArgentScreenShader(renderable, screenProgram);
+                    return new ArgentScreenShader(renderable, screenShader);
                 }
             });
         }
@@ -125,6 +135,8 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         applyGBufferToLighting();
         renderLighting(delta);
         applyLightingToQuad();
+        renderToQuad(delta);
+        applyToScreen();
         renderToScreen(delta);
     }
 
@@ -148,6 +160,22 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     public void renderLighting(float delta) {
         renderToMRT(lightingMRT, lightingBatch, delta);
     }
+    public void renderToQuad(float delta) {
+        quadFBO.begin();
+        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClear(GL30.GL_COLOR_BUFFER_BIT | GL30.GL_DEPTH_BUFFER_BIT);
+        super.render(quadBatch, delta);
+        quadFBO.end();
+    }
+
+    public void applyToScreen() {
+        screenShader.begin();
+        int id = 1;
+        quadFBO.getColorBufferTexture(0).bind(id);
+        screenShader.setUniformi("u_quadBuffer", id);
+        screenShader.end();
+    }
+
     public void renderToScreen(float delta) {
         super.render(batch(), delta);
     }
@@ -156,8 +184,19 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         lightingProgram.begin();
         bindToMRT(textureMRT, lightingProgram, tex_ATTACHMENTS);
         bindLightingData(lightingProgram);
+        bindPreviousFrame(lightingProgram);
         lightingProgram.end();
     }
+
+    public void bindPreviousFrame(ShaderProgram program) {
+        bindPreviousFrame(program, previousFrameIndex);
+    }
+
+    public void bindPreviousFrame(ShaderProgram shaderProgram, int index) {
+        quadFBO.getColorBufferTexture(1).bind(index);
+        shaderProgram.setUniformi("u_previousFrame", index);
+    }
+
     public void bindLightingData(ShaderProgram shaderProgram) {
         final List<LightComponent> lights = new ArrayList<>();
         world.instances().forEach(i -> i.components().stream()
@@ -212,14 +251,14 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     }
 
     public void applyLightingToQuad() {
-        screenProgram.begin();
-        bindToMRT(lightingMRT, screenProgram, 0, ltg_ATTACHMENTS);
+        quadProgram.begin();
+        bindToMRT(lightingMRT, quadProgram, 0, ltg_ATTACHMENTS);
         applyFinalTextureToQuad(ltg_ATTACHMENTS[GlobalSettings.rendererIndex()], 0);
-        screenProgram.end();
+        quadProgram.end();
     }
 
     private void applyFinalTextureToQuad(FBOAttachment attachment, int offset) {
-        screenProgram.setUniformi("ltgFinalColour", attachment.id + offset);
+        quadProgram.setUniformi("ltgFinalColour", attachment.id + offset);
     }
 
     private void bindToMRT(MultiTargetFrameBuffer mrt, ShaderProgram shader, FBOAttachment... attachments) {
@@ -233,13 +272,27 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
             if(tex != null) tex.bind(id);
             attachment.bind(shader, id);
         }
-        mrt.getColorBufferTexture(tex_DIFFUSE.id).bind(tex_DIFFUSE.id);
-        shader.setUniformi(tex_DIFFUSE.name, tex_DIFFUSE.id);
+//        mrt.getColorBufferTexture(tex_DIFFUSE.id).bind(tex_DIFFUSE.id);
+//        shader.setUniformi(tex_DIFFUSE.name, tex_DIFFUSE.id);
         Gdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
     }
 
     public MultiTargetFrameBuffer getTextureMRT()  { return textureMRT;  }
     public MultiTargetFrameBuffer getLightingMRT() { return lightingMRT; }
+    public MultiTargetFrameBuffer getQuadFBO() { return quadFBO; }
+
+    @Override
+    public MultiTargetFrameBuffer[] getMrts() {
+        return new MultiTargetFrameBuffer[] { textureMRT, lightingMRT, quadFBO };
+    }
+
+    @Override
+    public String[] getMrtNames() {
+        String[] texMrt = AppUtils.General.extract(tex_ATTACHMENTS, String.class, a -> a.name);
+        String[] ltgMrt = AppUtils.General.extract(ltg_ATTACHMENTS, String.class, a -> a.name);
+        String[] quadMrt = new String[] { "Quad" };
+        return AppUtils.General.union(String.class, texMrt, ltgMrt, quadMrt);
+    }
 
     public void refreshFBO() {
         if(textureMRT != null) {
@@ -250,12 +303,17 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
             lightingMRT.dispose();
             lightingMRT = null;
         }
+        if(quadFBO != null) {
+            quadFBO.dispose();
+            quadFBO = null;
+        }
 
         textureMRT = create(tex_ATTACHMENTS.length);
         lightingMRT = create(ltg_ATTACHMENTS.length);
+        quadFBO = create(2);
 
         DebugPreview debugPreview = DebugPreview.instance();
-        if(debugPreview != null) debugPreview.build(textureMRT, lightingMRT);
+        if(debugPreview != null) debugPreview.build(textureMRT, lightingMRT, quadFBO);
     }
 
     public void refreshShaders() {
@@ -263,6 +321,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         ShaderProgram.pedantic = false;
         refreshTextureShader();
         refreshLightingShader();
+        refreshQuadShader();
         refreshScreenShader();
     }
 
@@ -307,10 +366,28 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
             }
         });
     }
+    public void refreshQuadShader() {
+        if(quadProgram != null) {
+            quadProgram.dispose();
+            quadProgram = null;
+        }
+        if(quadBatch != null) {
+            quadBatch.dispose();
+            quadBatch = null;
+        }
+        if(GlobalSettings.useGeometryShader) quadProgram = AppUtils.Shader.loadGeometryShader("pipeline/quad");
+        else quadProgram = AppUtils.Shader.loadShader("pipeline/quad");
+        quadBatch = new ModelBatch(new DefaultShaderProvider() {
+            @Override
+            protected Shader createShader(Renderable renderable) {
+                return new ArgentQuadShader(renderable, quadProgram);
+            }
+        });
+    }
     public void refreshScreenShader() {
-        if(screenProgram != null) {
-            screenProgram.dispose();
-            screenProgram = null;
+        if(screenShader != null) {
+            screenShader.dispose();
+            screenShader = null;
         }
         if(modelBatch != null) {
             modelBatch.dispose();
@@ -350,7 +427,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         lightingBatch.dispose();
         lightingProgram.dispose();
 
-        screenProgram.dispose();
+        quadProgram.dispose();
     }
 
     public static class FBOAttachment {

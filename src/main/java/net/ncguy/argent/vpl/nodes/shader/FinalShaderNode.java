@@ -23,8 +23,8 @@ import static net.ncguy.argent.vpl.VPLPin.Types.INPUT;
                 "Specular",
                 "Ambient",
                 "Displacement",
-                "Emissive",
                 "Reflection",
+                "Emissive",
                 "World Position"
         },
         outputTypes = {
@@ -33,7 +33,7 @@ import static net.ncguy.argent.vpl.VPLPin.Types.INPUT;
             float.class,
             float.class,
             float.class,
-            Color.class,
+            float.class,
             Color.class,
             Vector3.class
         }

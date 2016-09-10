@@ -1,33 +1,14 @@
-#version 450 core
+#version 450
 
 out vec4 OutputColour;
 
-uniform sampler2D ltgPosition;
-uniform sampler2D ltgTextures;
-uniform sampler2D ltgLighting;
-
-uniform sampler2D ltgFinalColour;
-
+uniform sampler2D u_quadBuffer;
 uniform vec2 u_screenRes;
-
-in VS_OUT {
-    vec3 Normal;
-    vec2 TexCoords;
-    float Depth;
-    vec4 Position;
-} gs_out;
 
 void main() {
 
     vec2 Texel = gl_FragCoord.xy / u_screenRes;
+    vec4 quad = texture(u_quadBuffer, Texel);
 
-    vec4 pos = texture(ltgPosition, Texel);
-    vec4 tex = texture(ltgTextures, Texel);
-
-    float depth = pos.a;
-
-    vec4 finalCol = tex;
-//    finalCol += depth;
-
-	OutputColour = texture(ltgFinalColour, Texel);
+	OutputColour = quad;
 }

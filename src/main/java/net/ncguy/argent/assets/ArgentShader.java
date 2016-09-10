@@ -32,6 +32,12 @@ public class ArgentShader extends BaseShader {
         register(DefaultShader.Inputs.worldTrans, DefaultShader.Setters.worldTrans);
         register(DefaultShader.Inputs.projViewTrans, DefaultShader.Setters.projViewTrans);
         register(DefaultShader.Inputs.cameraNearFar, DefaultShader.Setters.cameraNearFar);
+        register(new Uniform("u_time"), new LocalSetter() {
+            @Override
+            public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
+                shader.set(inputID, AppUtils.GL.getTime());
+            }
+        });
         register();
     }
 

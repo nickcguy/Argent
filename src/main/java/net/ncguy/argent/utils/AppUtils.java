@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import static com.badlogic.gdx.Input.Keys.SHIFT_LEFT;
 import static com.badlogic.gdx.Input.Keys.SHIFT_RIGHT;
@@ -338,10 +339,31 @@ public class AppUtils {
 //            matchable = new Object[a.length + b.length];
             int i = 0;
             for (T keyword : a)
-                matchable[i] = keyword;
+                matchable[i++] = keyword;
             for (T tag : b)
-                matchable[i] = tag;
+                matchable[i++] = tag;
             return matchable;
+        }
+
+        public static <T, U> U[] extract(T[] array, Class<U> target, Function<T, U> extractor) {
+            U[] out = (U[]) Array.newInstance(target, array.length);
+            for (int i = 0; i < array.length; i++)
+                out[i] = extractor.apply(array[i]);
+            return out;
+        }
+
+        public static <T> T[] union(Class<T> type, T[]... arrs) {
+            T[] arr;
+            int size = 0;
+            for (T[] ts : arrs)
+                size += ts.length;
+            arr = (T[]) Array.newInstance(type, size);
+            int i = 0;
+            for (T[] ts : arrs)
+                for (T t : ts)
+                    arr[i++] = t;
+
+            return arr;
         }
 
     }

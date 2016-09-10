@@ -68,11 +68,10 @@ public class ShaderProgramCompiler extends VPLCompiler<ArgShader> {
 
         fragmentShader.append("layout (location = 0) out vec4 texNormal;\n")
                 .append("layout (location = 1) out vec4 texDiffuse;\n")
-                .append("layout (location = 2) out vec4 texSpcAmbDis;\n")
+                .append("layout (location = 2) out vec4 texSpcAmbDisRef;\n")
                 .append("layout (location = 3) out vec4 texEmissive;\n")
-                .append("layout (location = 4) out vec4 texReflection;\n")
-                .append("layout (location = 5) out vec4 texPosition;\n")
-                .append("layout (location = 6) out vec4 texModNormal;\n\n");
+                .append("layout (location = 4) out vec4 texPosition;\n")
+                .append("layout (location = 5) out vec4 texModNormal;\n\n");
 
         fragmentShader.append("in vec4 Position;\n");
         fragmentShader.append("in vec3 Normal;\n");
@@ -138,27 +137,25 @@ public class ShaderProgramCompiler extends VPLCompiler<ArgShader> {
             append(fragmentShaderBody, "float internal_displacement = 0.0;");
 //            fragmentShaderBody.append("\t").append("float internal_displacement = 0.0;\n");
         }
+        // Reflection
+        IShaderNode ref = getNodePacker(root, 5);
+        if(ref != null) {
+            append(fragmentShaderBody, ref.getFragment());
+            append(fragmentShaderBody, "float internal_reflection = "+ref.getVariable(root)+";");
+        }else{
+            append(fragmentShaderBody, "float internal_reflection = 0.0;");
+        }
         fragmentShaderBody.append("\n");
-        append(fragmentShaderBody, "texSpcAmbDis = vec4(internal_specular, internal_ambient, internal_displacement, 1.0);");
+        append(fragmentShaderBody, "texSpcAmbDisRef = vec4(internal_specular, internal_ambient, internal_displacement, internal_reflection);");
 
         // Emissive
         fragmentShaderBody.append("\n");
-        IShaderNode emi = getNodePacker(root, 5);
+        IShaderNode emi = getNodePacker(root, 6);
         if(emi != null) {
             append(fragmentShaderBody, emi.getFragment());
             append(fragmentShaderBody, "texEmissive = "+emi.getVariable(root)+";");
         }else{
             append(fragmentShaderBody, "texEmissive = vec4(vec3(0.0), 1.0);");
-        }
-
-        // Reflection
-        fragmentShaderBody.append("\n");
-        IShaderNode ref = getNodePacker(root, 6);
-        if(ref != null) {
-            append(fragmentShaderBody, ref.getFragment());
-            append(fragmentShaderBody, "texReflection = "+ref.getVariable(root)+";");
-        }else{
-            append(fragmentShaderBody, "texReflection = vec4(vec3(0.0), 1.0);");
         }
 
         // World position
