@@ -351,7 +351,8 @@ void main() {
     material.Lighting = vec4(lighting, 1.0);
 
 
-    ltgReflection = CalculateSSR(Texel) * material.Reflectiveness;
+    ltgReflection = CalculateSSR(Texel);
+    ltgReflection.a = 1.0;
 
     ltgTextures = material.Lighting;
 

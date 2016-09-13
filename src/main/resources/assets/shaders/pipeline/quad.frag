@@ -41,7 +41,7 @@ void main() {
     vec4 post = vec4(finalCol);
 
 	vec4 ref = texture(ltgReflection, Texel);
-	post += ref;
+	post.rgb += ref.rgb;
 
 	vec4 emi = texture(ltgEmissive, Texel);
 	finalCol += emi;

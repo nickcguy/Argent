@@ -326,7 +326,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
 
     @Override
     public MultiTargetFrameBuffer[] getMrts() {
-        return new MultiTargetFrameBuffer[] { textureMRT, lightingMRT, quadFBO, blurMRT1, blurMRT2};
+        return new MultiTargetFrameBuffer[] { textureMRT, lightingMRT, quadFBO, blurMRT};
     }
 
     @Override
@@ -334,7 +334,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         String[] texMrt = AppUtils.General.extract(tex_ATTACHMENTS, String.class, a -> a.name);
         String[] ltgMrt = AppUtils.General.extract(ltg_ATTACHMENTS, String.class, a -> a.name);
         String[] quadMrt = new String[] { "Quad", "Quad Store", "Quad Blur" };
-        String[] blurMrt = new String[] { "Blur 1", "Blur 2" };
+        String[] blurMrt = new String[] { "Blur 1" };
         return AppUtils.General.union(String.class, texMrt, ltgMrt, quadMrt, blurMrt);
     }
 
@@ -351,24 +351,18 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
             quadFBO.dispose();
             quadFBO = null;
         }
-        if(blurMRT1 != null) {
-            blurMRT1.dispose();
-            blurMRT1 = null;
-        }
-        if(blurMRT2 != null) {
-            blurMRT2.dispose();
-            blurMRT2 = null;
+        if(blurMRT != null) {
+            blurMRT.dispose();
+            blurMRT = null;
         }
 
         textureMRT = create(tex_ATTACHMENTS.length);
         lightingMRT = create(ltg_ATTACHMENTS.length);
         quadFBO = create(3);
-        blurMRT1 = create(1);
-        blurMRT2 = create(1);
-        blurMrts = new MultiTargetFrameBuffer[]{blurMRT1, blurMRT2};
+        blurMRT = create(1);
 
         DebugPreview debugPreview = DebugPreview.instance();
-        if(debugPreview != null) debugPreview.build(textureMRT, lightingMRT, quadFBO, blurMRT1, blurMRT2);
+        if(debugPreview != null) debugPreview.build(textureMRT, lightingMRT, quadFBO, blurMRT);
     }
 
     public void refreshShaders() {
@@ -504,20 +498,16 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     // Emissive stuff
     ShaderProgram blurProgram;
     SpriteBatch blurQuadBatch;
-    MultiTargetFrameBuffer blurMRT1, blurMRT2;
-    MultiTargetFrameBuffer[] blurMrts;
+    MultiTargetFrameBuffer blurMRT;
 
     public void initBlurSystem() {
-        blurMRT1 = create(1);
-        blurMRT2 = create(1);
-        blurMrts = new MultiTargetFrameBuffer[]{blurMRT1, blurMRT2};
+        blurMRT = create(1);
         blurProgram = AppUtils.Shader.loadShader("pipeline/util/blur");
         blurQuadBatch = new SpriteBatch(1024, blurProgram);
     }
 
     public void disposeBlurSystem() {
-        blurMRT1.dispose();
-        blurMRT2.dispose();
+        blurMRT.dispose();
         blurProgram.dispose();
         blurQuadBatch.dispose();
     }
@@ -525,28 +515,20 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     public Texture generateBlurredEmissive() {
         boolean hor = false;
         int i;
-        for(i = 0; i < 10; i++)
-            blurIteration(i == 0, hor = !hor);
+        blurIteration();
 
-        return getBlurMrt(i).getColorBufferTexture(0);
+        return blurMRT.getColorBufferTexture(0);
     }
 
-    public MultiTargetFrameBuffer getBlurMrt(int index) {
-        index %= blurMrts.length;
-        return blurMrts[index];
-    }
-
-    public void blurIteration(boolean first, boolean horizontal) {
+    public void blurIteration() {
         blurProgram.begin();
-        int hIndex = horizontal ? 1 : 0;
-        blurProgram.setUniformi("horizontal", hIndex);
+        blurProgram.setUniformi("blurIteration", 100);
         Texture tex;
-        if(first) tex = lightingMRT.getColorBufferTexture(ltg_EMISSIVE.id);
-        else tex = getBlurMrt(hIndex+1).getColorBufferTexture(0);
+        tex = lightingMRT.getColorBufferTexture(ltg_EMISSIVE.id);
         tex.bind(1);
         blurProgram.setUniformi("image", 1);
         blurProgram.end();
-        getBlurMrt(hIndex).begin();
+        blurMRT.begin();
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
         blurQuadBatch.begin();
@@ -554,7 +536,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         blurQuadBatch.end();
         if(Gdx.input.isKeyJustPressed(Input.Keys.F2))
             ScreenshotUtils.saveScreenshot(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), "Blur");
-        getBlurMrt(hIndex).end();
+        blurMRT.end();
     }
 
     public static class FBOAttachment {
