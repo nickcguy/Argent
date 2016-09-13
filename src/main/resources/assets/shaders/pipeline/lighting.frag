@@ -171,9 +171,20 @@ float Attenuate(float constant, float distance, float linear, float quadratic) {
 
 vec3 CalcPointLight(PointLight l, vec3 normal, vec3 fragPos, vec3 viewDir) {
     vec3 lightDir = normalize(l.Position - fragPos);
+
     float diff = max(dot(normal, lightDir), 0.0);
+//    vec3 reflectDir = reflect(-lightDir, normal);
+
+    float spec = 0.0;
+//    #define useBlinn
+    #ifdef useBlinn
+    vec3 halfwayDir = normalize(lightDir + viewDir);
+    spec = pow(max(dot(normal, halfwayDir), 0.0), 16.0);
+    #else
     vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.Shininess);
+    spec = pow(max(dot(viewDir, reflectDir), 0.0), 8.0);
+    #endif
+
     float distance = length(l.Position - fragPos);
     //Attenuate(l.Intensity, distance, l.Linear, l.Quadratic)
     float attenuation = 1.0 / (1.0 + l.Linear * distance + l.Quadratic * (distance * distance));
@@ -299,7 +310,7 @@ void main() {
 
 //    vec3 normal = nor.rgb;
 //    vec3 normal = texture(texModNormal, Texel).rgb;
-    vec3 normal = normalize(nor.rgb);
+    vec3 normal = normalize(gs_out.Normal);
 
     if(spc > 1.0) {
         ltgTextures.rgb = dif.rgb;
@@ -340,7 +351,7 @@ void main() {
     material.Lighting = vec4(lighting, 1.0);
 
 
-    ltgReflection = CalculateSSR(Texel);
+    ltgReflection = CalculateSSR(Texel) * material.Reflectiveness;
 
     ltgTextures = material.Lighting;
 

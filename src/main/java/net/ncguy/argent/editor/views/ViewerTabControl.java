@@ -59,6 +59,7 @@ public class ViewerTabControl extends Table implements TabbedPaneListener {
 //        tabContent.toBack();
         tabPane.getTable().toFront();
         editorUI.fixLayering();
+        tabPane.getTable().toFront();
     }
 
     @Override

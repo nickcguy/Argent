@@ -90,6 +90,7 @@ public class EditorUI extends Stage {
         statusBar = new StatusBar();
         root.add(statusBar).expandX().fillX().height(25).row();
 
+        viewer.toBack();
 
         setupInput();
     }

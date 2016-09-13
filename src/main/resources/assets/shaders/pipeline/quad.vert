@@ -9,11 +9,11 @@ uniform mat4 u_worldTrans;
 out VS_OUT {
     vec3 Normal;
     vec2 TexCoords;
-    float Depth;
     vec4 Position;
-} vsOut;
+    vec4 Color;
+} gs_out;
 
 void main() {
-    vsOut.Position = u_worldTrans * a_position;
-    gl_Position = u_projViewTrans * vsOut.Position;
+    gs_out.Position = u_worldTrans * a_position;
+    gl_Position = u_projViewTrans * gs_out.Position;
 }

@@ -14,19 +14,21 @@ uniform sampler2D ltgFinalColour;
 
 uniform vec2 u_screenRes;
 
-uniform float u_exposure;
-uniform float u_gamma;
+uniform float u_exposure = 1.0;
+uniform float u_gamma = 1.0;
 
 in VS_OUT {
     vec3 Normal;
     vec2 TexCoords;
-    float Depth;
     vec4 Position;
+    vec4 Color;
 } gs_out;
 
 void main() {
 
     vec2 Texel = gl_FragCoord.xy / u_screenRes;
+//    vec2 Texel = gs_out.TexCoords;
+//    Texel.y = 1-Texel.y;
 
     vec4 pos = texture(ltgPosition, Texel);
     vec4 tex = texture(ltgFinalColour, Texel);

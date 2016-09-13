@@ -2,10 +2,7 @@ package net.ncguy.argent.render.argent;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.GL30;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.Renderable;
@@ -44,12 +41,12 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     ModelBatch lightingBatch;
     ShaderProgram lightingProgram;
 
-    MultiTargetFrameBuffer quadFBO;
     ModelBatch quadBatch;
+    MultiTargetFrameBuffer quadFBO;
     ShaderProgram quadProgram;
 
     ShaderProgram screenShader;
-    //    SpriteBatch screenBatch;
+    SpriteBatch screenBatch;
 
     Vector2 size = new Vector2();
 //    Sprite screenSprite;
@@ -120,6 +117,10 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         camera().update(true);
         if(width <= 0 || height <= 0) return;
         refreshFBO();
+        if(mesh != null) {
+            mesh.dispose();
+            mesh = null;
+        }
     }
 
     @Override
@@ -178,7 +179,45 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         screenShader.end();
     }
 
+    private Mesh mesh;
+    public Mesh mesh() {
+        if (mesh == null) {
+            float[] verts = new float[20];
+            int i = 0;
+            verts[i++] = -1f;
+            verts[i++] = -1;
+            verts[i++] = 0;
+            verts[i++] = 0;
+            verts[i++] = 0;
+
+            verts[i++] = 1;
+            verts[i++] = -1;
+            verts[i++] = 0;
+            verts[i++] = 1;
+            verts[i++] = 0;
+
+            verts[i++] = 1;
+            verts[i++] = 1;
+            verts[i++] = 0;
+            verts[i++] = 1;
+            verts[i++] = 1;
+
+            verts[i++] = -1f;
+            verts[i++] = 1;
+            verts[i++] = 0;
+            verts[i++] = 0;
+            verts[i++] = 1;
+
+            mesh = new Mesh(true, 4, 0,
+                    new VertexAttribute(VertexAttributes.Usage.Position, 3, ShaderProgram.POSITION_ATTRIBUTE),
+                    new VertexAttribute(VertexAttributes.Usage.TextureCoordinates, 2, ShaderProgram.TEXCOORD_ATTRIBUTE+"0"));
+            mesh.setVertices(verts);
+        }
+        return mesh;
+    }
+
     public void renderToScreen(float delta) {
+        // TODO render to quad before displaying on screen
         super.render(batch(), delta);
     }
 
@@ -406,12 +445,14 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
             screenShader.dispose();
             screenShader = null;
         }
-        if(modelBatch != null) {
-            modelBatch.dispose();
-            modelBatch = null;
+        if(screenBatch != null) {
+            screenBatch.dispose();
+            screenBatch = null;
         }
-        batch();
+        screenShader = AppUtils.Shader.loadShader("pipeline/screen");
+        screenBatch = new SpriteBatch(1024, screenShader);
     }
+
     public void refreshBlurShader() {
         if(blurProgram != null) {
             blurProgram.dispose();

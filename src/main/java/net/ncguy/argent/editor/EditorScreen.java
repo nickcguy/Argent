@@ -49,6 +49,7 @@ public class EditorScreen implements Screen {
         projectManager.current().currScene.sceneGraph.render(delta);
 
         GlobalSettings.exposure = 1f;
+        GlobalSettings.gamma = 1f;
     }
 
     @Override
