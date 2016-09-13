@@ -10,7 +10,7 @@ import java.lang.reflect.Method;
 /**
  * Created by Guy on 10/09/2016.
  */
-@NodeData("PI")
+@NodeData(value = "PI",tags = "shader")
 public class PiNode extends VPLShaderNode<Float> {
 
     public PiNode(VPLGraph graph) {

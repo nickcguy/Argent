@@ -12,7 +12,7 @@ import static net.ncguy.argent.vpl.VPLPin.Types.*;
 /**
  * Created by Guy on 10/09/2016.
  */
-@NodeData("Subtract")
+@NodeData(value = "Subtract",tags = "shader")
 public class SubtractNode extends VPLShaderNode<Float> {
 
     public SubtractNode(VPLGraph graph) {

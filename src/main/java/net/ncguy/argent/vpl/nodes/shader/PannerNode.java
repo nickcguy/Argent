@@ -15,7 +15,7 @@ import java.lang.reflect.Method;
 /**
  * Created by Guy on 07/09/2016.
  */
-@NodeData(value = "Panner", keywords = "shader", execIn = false, execOut = false)
+@NodeData(value = "Panner", tags = "shader", execIn = false, execOut = false)
 public class PannerNode extends VPLNode<Vector2> implements IShaderNode {
 
     public PannerNode(VPLGraph graph) {

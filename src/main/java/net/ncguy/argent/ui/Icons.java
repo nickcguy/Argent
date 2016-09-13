@@ -159,6 +159,13 @@ public class Icons {
         PIN_EXEC_CONNECTED("ExecPin_Connected"),
         PIN_EXEC("ExecPin_Disconnected"),
         NODE_INVALIDATE("Node_Invalidate"),
+        ASSET_BG("AssetBackground"),
+        HAZARD_TAPE("HazardTape"),
+        ARROW("Arrow"),
+        ARROW_HOVER("Arrow_Hover"),
+        TABLEHEADER("TableViewHeader"),
+        ASSET_BG_SELECTED("AssetBackground_sel"),
+        DROP_ZONE("DropZoneIndicator"),
         ;
         Node(String name) {
             this.name = name;

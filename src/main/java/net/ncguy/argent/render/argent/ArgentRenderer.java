@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.GL30;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.Shader;
@@ -74,10 +75,11 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     public static final FBOAttachment ltg_LIGHTING = new FBOAttachment(2, "ltgLighting");
     public static final FBOAttachment ltg_GEOMETRY = new FBOAttachment(3, "ltgGeometry");
     public static final FBOAttachment ltg_REFLECTION = new FBOAttachment(4, "ltgReflection");
+    public static final FBOAttachment ltg_EMISSIVE = new FBOAttachment(5, "ltgEmissive");
 
 
     public static final FBOAttachment[] ltg_ATTACHMENTS = new FBOAttachment[] {
-        ltg_POSITION, ltg_TEXTURES, ltg_LIGHTING, ltg_GEOMETRY, ltg_REFLECTION
+        ltg_POSITION, ltg_TEXTURES, ltg_LIGHTING, ltg_GEOMETRY, ltg_REFLECTION, ltg_EMISSIVE
     };
 
     public static final int previousFrameIndex = 8;
@@ -251,9 +253,11 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     }
 
     public void applyLightingToQuad() {
+        Texture emissive = generateBlurredEmissive();
         quadProgram.begin();
         bindToMRT(lightingMRT, quadProgram, 0, ltg_ATTACHMENTS);
         applyFinalTextureToQuad(ltg_ATTACHMENTS[GlobalSettings.rendererIndex()], 0);
+        emissive.bind(ltg_EMISSIVE.id);
         quadProgram.end();
     }
 
@@ -283,15 +287,16 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
 
     @Override
     public MultiTargetFrameBuffer[] getMrts() {
-        return new MultiTargetFrameBuffer[] { textureMRT, lightingMRT, quadFBO };
+        return new MultiTargetFrameBuffer[] { textureMRT, lightingMRT, quadFBO, blurMRT1, blurMRT2};
     }
 
     @Override
     public String[] getMrtNames() {
         String[] texMrt = AppUtils.General.extract(tex_ATTACHMENTS, String.class, a -> a.name);
         String[] ltgMrt = AppUtils.General.extract(ltg_ATTACHMENTS, String.class, a -> a.name);
-        String[] quadMrt = new String[] { "Quad" };
-        return AppUtils.General.union(String.class, texMrt, ltgMrt, quadMrt);
+        String[] quadMrt = new String[] { "Quad", "Quad Store", "Quad Blur" };
+        String[] blurMrt = new String[] { "Blur 1", "Blur 2" };
+        return AppUtils.General.union(String.class, texMrt, ltgMrt, quadMrt, blurMrt);
     }
 
     public void refreshFBO() {
@@ -307,13 +312,24 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
             quadFBO.dispose();
             quadFBO = null;
         }
+        if(blurMRT1 != null) {
+            blurMRT1.dispose();
+            blurMRT1 = null;
+        }
+        if(blurMRT2 != null) {
+            blurMRT2.dispose();
+            blurMRT2 = null;
+        }
 
         textureMRT = create(tex_ATTACHMENTS.length);
         lightingMRT = create(ltg_ATTACHMENTS.length);
-        quadFBO = create(2);
+        quadFBO = create(3);
+        blurMRT1 = create(1);
+        blurMRT2 = create(1);
+        blurMrts = new MultiTargetFrameBuffer[]{blurMRT1, blurMRT2};
 
         DebugPreview debugPreview = DebugPreview.instance();
-        if(debugPreview != null) debugPreview.build(textureMRT, lightingMRT, quadFBO);
+        if(debugPreview != null) debugPreview.build(textureMRT, lightingMRT, quadFBO, blurMRT1, blurMRT2);
     }
 
     public void refreshShaders() {
@@ -323,6 +339,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         refreshLightingShader();
         refreshQuadShader();
         refreshScreenShader();
+        refreshBlurShader();
     }
 
     public void refreshTextureShader() {
@@ -395,6 +412,17 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         }
         batch();
     }
+    public void refreshBlurShader() {
+        if(blurProgram != null) {
+            blurProgram.dispose();
+            blurProgram = null;
+        }
+        if(blurQuadBatch != null) {
+            blurQuadBatch.dispose();
+            blurQuadBatch = null;
+        }
+        initBlurSystem();
+    }
 
     private MultiTargetFrameBuffer create(int bufferCount) {
         return MultiTargetFrameBuffer.create(MultiTargetFrameBuffer.Format.RGBA32F, bufferCount,
@@ -427,7 +455,65 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         lightingBatch.dispose();
         lightingProgram.dispose();
 
+        disposeBlurSystem();
+
         quadProgram.dispose();
+    }
+
+    // Emissive stuff
+    ShaderProgram blurProgram;
+    SpriteBatch blurQuadBatch;
+    MultiTargetFrameBuffer blurMRT1, blurMRT2;
+    MultiTargetFrameBuffer[] blurMrts;
+
+    public void initBlurSystem() {
+        blurMRT1 = create(1);
+        blurMRT2 = create(1);
+        blurMrts = new MultiTargetFrameBuffer[]{blurMRT1, blurMRT2};
+        blurProgram = AppUtils.Shader.loadShader("pipeline/util/blur");
+        blurQuadBatch = new SpriteBatch(1024, blurProgram);
+    }
+
+    public void disposeBlurSystem() {
+        blurMRT1.dispose();
+        blurMRT2.dispose();
+        blurProgram.dispose();
+        blurQuadBatch.dispose();
+    }
+
+    public Texture generateBlurredEmissive() {
+        boolean hor = false;
+        int i;
+        for(i = 0; i < 10; i++)
+            blurIteration(i == 0, hor = !hor);
+
+        return getBlurMrt(i).getColorBufferTexture(0);
+    }
+
+    public MultiTargetFrameBuffer getBlurMrt(int index) {
+        index %= blurMrts.length;
+        return blurMrts[index];
+    }
+
+    public void blurIteration(boolean first, boolean horizontal) {
+        blurProgram.begin();
+        int hIndex = horizontal ? 1 : 0;
+        blurProgram.setUniformi("horizontal", hIndex);
+        Texture tex;
+        if(first) tex = lightingMRT.getColorBufferTexture(ltg_EMISSIVE.id);
+        else tex = getBlurMrt(hIndex+1).getColorBufferTexture(0);
+        tex.bind(1);
+        blurProgram.setUniformi("image", 1);
+        blurProgram.end();
+        getBlurMrt(hIndex).begin();
+        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+        blurQuadBatch.begin();
+        blurQuadBatch.draw(tex, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        blurQuadBatch.end();
+        if(Gdx.input.isKeyJustPressed(Input.Keys.F2))
+            ScreenshotUtils.saveScreenshot(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), "Blur");
+        getBlurMrt(hIndex).end();
     }
 
     public static class FBOAttachment {

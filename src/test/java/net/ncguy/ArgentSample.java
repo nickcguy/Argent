@@ -8,6 +8,7 @@ import net.ncguy.argent.data.tree.TreeObjectWrapper;
 import net.ncguy.argent.data.tree.TreePopulator;
 import net.ncguy.argent.data.tree.VisitableTree;
 import net.ncguy.argent.data.tree.sample.PrintIndentedVisitor;
+import net.ncguy.argent.project.ProjectSelectorScreen;
 import net.ncguy.screen.LoaderScreen;
 
 import java.util.ArrayList;
@@ -41,7 +42,7 @@ public class ArgentSample extends ArgentGame {
         forest.accept(new PrintIndentedVisitor<>(0));
 
         Argent.loadDefaultModules();
-        setScreen(new LoaderScreen(this));
+        setScreen(new LoaderScreen(this, new ProjectSelectorScreen()));
     }
 
     public static void main(String[] args) {

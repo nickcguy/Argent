@@ -18,6 +18,11 @@ public class ArgShaderSerializer extends Serializer<ArgShader> {
         kryo.writeObject(output, object.vertexShaderSource);
         kryo.writeObject(output, object.fragmentShaderSource);
 
+        // Variables
+//        int size = object.variables.size();
+//        kryo.writeObject(output, size);
+//        object.variables.forEach(var -> kryo.writeObject(output, var));
+
         // Graph
         kryo.writeObject(output, object.graph);
     }
@@ -31,6 +36,13 @@ public class ArgShaderSerializer extends Serializer<ArgShader> {
         VPLGraph graph = kryo.readObject(input, VPLGraph.class);
 
         ArgShader shader = new ArgShader(vert, frag, graph);
+        graph.refreshMenu("shader");
+
+//        int varCount = kryo.readObject(input, int.class);
+//        for (int i = 0; i < varCount; i++)
+//            shader.variables.add(kryo.readObject(input, AbstractArgShaderVariable.class));
+
+
         shader.name(name);
         return shader;
     }

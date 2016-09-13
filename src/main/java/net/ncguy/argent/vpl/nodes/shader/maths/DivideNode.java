@@ -12,7 +12,7 @@ import static net.ncguy.argent.vpl.VPLPin.Types.*;
 /**
  * Created by Guy on 10/09/2016.
  */
-@NodeData("Divide")
+@NodeData(value = "Divide",tags = "shader")
 public class DivideNode extends VPLShaderNode<Float> {
 
     public DivideNode(VPLGraph graph) {

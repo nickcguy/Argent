@@ -63,10 +63,10 @@ public class KryoManager {
         kryo.register(VPLGraph.class, new VPLGraphSerializer());
         kryo.register(VPLNode.class, new VPLNodeSerializer<>());
 
-        new Reflections("").getSubTypesOf(VPLNode.class).forEach(cls -> {
+        new Thread(() -> new Reflections("").getSubTypesOf(VPLNode.class).forEach(cls -> {
             if(!Modifier.isAbstract(cls.getModifiers()))
                 kryo.register(cls, new VPLNodeSerializer());
-        });
+        })).start();
 
         kryo.register(VPLPin.class, new VPLPinSerializer());
 

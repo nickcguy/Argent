@@ -12,7 +12,7 @@ import static net.ncguy.argent.vpl.VPLPin.Types.*;
 /**
  * Created by Guy on 10/09/2016.
  */
-@NodeData("Mod")
+@NodeData(value = "Mod",tags = "shader")
 public class ModulusNode extends VPLShaderNode<Float> {
 
     public ModulusNode(VPLGraph graph) {

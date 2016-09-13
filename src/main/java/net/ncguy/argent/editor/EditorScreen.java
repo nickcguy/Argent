@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL30;
 import net.ncguy.argent.Argent;
+import net.ncguy.argent.GlobalSettings;
 import net.ncguy.argent.editor.project.ProjectManager;
 import net.ncguy.argent.injector.ArgentInjector;
 import net.ncguy.argent.injector.Inject;
@@ -46,6 +47,8 @@ public class EditorScreen implements Screen {
 
         projectManager.current().currScene.sceneGraph.update(delta);
         projectManager.current().currScene.sceneGraph.render(delta);
+
+        GlobalSettings.exposure = 1f;
     }
 
     @Override

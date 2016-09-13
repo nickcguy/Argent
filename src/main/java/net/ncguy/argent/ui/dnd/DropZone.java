@@ -40,6 +40,8 @@ public class DropZone<T> extends DnDZone {
     @Override
     public void draw(Batch batch, float parentAlpha) {
         super.draw(batch, parentAlpha);
+        if(showHighlight)
+            highlight().draw(batch, getX(), getY(), getWidth(), getHeight());
         border.draw(batch, getX(), getY(), getWidth(), getHeight());
     }
 
@@ -55,11 +57,6 @@ public class DropZone<T> extends DnDZone {
 
     public Consumer<T> getOnDrop() { return onDrop; }
     public void setOnDrop(Consumer<T> onDrop) { this.onDrop = onDrop; }
-
-    @Override
-    public void highlight() {
-
-    }
 
     public Consumer<TargetDragPayload> getOnHover() { return onHover; }
     public void setOnHover(Consumer<TargetDragPayload> onHover) { this.onHover = onHover; }

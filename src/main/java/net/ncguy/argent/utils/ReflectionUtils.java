@@ -1,5 +1,7 @@
 package net.ncguy.argent.utils;
 
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
@@ -87,6 +89,28 @@ public class ReflectionUtils {
         if(prim != null)
             return prim;
         return Class.forName(name);
+    }
+
+
+    private static Field shaderProgramHandleField;
+    private static Field shaderProgramHandleField() {
+        if(shaderProgramHandleField == null) {
+            try {
+                shaderProgramHandleField = ShaderProgram.class.getDeclaredField("program");
+            } catch (NoSuchFieldException e) {
+                e.printStackTrace();
+            }
+        }
+        shaderProgramHandleField.setAccessible(true);
+        return shaderProgramHandleField;
+    }
+    public static int getShaderProgramHandle(ShaderProgram program) {
+        try {
+            return (int) shaderProgramHandleField().get(program);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
 }

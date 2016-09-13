@@ -3,10 +3,12 @@ package net.ncguy.argent.ui.dnd;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop;
+import com.badlogic.gdx.scenes.scene2d.utils.NinePatchDrawable;
 import com.kotcrab.vis.ui.VisUI;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.injector.ArgentInjector;
 import net.ncguy.argent.injector.Inject;
+import net.ncguy.argent.ui.Icons;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,12 @@ public abstract class DnDZone extends Table {
     public static List<DropZone> dropZones = new ArrayList<>();
     public static List<DragDropZone> hybridZones = new ArrayList<>();
 
+    private static NinePatchDrawable highlight;
+    public static NinePatchDrawable highlight() {
+        if(highlight == null)
+            highlight = new NinePatchDrawable(Icons.Node.DROP_ZONE.patch());
+        return highlight;
+    }
 
     private static ShapeRenderer renderer;
     protected static ShapeRenderer renderer() {
@@ -29,6 +37,7 @@ public abstract class DnDZone extends Table {
         return renderer;
     }
 
+    boolean showHighlight = false;
 
     public boolean hasTag(DnDZone zone) {
         return hasTag(zone.getTag());
@@ -82,7 +91,9 @@ public abstract class DnDZone extends Table {
         addZone(this);
     }
 
-    public abstract void highlight();
+    public void highlight(boolean show) {
+        showHighlight = show;
+    }
 
     public abstract void onDrop_Safe(Object object);
     public abstract void onHover(TargetDragPayload dragPayload);

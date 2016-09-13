@@ -33,6 +33,7 @@ public class UIModule extends IModule {
     @Override
     public void init() {
         VisUI.load(handle);
+        Icons.init();
         FreeTypeFontGenerator gen = new FreeTypeFontGenerator(fontHandle);
         FreeTypeFontGenerator.FreeTypeFontParameter params = new FreeTypeFontGenerator.FreeTypeFontParameter();
         params.size = 16;
@@ -52,7 +53,6 @@ public class UIModule extends IModule {
         VisUI.getSkin().addRegions(borderAtlas);
 
         gen.dispose();
-        Icons.init();
 
         DragAndDrop dnd = new DragAndDrop();
         try {

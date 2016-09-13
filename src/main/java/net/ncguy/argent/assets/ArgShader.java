@@ -20,6 +20,7 @@ import net.ncguy.argent.vpl.nodes.shader.FinalShaderNode;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,6 +47,8 @@ public class ArgShader extends ArgAsset<ShaderProgram> {
 
     public VPLGraph graph;
 
+    public List<AbstractArgShaderVariable> variables;
+
     public ArgShader(ShaderProgram program) {
         this(program.getVertexShaderSource(), program.getFragmentShaderSource());
         setAsset(program);
@@ -59,6 +62,7 @@ public class ArgShader extends ArgAsset<ShaderProgram> {
         this.vertexShaderSource = vert;
         this.fragmentShaderSource = frag;
         this.graph = graph;
+        variables = new ArrayList<>();
     }
 
     public VPLNode getGraphRootNode() {

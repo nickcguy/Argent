@@ -17,14 +17,16 @@ public class EntityModule extends IModule {
 
     @Override
     public void init() {
-        Reflections refs = new Reflections("net.ncguy.argent");
-        Set<Class<? extends ArgentComponent>> clsSet = refs.getSubTypesOf(ArgentComponent.class);
-        clsSet = clsSet.stream().filter(cls -> cls.isAnnotationPresent(ComponentData.class)).collect(Collectors.toSet());
-        try {
-            InjectionStore.setGlobal(new ComponentSet(clsSet));
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
+        new Thread(() -> {
+            Reflections refs = new Reflections("net.ncguy.argent");
+            Set<Class<? extends ArgentComponent>> clsSet = refs.getSubTypesOf(ArgentComponent.class);
+            clsSet = clsSet.stream().filter(cls -> cls.isAnnotationPresent(ComponentData.class)).collect(Collectors.toSet());
+            try {
+                InjectionStore.setGlobal(new ComponentSet(clsSet));
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     @Override

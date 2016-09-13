@@ -12,7 +12,7 @@ import static net.ncguy.argent.vpl.VPLPin.Types.*;
 /**
  * Created by Guy on 10/09/2016.
  */
-@NodeData("Add")
+@NodeData(value = "Add",tags = "shader")
 public class AddNode extends VPLShaderNode<Float> {
 
     public AddNode(VPLGraph graph) {

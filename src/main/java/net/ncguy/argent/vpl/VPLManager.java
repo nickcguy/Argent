@@ -71,15 +71,17 @@ public class VPLManager {
     }
 
     private void SearchAndRegisterFactories() {
-        Reflections ref = new Reflections();
-        VPLModule.getNodeFactoryLocations().forEach(s -> {
-            ref.merge(new Reflections(s));
-        });
-        ref.getTypesAnnotatedWith(NodeData.class)
-                .stream()
-                .filter(VPLNode.class::isAssignableFrom)
-                .map(cls -> (Class<? extends VPLNode>)cls)
-                .forEach(cls -> registeredNodeFactories.add(new NodeFactory(cls)));
+        new Thread(() -> {
+            Reflections ref = new Reflections();
+            VPLModule.getNodeFactoryLocations().forEach(s -> {
+                ref.merge(new Reflections(s));
+            });
+            ref.getTypesAnnotatedWith(NodeData.class)
+                    .stream()
+                    .filter(VPLNode.class::isAssignableFrom)
+                    .map(cls -> (Class<? extends VPLNode>)cls)
+                    .forEach(cls -> registeredNodeFactories.add(new NodeFactory(cls)));
+        }).start();
 
 //        this.menu.addItem(new SearchableList.Item<>(null, "Texture Node", new NodeFactory(TextureNode.class)));
 //        this.menu.addItem(new SearchableList.Item<>(null, "Shader Node", new NodeFactory(FinalShaderNode.class)));

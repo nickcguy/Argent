@@ -12,7 +12,7 @@ import static net.ncguy.argent.vpl.VPLPin.Types.*;
 /**
  * Created by Guy on 10/09/2016.
  */
-@NodeData("Multiply")
+@NodeData(value = "Multiply",tags = "shader")
 public class TimesNode extends VPLShaderNode<Float> {
 
     public TimesNode(VPLGraph graph) {

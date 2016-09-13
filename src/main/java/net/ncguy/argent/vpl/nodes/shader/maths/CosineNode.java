@@ -12,7 +12,7 @@ import static net.ncguy.argent.vpl.VPLPin.Types.*;
 /**
  * Created by Guy on 10/09/2016.
  */
-@NodeData("Cosine")
+@NodeData(value = "Cosine",tags = "shader")
 public class CosineNode extends VPLShaderNode<Float> {
 
     public CosineNode(VPLGraph graph) {

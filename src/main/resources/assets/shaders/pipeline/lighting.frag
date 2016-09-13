@@ -5,6 +5,7 @@ layout (location = 1) out vec4 ltgTextures;
 layout (location = 2) out vec4 ltgLighting;
 layout (location = 3) out vec4 ltgGeometry;
 layout (location = 4) out vec4 ltgReflection;
+layout (location = 5) out vec4 ltgEmissive;
 
 uniform vec2 u_screenRes;
 
@@ -19,6 +20,8 @@ uniform sampler2D u_previousFrame;
 
 uniform mat4 u_projViewTrans;
 uniform mat4 u_worldTrans;
+
+#define EMISSIVE_THRESHOLD 0.95
 
 struct PointLight {
     vec3 Position;
@@ -249,6 +252,18 @@ vec4 CalculateSSR(vec2 Texel) {
     return origColour*fact + newColour*(1-fact);
 }
 
+float avg(vec3 rgb) {
+    return (rgb.r + rgb.g + rgb.b) / 3;
+}
+
+vec3 getEmissive(vec3 rgb) {
+    vec3 emi = vec3(0.0);
+    if(rgb.r > EMISSIVE_THRESHOLD) emi.r = rgb.r;
+    if(rgb.g > EMISSIVE_THRESHOLD) emi.g = rgb.g;
+    if(rgb.b > EMISSIVE_THRESHOLD) emi.b = rgb.b;
+    return emi;
+}
+
 void main() {
 
     Position = gs_out.Position;
@@ -303,7 +318,7 @@ void main() {
 
 
     // Emissive
-    lighting += emi.rgb;
+//    lighting += emi.rgb;
 
     // ScreenSpace Reflection
 //    vec3 viewPos = gs_out.Position.xyz;
@@ -324,9 +339,13 @@ void main() {
 
     material.Lighting = vec4(lighting, 1.0);
 
+
     ltgReflection = CalculateSSR(Texel);
 
     ltgTextures = material.Lighting;
+
+    ltgEmissive = vec4(getEmissive(ltgTextures.rgb), 1.0);
+    ltgEmissive.rgb += getEmissive(emi.rgb);
 
     ltgGeometry = vec4(vec3(amb), 1.0);
 

@@ -12,7 +12,7 @@ import static net.ncguy.argent.vpl.VPLPin.Types.*;
 /**
  * Created by Guy on 10/09/2016.
  */
-@NodeData("Degrees to Radians")
+@NodeData(value = "Degrees to Radians",tags = "shader")
 public class DegreesToRadiansNode extends VPLShaderNode<Float> {
 
     public DegreesToRadiansNode(VPLGraph graph) {

@@ -199,7 +199,7 @@ public class VPLPin extends Group {
                 parentNode.graph.draggingPin = false;
                 renderDraggedSpline = false;
                 zone.targets.forEach(zone.dnd()::removeTarget);
-                zone.targets.forEach(t -> t.getActor().setDebug(false));
+                zone.getTargetZones().forEach(z -> z.highlight(false));
                 zone.targets.clear();
             }
         });

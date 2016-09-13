@@ -34,6 +34,7 @@ public class SceneGraph {
             }
         };
         this.scene = scene;
+//        this.renderer = new ShaderWorldRenderer(this.world);
         this.renderer = new ArgentRenderer(this.world);
 //        this.renderer = new BasicWorldRenderer(this.world);
     }

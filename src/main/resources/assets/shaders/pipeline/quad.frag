@@ -2,15 +2,20 @@
 
 layout(location = 0) out vec4 OutputColour;
 layout(location = 1) out vec4 OutputColour_store;
+layout(location = 2) out vec4 OutputColour_Blur;
 
 uniform sampler2D ltgPosition;
 uniform sampler2D ltgTextures;
 uniform sampler2D ltgLighting;
 uniform sampler2D ltgReflection;
+uniform sampler2D ltgEmissive;
 
 uniform sampler2D ltgFinalColour;
 
 uniform vec2 u_screenRes;
+
+uniform float u_exposure;
+uniform float u_gamma;
 
 in VS_OUT {
     vec3 Normal;
@@ -29,14 +34,23 @@ void main() {
     float depth = pos.a;
 
     vec4 finalCol = tex;
-//    finalCol += depth;
+    finalCol += 1-depth;
 
     vec4 post = vec4(finalCol);
 
 	vec4 ref = texture(ltgReflection, Texel);
 	post += ref;
 
-	OutputColour = ref;
+	vec4 emi = texture(ltgEmissive, Texel);
+	finalCol += emi;
+	post += emi;
+
+	vec3 result = vec3(1.0) - exp(-post.rgb * u_exposure);
+	result = pow(result, vec3(1.0 / u_gamma));
+
+	OutputColour = vec4(result, 1.0);
 
 	OutputColour_store = finalCol;
+
+	OutputColour_Blur = emi;
 }

@@ -1,6 +1,7 @@
 package net.ncguy.argent.ui.dnd;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop;
 
@@ -37,11 +38,6 @@ public class DragDropZone<T> extends DnDZone {
     @Override
     public String getTag() {
         return tag;
-    }
-
-    @Override
-    public void highlight() {
-
     }
 
     @Override
@@ -88,9 +84,16 @@ public class DragDropZone<T> extends DnDZone {
                     zone.onDrop_Safe(payload.getObject());
                 }
             });
-            target.getActor().setDebug(true);
+            zone.highlight(true);
             targets.add(target);
         }
+    }
+
+    @Override
+    public void draw(Batch batch, float parentAlpha) {
+        super.draw(batch, parentAlpha);
+        if(showHighlight)
+            highlight().draw(batch, getX(), getY(), getWidth(), getHeight());
     }
 
     public Consumer<DragDropZone.TargetDragPayload> getOnHover() { return onHover; }

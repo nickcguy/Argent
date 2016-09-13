@@ -6,11 +6,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.kotcrab.vis.ui.VisUI;
-import net.ncguy.argent.assets.ArgShader;
 import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.entity.components.model.primitive.PrimitivePlaneModelComponent;
 import net.ncguy.argent.ui.FloatFieldWithLabel;
-import net.ncguy.argent.ui.dnd.DropZone;
 
 /**
  * Created by Guy on 16/08/2016.
@@ -21,7 +19,7 @@ public class PrimitivePlaneModelWidget extends ComponentWidget<PrimitivePlaneMod
     private FloatFieldWithLabel width;
     private FloatFieldWithLabel height;
     private CheckBox twoSided;
-    private DropZone<ArgShader> mtlDropZone;
+//    private DropZone<ArgShader> mtlDropZone;
 
     public PrimitivePlaneModelWidget(PrimitivePlaneModelComponent component) {
         super(component, "Plane Primitive");
@@ -37,8 +35,8 @@ public class PrimitivePlaneModelWidget extends ComponentWidget<PrimitivePlaneMod
         width = new FloatFieldWithLabel("Width", size, false);
         height = new FloatFieldWithLabel("Height", size, false);
         twoSided = new CheckBox("Two Sided", VisUI.getSkin());
-        mtlDropZone = new DropZone<>(ArgShader.class, "shader");
-        mtlDropZone.setOnDrop(component::setMaterial);
+//        mtlDropZone = new DropZone<>(ArgShader.class, "shader");
+//        mtlDropZone.setOnDrop(component::setMaterial);
     }
     protected void setupUI() {
         int pad = 4;
@@ -52,8 +50,8 @@ public class PrimitivePlaneModelWidget extends ComponentWidget<PrimitivePlaneMod
         collapsibleContent.add("Name").padRight(5).padBottom(pad).left();
         collapsibleContent.add(name).padBottom(pad).colspan(2).expandX().fillX().row();
 
-        collapsibleContent.add("Material").padRight(5).padBottom(pad).left();
-        collapsibleContent.add(mtlDropZone).padBottom(pad).colspan(3).expandX().fillX().height(64).row();
+//        collapsibleContent.add("Material").padRight(5).padBottom(pad).left();
+//        collapsibleContent.add(mtlDropZone).padBottom(pad).colspan(3).expandX().fillX().height(64).row();
     }
     protected void setupListeners() {
         name.addListener(new ChangeListener() {

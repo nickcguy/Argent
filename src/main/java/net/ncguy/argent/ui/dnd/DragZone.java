@@ -30,11 +30,6 @@ public class DragZone extends DnDZone {
 
     @Override public String getTag() { return tag; }
 
-    @Override
-    public void highlight() {
-
-    }
-
     @Override public void onDrop_Safe(Object object) {}
     @Override public void onHover(TargetDragPayload dragPayload) {}
     @Override public void onReset(TargetResetPayload resetPayload) {}
@@ -64,7 +59,7 @@ public class DragZone extends DnDZone {
                     zone.onDrop_Safe(payload.getObject());
                 }
             });
-            target.getActor().setDebug(true);
+            zone.highlight(true);
             targets.add(target);
 
         }

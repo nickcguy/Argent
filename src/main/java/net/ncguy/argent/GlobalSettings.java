@@ -50,4 +50,8 @@ public class GlobalSettings {
         rendererIndex = MathUtils.clamp(rendererIndex, 0, ArgentRenderer.ltg_ATTACHMENTS.length-1);
         GlobalSettings.rendererIndex = rendererIndex;
     }
+
+    public static float exposure = 1.0f;
+    public static float gamma = 1.0f;
+
 }

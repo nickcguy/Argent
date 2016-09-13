@@ -55,6 +55,7 @@ public class VPLPane extends Group {
         this.graph = graph;
         if(graph != null) {
             addActor(graph);
+            graph.refreshMenu();
             graph.bounds = gridBounds;
             sizeChanged();
         }

@@ -12,7 +12,7 @@ import static net.ncguy.argent.vpl.VPLPin.Types.*;
 /**
  * Created by Guy on 10/09/2016.
  */
-@NodeData("Sine")
+@NodeData(value = "Sine",tags = "shader")
 public class SineNode extends VPLShaderNode<Float> {
 
     public SineNode(VPLGraph graph) {

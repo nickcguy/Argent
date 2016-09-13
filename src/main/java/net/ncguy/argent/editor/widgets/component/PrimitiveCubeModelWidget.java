@@ -5,13 +5,11 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.kotcrab.vis.ui.VisUI;
-import net.ncguy.argent.assets.ArgShader;
 import net.ncguy.argent.editor.project.ProjectContext;
 import net.ncguy.argent.editor.widgets.component.commands.BasicCommand;
 import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.entity.components.model.primitive.PrimitiveCubeModelComponent;
 import net.ncguy.argent.ui.FloatFieldWithLabel;
-import net.ncguy.argent.ui.dnd.DropZone;
 
 import java.util.function.Supplier;
 
@@ -24,7 +22,7 @@ public class PrimitiveCubeModelWidget extends ComponentWidget<PrimitiveCubeModel
     private FloatFieldWithLabel width;
     private FloatFieldWithLabel height;
     private FloatFieldWithLabel depth;
-    DropZone<ArgShader> mtlDropZone;
+//    DropZone<ArgShader> mtlDropZone;
 
     public PrimitiveCubeModelWidget(PrimitiveCubeModelComponent component) {
         super(component, "Cube Primitive");
@@ -40,9 +38,9 @@ public class PrimitiveCubeModelWidget extends ComponentWidget<PrimitiveCubeModel
         width = new FloatFieldWithLabel("x", size, true);
         height = new FloatFieldWithLabel("y", size, true);
         depth = new FloatFieldWithLabel("z", size, true);
-        mtlDropZone = new DropZone<>(ArgShader.class, "shader");
-
-        mtlDropZone.setOnDrop(component::setMaterial);
+//        mtlDropZone = new DropZone<>(ArgShader.class, "shader");
+//
+//        mtlDropZone.setOnDrop(component::setMaterial);
     }
     protected void setupUI() {
         int pad = 4;
@@ -55,8 +53,8 @@ public class PrimitiveCubeModelWidget extends ComponentWidget<PrimitiveCubeModel
         collapsibleContent.add("Name: ").padRight(5).padBottom(pad).left();
         collapsibleContent.add(name).padBottom(pad).colspan(3).expandX().fillX().row();
 
-        collapsibleContent.add("Material: ").padRight(5).padBottom(pad).left();
-        collapsibleContent.add(mtlDropZone).padBottom(pad).colspan(3).expandX().fillX().height(64).row();
+//        collapsibleContent.add("Material: ").padRight(5).padBottom(pad).left();
+//        collapsibleContent.add(mtlDropZone).padBottom(pad).colspan(3).expandX().fillX().height(64).row();
 
     }
     protected void setupListeners() {

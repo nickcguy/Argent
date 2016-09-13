@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g3d.Shader;
 import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
 import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import net.ncguy.argent.GlobalSettings;
 
 import static com.badlogic.gdx.graphics.g3d.shaders.DefaultShader.Inputs;
 import static com.badlogic.gdx.graphics.g3d.shaders.DefaultShader.Setters;
@@ -31,6 +32,18 @@ public class ArgentQuadShader extends BaseShader {
             @Override
             public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
                 shader.program.setUniformf("u_screenRes", Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+            }
+        });
+        register(new Uniform("u_exposure"), new LocalSetter() {
+            @Override
+            public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
+                shader.program.setUniformf("u_exposure", GlobalSettings.exposure);
+            }
+        });
+        register(new Uniform("u_gamma"), new LocalSetter() {
+            @Override
+            public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
+                shader.program.setUniformf("u_gamma", GlobalSettings.gamma);
             }
         });
     }
