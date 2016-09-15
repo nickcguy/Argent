@@ -15,7 +15,7 @@ public class ViewerTabControl extends Table implements TabbedPaneListener {
     private EditorUI editorUI;
 
     private SceneViewer sceneViewer;
-    private MaterialViewer materialViewer;
+//    private MaterialViewer materialViewer;
     private ShaderViewer shaderViewer;
 
     private TabbedPane tabPane;
@@ -24,7 +24,7 @@ public class ViewerTabControl extends Table implements TabbedPaneListener {
 
     public ViewerTabControl(EditorUI editorUI) {
         sceneViewer = new SceneViewer(editorUI);
-        materialViewer = new MaterialViewer(editorUI);
+//        materialViewer = new MaterialViewer(editorUI);
         shaderViewer = new ShaderViewer(editorUI);
         this.editorUI = editorUI;
         tabContent = new Table(VisUI.getSkin());
@@ -33,7 +33,7 @@ public class ViewerTabControl extends Table implements TabbedPaneListener {
         tabPane.addListener(this);
 
         tabPane.add(sceneViewer);
-        tabPane.add(materialViewer);
+//        tabPane.add(materialViewer);
         tabPane.add(shaderViewer);
 
         tabPane.switchTab(sceneViewer);

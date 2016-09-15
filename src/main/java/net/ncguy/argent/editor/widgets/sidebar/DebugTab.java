@@ -7,6 +7,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.kotcrab.vis.ui.VisUI;
 import com.kotcrab.vis.ui.layout.GridGroup;
@@ -85,14 +86,20 @@ public class DebugTab extends Tab {
         if(images.size() <= index) {
             img = new Image();
             images.add(img);
+            TextureRegion textureRegion = new TextureRegion(tex);
+            textureRegion.setV(1);
+            textureRegion.setV2(0);
+            img.setDrawable(new TextureRegionDrawable(textureRegion));
         }else{
             img = images.get(index);
+            Drawable drawable = img.getDrawable();
+            if(drawable instanceof TextureRegionDrawable) {
+                TextureRegion region = ((TextureRegionDrawable) drawable).getRegion();
+                region.getTexture().dispose();
+                region.setTexture(tex);
+            }
         }
-        TextureRegion textureRegion = new TextureRegion(tex);
-        textureRegion.setV(1);
-        textureRegion.setV2(0);
 
-        img.setDrawable(new TextureRegionDrawable(textureRegion));
 
     }
 

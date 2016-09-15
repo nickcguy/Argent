@@ -83,17 +83,30 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     public static final int previousFrameIndex = 8;
 
     public ArgentRenderer(GameWorld<T> world) {
+        this(world, true);
+    }
+
+    public ArgentRenderer(GameWorld<T> world, boolean attachGlobalListeners) {
         super(world);
         size.set(camera().viewportWidth, camera().viewportHeight);
         refreshShaders();
         refreshFBO();
 //        Argent.addOnResize(this::resize);
+
+        if(attachGlobalListeners) attachGlobalListeners();
+    }
+
+    public void attachGlobalListeners() {
         Argent.addOnResize(this::argentResize);
         Argent.addOnKeyDown(key -> {
             if(key == Input.Keys.O)
                 if(Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT))
                     refreshShaders();
         });
+    }
+
+    public void removeGlobalListeners() {
+
     }
 
     @Override
@@ -385,7 +398,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         refreshTextureShader();
         refreshLightingShader();
         refreshQuadShader();
-//        refreshScreenShader();
+        refreshScreenShader();
         refreshBlurShader();
     }
 
@@ -531,6 +544,8 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         disposeBlurSystem();
 
         quadProgram.dispose();
+
+        Argent.removeOnResize(this::argentResize);
     }
 
     // Emissive stuff
