@@ -145,7 +145,7 @@ public class VPLNodeRenderable {
         List<VPLPin> targets = pin.connectedPins;
         for (VPLPin target : targets) {
             renderTweenSpline(batch, VPLPin.splineFidelity, pin.getColour(), target.getColour(), normalizePoints(pin, defaultPoints(pin.getNormalPosition(), target.getNormalPosition())));
-//            renderTweenSpline(batch, VPLPin.splineFidelity, pin.getColour(), target.getColour(), defaultPoints(pin.getPosition(), target.getPosition()));
+//            renderTweenSpline(batch, VPLPin.splineFidelity, pin.getDiffuse(), target.getDiffuse(), defaultPoints(pin.getPosition(), target.getPosition()));
         }
     }
 

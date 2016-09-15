@@ -11,6 +11,8 @@ import com.badlogic.gdx.utils.BufferUtils;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -290,6 +292,19 @@ public class MultiTargetFrameBuffer extends GLFrameBuffer<Texture> {
         if(id == 0) colorTexture = texture;
         colourTextures[id] = texture;
         gl30.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + id, GL_TEXTURE_2D, colourTextures[id].getTextureObjectHandle(), 0);
+    }
+
+    @Override
+    public void dispose() {
+        List<Texture> textures = new ArrayList<>();
+        for (Texture texture : colourTextures)
+            if(texture != colorTexture) textures.add(texture);
+
+        while(textures.size() > 0)
+            disposeColorTexture(textures.remove(0));
+        colourTextures = null;
+
+        super.dispose();
     }
 
     private static class ColorBufferTextureData implements TextureData {

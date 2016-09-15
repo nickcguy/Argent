@@ -157,7 +157,7 @@ public class Inspector extends Table implements WorldEntitySelectedEvent.WorldEn
         if(context.currScene.selected() != null) {
             for(ArgentComponent component : context.currScene.selected().components()) {
                 ComponentWidget widget = createWidget(component);
-                if(widget != null) {
+                if (widget != null) {
                     widget.component = component;
                     componentWidgets.add(widget);
                 }
@@ -168,15 +168,19 @@ public class Inspector extends Table implements WorldEntitySelectedEvent.WorldEn
         return createWidget(component.widgetClass(), component);
     }
     private ComponentWidget createWidget(Class<? extends ComponentWidget> cls, ArgentComponent component) {
-        if(cls == null) return null;
-        try {
-            Object obj = cls.getConstructor(component.getClass()).newInstance(component);
-            if(obj instanceof BaseInspectorWidget)
-                return (ComponentWidget)obj;
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            e.printStackTrace();
+        if(cls != null) {
+            try {
+                Object obj = cls.getConstructor(component.getClass()).newInstance(component);
+                if (obj instanceof BaseInspectorWidget)
+                    return (ComponentWidget) obj;
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                e.printStackTrace();
+                editorUI.getToaster().info("No widget definition for " + component.getClass().getSimpleName());
+            }
         }
-        return null;
+        return new ComponentWidget(component) {
+            @Override public void setValues(WorldEntity entity) {}
+        };
     }
 
     private void setValues(WorldEntity we) {

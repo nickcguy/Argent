@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static com.badlogic.gdx.Input.Keys.SHIFT_LEFT;
 import static com.badlogic.gdx.Input.Keys.SHIFT_RIGHT;
@@ -228,9 +229,18 @@ public class AppUtils {
         public static ShaderProgram loadShader(String prefix) {
             String vertPath = String.format(shaderFormat, prefix, "vert");
             String fragPath = String.format(shaderFormat, prefix, "frag");
-            System.out.println(prefix);
             return compileShader(Gdx.files.internal(vertPath), Gdx.files.internal(fragPath));
         }
+
+        public static ShaderProgram loadShaderWithPrefix(String prefix, Supplier<String> vertPre, Supplier<String> fragPre) {
+            String vertPath = String.format(shaderFormat, prefix, "vert");
+            String fragPath = String.format(shaderFormat, prefix, "frag");
+            System.out.println(prefix);
+            String vert = vertPre.get()+Gdx.files.internal(vertPath).readString();
+            String frag = fragPre.get()+Gdx.files.internal(fragPath).readString();
+            return compileShader(vert, frag);
+        }
+
         public static ShaderProgram compileShader(FileHandle vertHandle, FileHandle fragHandle) {
             return compileShader(vertHandle.readString(), fragHandle.readString());
         }

@@ -1,7 +1,6 @@
 #version 450 core
 
-layout(location = 0) out vec4 FragColorEmissive;
-layout(location = 1) out vec4 FragColor1;
+out vec4 FragColorEmissive;
 
 in vec2 TexCoords;
 in vec4 Color;

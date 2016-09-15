@@ -2,7 +2,7 @@ package net.ncguy.argent.editor.widgets.component.commands;
 
 import com.badlogic.gdx.math.Vector3;
 import net.ncguy.argent.entity.WorldEntity;
-import net.ncguy.argent.entity.components.LightComponent;
+import net.ncguy.argent.entity.components.light.LightComponent;
 
 /**
  * Created by Guy on 29/07/2016.

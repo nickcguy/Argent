@@ -1,9 +1,10 @@
 package net.ncguy.argent.event;
 
+import com.badlogic.gdx.Gdx;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by Guy on 27/07/2016.
@@ -14,37 +15,61 @@ public class EventBus {
         public EventBusException(String message) { super(message); }
     }
 
-    private List<Object> subscribers;
+    protected Thread eventThread;
+    protected List<Runnable> eventTasks;
 
-    public EventBus() {
-        this.subscribers = new LinkedList<>();
+    protected void postTask(Runnable runnable) {
+        eventTasks.add(runnable);
     }
 
-    public void register(Object subscriber) {
-        subscribers.add(subscriber);
+//    private List<Object> subscribers;
+    private Map<Class<? extends AbstractEvent>, List<AbstractMap.SimpleEntry<Object, Method>>> eventSubscribers;
+
+    public EventBus() {
+        this.eventSubscribers = new HashMap<>();
+        eventTasks = new ArrayList<>();
+        eventThread = new Thread(this::eventLoop, "Event Bus");
+        eventThread.setDaemon(true);
+        eventThread.start();
+    }
+
+    private void addSubscriber(Class<? extends AbstractEvent> event, Object subscriber, Method method) {
+        if(!eventSubscribers.containsKey(event))
+            eventSubscribers.put(event, new ArrayList<>());
+        eventSubscribers.get(event).add(new AbstractMap.SimpleEntry<>(subscriber, method));
+    }
+
+    public void register(final Object subscriber) {
+        postTask(() -> {
+            for(Method method : subscriber.getClass().getDeclaredMethods()) {
+                if(isSubscriber(method)) {
+                    Class<?> param0 = method.getParameterTypes()[0];
+                    if(AbstractEvent.class.isAssignableFrom(param0))
+                        addSubscriber((Class<? extends AbstractEvent>) param0, subscriber, method);
+                }
+            }
+        });
     }
 
     public void unregister(Object subscriber) {
-        subscribers.remove(subscriber);
+
     }
 
-    public void post(AbstractEvent event) {
-        try{
+    public void post(final AbstractEvent event) {
+        postTask(() -> {
             final Class eventType = event.getClass();
-            for(Object subscriber : subscribers) {
-                for(Method method : subscriber.getClass().getDeclaredMethods()) {
-                    if(isSubscriber(method)) {
-                        if(method.getParameterTypes().length != 1) {
-                            throw new EventBusException(String.format("Size of parameter list of method %s in %s must be 1", method.getName(), subscriber.getClass().getName()));
+            if(eventSubscribers.containsKey(eventType)) {
+                for (AbstractMap.SimpleEntry<Object, Method> e : eventSubscribers.get(eventType)) {
+                    Gdx.app.postRunnable(() -> {
+                        try {
+                            e.getValue().invoke(e.getKey(), event);
+                        } catch (IllegalAccessException | InvocationTargetException e1) {
+                            e1.printStackTrace();
                         }
-                        if(method.getParameterTypes()[0].equals(eventType))
-                            method.invoke(subscriber, eventType.cast(event));
-                    }
+                    });
                 }
             }
-        }catch (IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-        }
+        });
     }
 
     private boolean isSubscriber(Method method) {
@@ -64,6 +89,21 @@ public class EventBus {
             }
         }
         return false;
+    }
+
+    // Concurrency
+
+    protected Runnable getEventTask() {
+        if(eventTasks.size() <= 0) return null;
+        return eventTasks.remove(0);
+    }
+
+    protected void eventLoop() {
+        while(true) {
+            Runnable task = getEventTask();
+            if (task == null) try { Thread.sleep(100); } catch (InterruptedException e) {}
+            else task.run();
+        }
     }
 
 }

@@ -27,7 +27,7 @@ public class FloatFieldWithLabel extends TextFieldWithLabel {
             }
             return Float.parseFloat(getText());
         }catch (Exception e) {
-            return 0.0f;
+            return 1.0f;
         }
     }
 

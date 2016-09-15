@@ -1,6 +1,5 @@
-package net.ncguy.argent.entity.components;
+package net.ncguy.argent.entity.components.light;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
@@ -9,13 +8,13 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
 import net.ncguy.argent.GlobalSettings;
-import net.ncguy.argent.editor.widgets.component.ComponentWidget;
-import net.ncguy.argent.editor.widgets.component.LightWidget;
 import net.ncguy.argent.entity.WorldEntity;
+import net.ncguy.argent.entity.components.ArgentComponent;
 import net.ncguy.argent.utils.AppUtils;
 
 import static net.ncguy.argent.GlobalSettings.VarKeys.bool_LIGHTDEBUG;
@@ -23,47 +22,50 @@ import static net.ncguy.argent.GlobalSettings.VarKeys.bool_LIGHTDEBUG;
 /**
  * Created by Guy on 29/07/2016.
  */
-@ComponentData(name = "Light")
-public class LightComponent implements ArgentComponent {
+public abstract class LightComponent implements ArgentComponent {
 
     WorldEntity entity;
-
-    Vector3 localPosition;
     Vector3 worldPosition;
-    Color colour, ambient, specular;
-    float linear, quadratic, intensity;
-    boolean inverse = false;
-    float radius;
+    Vector3 localPosition;
 
-    private Model debugModel;
-    private ModelInstance debugInstance;
-    private ModelInstance debugInstance() {
+    Color ambient, diffuse, specular;
+
+    float intensity;
+
+    protected Model debugModel;
+    protected ModelInstance debugInstance;
+    protected ModelInstance debugInstance() {
         if (debugInstance == null) {
             debugModel = new ModelBuilder().createBox(.1f, .1f, .1f, new Material(ColorAttribute.createDiffuse(AppUtils.Graphics.randomColour())), VertexAttributes.Usage.Position);
             debugInstance = new ModelInstance(debugModel);
         }
-        debugInstance.transform.setToTranslation(getWorldPosition());
         return debugInstance;
+    }
+
+    protected void invalidateDebug() {
+        if(debugModel != null) {
+            debugModel.dispose();
+            debugModel = null;
+        }
+        debugInstance = null;
     }
 
     public LightComponent(WorldEntity entity) {
         this.entity = entity;
-        this.localPosition = new Vector3(0, 1.2f, 0);
-        this.colour = new Color();
+        this.localPosition = new Vector3(0, 0, 0);
+        this.entity.getPosition(worldPosition = new Vector3());
         this.ambient = new Color();
+        this.diffuse = new Color();
         this.specular = new Color();
-        this.linear = 1;
-        this.quadratic = 1;
-        this.intensity = 1;
+        this.intensity = 1.0f;
     }
 
     @Override
     public WorldEntity getWorldEntity() {
-        return null;
+        return this.entity;
     }
 
     @Override public void update(float delta) {
-        Gdx.graphics.setTitle(getLocalPosition().toString());
     }
 
     @Override
@@ -81,46 +83,17 @@ public class LightComponent implements ArgentComponent {
         this.entity.remove(this);
     }
 
-    @Override
-    public Class<? extends ComponentWidget> widgetClass() {
-        return LightWidget.class;
-    }
-
     public Vector3 getLocalPosition() {
         return localPosition;
     }
 
     public Vector3 getWorldPosition() {
-        if(worldPosition == null) {
-            worldPosition = localPosition.cpy();
-        }
-        worldPosition.set(localPosition).add(entity.localPosition);
-        return worldPosition;
+        return entity.getPosition(worldPosition).cpy().add(localPosition);
     }
 
-    public Color getColour() {
-        return colour;
+    public Color getDiffuse() {
+        return diffuse;
     }
-
-    public float getLinear() {
-        return linear;
-    }
-
-    public float getQuadratic() {
-        return quadratic;
-    }
-
-    public void setLinear(float linear) {
-        this.linear = linear;
-    }
-
-    public void setQuadratic(float quadratic) {
-        this.quadratic = quadratic;
-    }
-
-    public float getIntensity() { return intensity; }
-
-    public void setIntensity(float intensity) { this.intensity = intensity; }
 
     public Color getAmbient() { return ambient; }
 
@@ -130,20 +103,20 @@ public class LightComponent implements ArgentComponent {
 
     public void setSpecular(Color specular) { this.specular = specular; }
 
+    public float getIntensity() {
+        return intensity;
+    }
+
+    public void setIntensity(float intensity) {
+        this.intensity = intensity;
+    }
+
     @Override
     public void getRenderables(Array<Renderable> renderables, Pool<Renderable> pool) {
         if(GlobalSettings.hasBoolVar(bool_LIGHTDEBUG)) {
             debugInstance().transform.setToTranslation(getWorldPosition());
             debugInstance().getRenderables(renderables, pool);
         }
-    }
-
-    public float getRadius() {
-        return radius;
-    }
-
-    public void setRadius(float radius) {
-        this.radius = radius;
     }
 
     @Override
@@ -155,5 +128,30 @@ public class LightComponent implements ArgentComponent {
             debugModel.dispose();
             debugModel = null;
         }
+    }
+
+    public boolean usePosition() {
+        return true;
+    }
+
+    public void bind(ShaderProgram program, String prefix) {
+        if(usePosition()) bindVector3(program, prefix+".Position", getWorldPosition());
+        bindColour(program, prefix+".Ambient", getAmbient());
+        bindColour(program, prefix+".Diffuse", getDiffuse());
+        bindColour(program, prefix+".Specular", getSpecular());
+        bindFloat(program, prefix+".Intensity", getIntensity());
+    }
+
+    public void bindFloat(ShaderProgram program, String key, float val) {
+        program.setUniformf(key, val);
+    }
+
+    public void bindVector3(ShaderProgram program, String key, Vector3 vec) {
+        float[] val = new float[] { vec.x, vec.y, vec.z };
+        program.setUniform3fv(key, val, 0, val.length);
+    }
+    public void bindColour(ShaderProgram program, String key, Color col) {
+        float[] val = new float[] { col.r, col.g, col.b };
+        program.setUniform3fv(key, val, 0, val.length);
     }
 }

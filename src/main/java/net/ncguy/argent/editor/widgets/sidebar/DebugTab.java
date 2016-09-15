@@ -56,7 +56,7 @@ public class DebugTab extends Tab {
 
                     if(images.size() > index[0]) {
                         for(int i = index[0]; i < images.size(); i++)
-                            images.remove(i);
+                            ((TextureRegionDrawable)images.remove(i).getDrawable()).getRegion().getTexture().dispose();
                     }
                 }
                 invalidateGrid();

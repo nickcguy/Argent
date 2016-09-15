@@ -106,7 +106,7 @@ public class ProjectDetails extends Table implements TabbedPaneListener, MetaSel
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        });
+        }, "Crawler Thread");
         crawlerThread.start();
     }
 

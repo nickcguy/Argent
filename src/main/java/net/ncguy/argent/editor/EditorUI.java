@@ -177,4 +177,16 @@ public class EditorUI extends Stage {
     public void fixLayering() {
         menuBar.getTable().toFront();
     }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+        Argent.removeOnResize(this::resize);
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        dispose();
+    }
 }

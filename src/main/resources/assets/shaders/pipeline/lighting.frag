@@ -1,4 +1,5 @@
 #version 450
+/* */
 
 layout (location = 0) out vec4 ltgPosition;
 layout (location = 1) out vec4 ltgTextures;
@@ -23,20 +24,57 @@ uniform mat4 u_worldTrans;
 
 #define EMISSIVE_THRESHOLD 0.95
 
-struct PointLight {
-    vec3 Position;
-    vec3 Colour;
+uniform vec3 u_viewPos;
+
+#ifdef NR_DIRECTIONAL
+struct DirectionalLight {
+    vec3 Direction;
 
     vec3 Ambient;
+    vec3 Diffuse;
     vec3 Specular;
 
-    float Linear;
-    float Quadratic;
     float Intensity;
 };
-const int NR_LIGHTS = 32;
-uniform PointLight lights[NR_LIGHTS];
-uniform vec3 u_viewPos;
+uniform DirectionalLight directionalLights[NR_DIRECTIONAL];
+#endif
+
+#ifdef NR_POINTLIGHTS
+struct PointLight {
+    vec3 Position;
+
+    vec3 Ambient;
+    vec3 Diffuse;
+    vec3 Specular;
+
+    float Constant;
+    float Linear;
+    float Quadratic;
+
+    float Intensity;
+};
+uniform PointLight pointLights[NR_POINTLIGHTS];
+#endif
+
+#ifdef NR_SPOTLIGHTS
+struct SpotLight {
+    vec3 Position;
+    vec3 Direction;
+    float CutOff;
+    float OuterCutOff;
+
+    float Constant;
+    float Linear;
+    float Quadratic;
+
+    vec3 Ambient;
+    vec3 Diffuse;
+    vec3 Specular;
+
+    float Intensity;
+};
+uniform SpotLight spotLights[NR_SPOTLIGHTS];
+#endif
 
 struct Material {
     vec4 Normal;
@@ -169,36 +207,71 @@ float Attenuate(float constant, float distance, float linear, float quadratic) {
     return 1.0f / (constant + linear * distance + quadratic * (distance * distance));
 }
 
-vec3 CalcPointLight(PointLight l, vec3 normal, vec3 fragPos, vec3 viewDir) {
-    vec3 lightDir = normalize(l.Position - fragPos);
-
+#ifdef NR_DIRECTIONAL
+vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir) {
+    vec3 lightDir = normalize(-light.Direction);
+    // Diffuse Shading
     float diff = max(dot(normal, lightDir), 0.0);
-//    vec3 reflectDir = reflect(-lightDir, normal);
+    // Specular Shading
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.Shininess);
+    // Combine
+    vec3 ambient =  light.Ambient  * material.Diffuse.rgb;
+    vec3 diffuse =  light.Diffuse  * diff * material.Diffuse.rgb;
+    vec3 specular = light.Specular * spec * material.Specular;
+    return (ambient + diffuse + specular) * light.Intensity;
+}
+#endif
 
+#ifdef NR_POINTLIGHTS
+vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir) {
+    vec3 lightDir = normalize(light.Position - fragPos);
+    // Diffuse Shading
+    float diff = max(dot(normal, lightDir), 0.0);
+    // Specular Shading
     float spec = 0.0;
-//    #define useBlinn
-    #ifdef useBlinn
     vec3 halfwayDir = normalize(lightDir + viewDir);
     spec = pow(max(dot(normal, halfwayDir), 0.0), 16.0);
-    #else
-    vec3 reflectDir = reflect(-lightDir, normal);
-    spec = pow(max(dot(viewDir, reflectDir), 0.0), 8.0);
-    #endif
-
-    float distance = length(l.Position - fragPos);
-    //Attenuate(l.Intensity, distance, l.Linear, l.Quadratic)
-    float attenuation = 1.0 / (1.0 + l.Linear * distance + l.Quadratic * (distance * distance));
-
-    attenuation *= l.Intensity;
-
-    vec3 ambient  = l.Ambient * material.Ambient;
-    vec3 diffuse  = l.Colour * diff * material.Diffuse.rgb;
-    vec3 specular = l.Specular * spec * material.Specular;
+    // Attenuation
+    float distance = length(light.Position - fragPos);
+    float attenuation = 1.0 / (light.Constant + light.Linear * distance + light.Quadratic * (distance * distance));
+    // Combine results
+    vec3 ambient  = light.Ambient * material.Diffuse.rgb;
+    vec3 diffuse  = light.Diffuse * diff * material.Diffuse.rgb;
+    vec3 specular = light.Specular * spec * material.Specular;
     ambient  *= attenuation;
     diffuse  *= attenuation;
     specular *= attenuation;
-    return (ambient + diffuse + specular);
+    return (ambient + diffuse + specular) * light.Intensity;
 }
+#endif
+
+#ifdef NR_SPOTLIGHTS
+vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir) {
+    vec3 lightDir = normalize(light.Position - fragPos);
+    // Diffuse Shading
+    float diff = max(dot(normal, lightDir), 0.0);
+    // Specular Shading
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.Shininess);
+    // Attenuation
+    float distance = length(light.Position - fragPos);
+    float attenuation = 1.0 / (light.Constant + light.Linear * distance + light.Quadratic * (distance * distance));
+    // Spotlight intensity
+    float theta = dot(lightDir, normalize(-light.Direction));
+    float epsilon = light.CutOff - light.OuterCutOff;
+    float intensity = clamp((theta - light.OuterCutOff) / epsilon, 0.0, 1.0);
+    return vec3(theta);
+    // Combine results
+    vec3 ambient =  light.Ambient  * material.Diffuse.rgb;
+    vec3 diffuse =  light.Diffuse  * diff * material.Diffuse.rgb;
+    vec3 specular = light.Specular * spec * material.Specular;
+    ambient *= attenuation * intensity;
+    diffuse *= attenuation * intensity;
+    specular *= attenuation * intensity;
+    return clamp((ambient + diffuse + specular) * light.Intensity, 0.0, 1.0);
+}
+#endif
 
 //#define CALIBRATE
 vec4 CalculateSSR(vec2 Texel) {
@@ -320,33 +393,30 @@ void main() {
 
     ltgLighting = vec4(0.0, 0.0, 0.0, 1.0);
 
-    for(int i = 0; i < NR_LIGHTS; i++) {
-        vec3 lightDiff = CalcPointLight(lights[i], normal, Position.xyz, viewDir);
+    #ifdef NR_DIRECTIONAL
+    for(int i = 0; i < NR_DIRECTIONAL; i++) {
+        vec3 lightDiff = CalcDirLight(directionalLights[i], normal, viewDir);
         lighting += lightDiff;
         ltgLighting.rgb += lightDiff;
     }
+    #endif
 
+    #ifdef NR_POINTLIGHTS
+    for(int i = 0; i < NR_POINTLIGHTS; i++) {
+        vec3 lightDiff = CalcPointLight(pointLights[i], normal, Position.xyz, viewDir);
+        lighting += lightDiff;
+        ltgLighting.rgb += lightDiff;
+    }
+    #endif
 
-
-    // Emissive
-//    lighting += emi.rgb;
-
-    // ScreenSpace Reflection
-//    vec3 viewPos = gs_out.Position.xyz;
-//    vec3 reflectedVector = normalize(reflect(normalize(viewPos), normalize(nor.xyz)));
-//    vec3 hitPos = viewPos;
-//    float dDepth;
-//    vec4 coords = RayCast(reflectedVector * max(minRayStep, -viewPos.z), hitPos, dDepth);
-//    vec2 dCoords = abs(vec2(0.5) - coords.xy);
-//    float screenEdgeFactor = clamp(1.0 - (dCoords.x + dCoords.y), 0.0, 1.0);
-//
-//    vec4 prev = texture(u_previousFrame, coords.xy);
-//    prev *= ref;
-//
-//    ltgReflection = vec4(prev.rgb,
-//        pow(material.Reflectiveness, reflectionSpecularFalloffExponent) *
-//        screenEdgeFactor * clamp(-reflectedVector.z, 0.0, 1.0) *
-//        clamp((searchDist - length(viewPos - hitPos)) * searchDistInv, 0.0, 1.0) * coords.w);
+    #ifdef NR_SPOTLIGHTS
+    for(int i = 0; i < NR_SPOTLIGHTS; i++) {
+        vec3 lightDiff = CalcSpotLight(spotLights[i], normal, Position.xyz, viewDir);
+//        vec3 lightDiff = vec3(0.0);
+        lighting += lightDiff;
+        ltgLighting.rgb += lightDiff;
+    }
+    #endif
 
     material.Lighting = vec4(lighting, 1.0);
 
@@ -355,9 +425,10 @@ void main() {
     ltgReflection.a = 1.0;
 
     ltgTextures = material.Lighting;
+//    ltgTextures = vec4(lighting, 1.0);
 
     ltgEmissive = vec4(getEmissive(ltgTextures.rgb), 1.0);
-    ltgEmissive.rgb += getEmissive(emi.rgb);
+    ltgEmissive.rgb += emi.rgb;
 
     ltgGeometry = vec4(vec3(amb), 1.0);
 

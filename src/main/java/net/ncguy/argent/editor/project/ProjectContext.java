@@ -18,7 +18,17 @@ public class ProjectContext extends Context {
 
     public ProjectContext(ProjectManager manager) {
         super(manager);
-        currScene = new EditorScene();
+    }
+
+    @Override
+    public void load() {
+        super.load();
+        getCurrScene();
+    }
+
+    public EditorScene getCurrScene() {
+        if(currScene == null) currScene = new EditorScene();
+        return currScene;
     }
 
     public String getName() {

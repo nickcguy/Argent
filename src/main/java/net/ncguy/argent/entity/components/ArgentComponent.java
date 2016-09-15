@@ -24,4 +24,11 @@ public interface ArgentComponent extends RenderableProvider, Disposable {
 
     @Override
     default void dispose() {}
+
+    default String getName() {
+        if(getClass().isAnnotationPresent(ComponentData.class))
+            return getClass().getAnnotation(ComponentData.class).name();
+        return getClass().getSimpleName();
+    }
+
 }

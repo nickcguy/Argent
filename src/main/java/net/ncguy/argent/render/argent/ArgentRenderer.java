@@ -10,14 +10,16 @@ import com.badlogic.gdx.graphics.g3d.Shader;
 import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.GlobalSettings;
 import net.ncguy.argent.assets.ArgentShaderProvider;
-import net.ncguy.argent.editor.widgets.DebugPreview;
+import net.ncguy.argent.diagnostics.DiagnosticsModule;
 import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.entity.components.ArgentComponent;
-import net.ncguy.argent.entity.components.LightComponent;
+import net.ncguy.argent.entity.components.light.DirLightComponent;
+import net.ncguy.argent.entity.components.light.LightComponent;
+import net.ncguy.argent.entity.components.light.PointLightComponent;
+import net.ncguy.argent.entity.components.light.SpotLightComponent;
 import net.ncguy.argent.event.StringPacketEvent;
 import net.ncguy.argent.render.BasicWorldRenderer;
 import net.ncguy.argent.utils.AppUtils;
@@ -27,6 +29,7 @@ import net.ncguy.argent.world.GameWorld;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by Guy on 23/07/2016.
@@ -41,24 +44,23 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     ModelBatch lightingBatch;
     ShaderProgram lightingProgram;
 
-    ModelBatch quadBatch;
     MultiTargetFrameBuffer quadFBO;
+    ModelBatch quadBatch;
     ShaderProgram quadProgram;
 
     ShaderProgram screenShader;
     SpriteBatch screenBatch;
 
     Vector2 size = new Vector2();
+    int dirLightCount = 0;
+    int pointLightCount = 0;
+    int spotLightCount = 0;
 //    Sprite screenSprite;
 
     public static final FBOAttachment tex_NORMAL = new FBOAttachment(0, "texNormal");
     public static final FBOAttachment tex_DIFFUSE = new FBOAttachment(1, "texDiffuse");
     public static final FBOAttachment tex_SPCAMBDIS = new FBOAttachment(2, "texSpcAmbDisRef");
-//    public static final FBOAttachment tex_SPECULAR = new FBOAttachment(2, "texSpecular");
-//    public static final FBOAttachment tex_AMBIENT = new FBOAttachment(3, "texAmbient");
-//    public static final FBOAttachment tex_DISPLACEMENT = new FBOAttachment(4, "texDisplacement");
     public static final FBOAttachment tex_EMISSIVE = new FBOAttachment(3, "texEmissive");
-//    public static final FBOAttachment tex_REFLECTION = new FBOAttachment(4, "texReflection");
     public static final FBOAttachment tex_POSITION = new FBOAttachment(4, "texPosition");
     public static final FBOAttachment tex_MODIFIEDNORMAL = new FBOAttachment(5, "texModNormal");
 
@@ -67,7 +69,6 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     };
 
     public static final FBOAttachment ltg_POSITION = new FBOAttachment(0, "ltgPosition");
-//    public static final FBOAttachment ltg_DEPTH = new FBOAttachment(0, "ltgPosition");
     public static final FBOAttachment ltg_TEXTURES = new FBOAttachment(1, "ltgTextures");
     public static final FBOAttachment ltg_LIGHTING = new FBOAttachment(2, "ltgLighting");
     public static final FBOAttachment ltg_GEOMETRY = new FBOAttachment(3, "ltgGeometry");
@@ -86,7 +87,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         size.set(camera().viewportWidth, camera().viewportHeight);
         refreshShaders();
         refreshFBO();
-        Argent.addOnResize(this::resize);
+//        Argent.addOnResize(this::resize);
         Argent.addOnResize(this::argentResize);
         Argent.addOnKeyDown(key -> {
             if(key == Input.Keys.O)
@@ -117,10 +118,6 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         camera().update(true);
         if(width <= 0 || height <= 0) return;
         refreshFBO();
-        if(mesh != null) {
-            mesh.dispose();
-            mesh = null;
-        }
     }
 
     @Override
@@ -222,9 +219,10 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     }
 
     public void applyGBufferToLighting() {
+        List<LightComponent>[] lightingData = fetchLightingData();
         lightingProgram.begin();
+        bindLightingData(lightingProgram, lightingData);
         bindToMRT(textureMRT, lightingProgram, tex_ATTACHMENTS);
-        bindLightingData(lightingProgram);
         bindPreviousFrame(lightingProgram);
         lightingProgram.end();
     }
@@ -238,52 +236,68 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         shaderProgram.setUniformi("u_previousFrame", index);
     }
 
-    public void bindLightingData(ShaderProgram shaderProgram) {
+    public List<LightComponent>[] fetchLightingData() {
         final List<LightComponent> lights = new ArrayList<>();
         world.instances().forEach(i -> i.components().stream()
-            .filter(this::bindLightData_Filter)
-            .map(this::bindLightData_Map)
-            .forEach(lights::add));
+                .filter(this::bindLightData_Filter)
+                .map(this::bindLightData_Map)
+                .forEach(lights::add));
+        List<LightComponent> dirLights = lights.stream().filter(l -> l instanceof DirLightComponent).collect(Collectors.toList());
+        List<LightComponent> pointLights = lights.stream().filter(l -> l instanceof PointLightComponent).collect(Collectors.toList());
+        List<LightComponent> spotLights = lights.stream().filter(l -> l instanceof SpotLightComponent).collect(Collectors.toList());
+
+        boolean recompile = false;
+
+        if(dirLights.size() != dirLightCount) {
+            dirLightCount = dirLights.size();
+            recompile = true;
+        }
+        if(pointLights.size() != pointLightCount) {
+            pointLightCount = pointLights.size();
+            recompile = true;
+        }if(spotLights.size() != spotLightCount) {
+            spotLightCount = spotLights.size();
+            recompile = true;
+        }
+        if(recompile) refreshLightingShader();
+
+        if(Gdx.input.isKeyJustPressed(Input.Keys.I)) {
+            if (!Argent.isModuleLoaded(DiagnosticsModule.class))
+                Argent.loadModule(new DiagnosticsModule());
+            Argent.diagnostics.invokeShaderViewer(viewer -> viewer.show("Lighting", lightingProgram.getVertexShaderSource(), lightingProgram.getFragmentShaderSource()));
+        }
+
+        return new List[]{dirLights, pointLights, spotLights};
+    }
+
+    public void bindLightingData(ShaderProgram shaderProgram, List<LightComponent>[] lights) {
         final int[] i = new int[]{0};
-        lights.forEach(l -> {
-            String key = "lights["+i[0]+"]";
-            Vector3 worldPos = l.getWorldPosition();
-            float[] pos = new float[]{
-                    worldPos.x,
-                    worldPos.y,
-                    worldPos.z
-            };
-            Color colour = l.getColour();
-            float[] col = new float[]{
-                    colour.r,
-                    colour.g,
-                    colour.b
-            };
-            Color ambient = l.getAmbient();
-            float[] amb = new float[]{
-                    ambient.r,
-                    ambient.g,
-                    ambient.b
-            };
-            Color specular = l.getSpecular();
-            float[] spc = new float[]{
-                    specular.r,
-                    specular.g,
-                    specular.b
-            };
-            shaderProgram.setUniform3fv(key+".Position", pos, 0, pos.length);
-            shaderProgram.setUniform3fv(key+".Colour", col, 0, col.length);
-
-            shaderProgram.setUniform3fv(key+".Ambient", amb, 0, amb.length);
-            shaderProgram.setUniform3fv(key+".Specular", spc, 0, spc.length);
-
-            shaderProgram.setUniformf(key+".Linear", l.getLinear());
-            shaderProgram.setUniformf(key+".Quadratic", l.getQuadratic());
-            shaderProgram.setUniformf(key+".Intensity", l.getIntensity());
-//            shaderProgram.setUniformf(key+".Radius", l.getRadius());
+        lights[0].forEach(l -> {
+            String prefix = "directionalLights["+i[0]+"]";
+            l.bind(shaderProgram, prefix);
+            i[0]++;
+        });
+        i[0] = 0;
+        lights[1].forEach(l -> {
+            String prefix = "pointLights["+i[0]+"]";
+            l.bind(shaderProgram, prefix);
+            i[0]++;
+        });
+        i[0] = 0;
+        lights[2].forEach(l -> {
+            String prefix = "spotLights["+i[0]+"]";
+            l.bind(shaderProgram, prefix);
             i[0]++;
         });
     }
+
+    private String getLightArr(LightComponent light) {
+        if(light instanceof DirLightComponent) return "directionalLights";
+        if(light instanceof PointLightComponent) return "pointLights";
+        if(light instanceof SpotLightComponent) return "spotLights";
+        return "lights";
+    }
+
     private boolean bindLightData_Filter(ArgentComponent c) {
         return c instanceof LightComponent;
     }
@@ -356,13 +370,13 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
             blurMRT = null;
         }
 
-        textureMRT = create(tex_ATTACHMENTS.length);
-        lightingMRT = create(ltg_ATTACHMENTS.length);
-        quadFBO = create(3);
-        blurMRT = create(1);
+        textureMRT = create(tex_ATTACHMENTS.length, Pixmap.Format.RGBA8888);
+        lightingMRT = create(ltg_ATTACHMENTS.length, MultiTargetFrameBuffer.Format.RGB32F);
+        quadFBO = create(3, Pixmap.Format.RGBA8888);
+        blurMRT = create(1, Pixmap.Format.RGB565);
 
-        DebugPreview debugPreview = DebugPreview.instance();
-        if(debugPreview != null) debugPreview.build(textureMRT, lightingMRT, quadFBO, blurMRT);
+//        DebugPreview debugPreview = DebugPreview.instance();
+//        if(debugPreview != null) debugPreview.build(textureMRT, lightingMRT, quadFBO, blurMRT);
     }
 
     public void refreshShaders() {
@@ -371,7 +385,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         refreshTextureShader();
         refreshLightingShader();
         refreshQuadShader();
-        refreshScreenShader();
+//        refreshScreenShader();
         refreshBlurShader();
     }
 
@@ -408,7 +422,14 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
             lightingBatch = null;
         }
         if(GlobalSettings.useGeometryShader) lightingProgram = AppUtils.Shader.loadGeometryShader("pipeline/lighting");
-        else lightingProgram = AppUtils.Shader.loadShader("pipeline/lighting");
+        else lightingProgram = AppUtils.Shader.loadShaderWithPrefix("pipeline/lighting", () -> "", () -> {
+            String s = "#version 450\n";
+            if(dirLightCount > 0) s += "#define NR_DIRECTIONAL "+dirLightCount+"\n";
+            if(pointLightCount > 0) s += "#define NR_POINTLIGHTS "+pointLightCount+"\n";
+            if(spotLightCount > 0) s += "#define NR_SPOTLIGHTS "+spotLightCount+"\n";
+            s += "/*\n";
+            return s;
+        });
         lightingBatch = new ModelBatch(new DefaultShaderProvider() {
             @Override
             protected Shader createShader(Renderable renderable) {
@@ -459,8 +480,13 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         initBlurSystem();
     }
 
-    private MultiTargetFrameBuffer create(int bufferCount) {
-        return MultiTargetFrameBuffer.create(MultiTargetFrameBuffer.Format.RGBA32F, bufferCount,
+    private MultiTargetFrameBuffer create(int bufferCount, MultiTargetFrameBuffer.Format format) {
+        return MultiTargetFrameBuffer.create(format, bufferCount,
+                iWidth(), iHeight(), true, false);
+    }
+
+    private MultiTargetFrameBuffer create(int bufferCount, Pixmap.Format format) {
+        return MultiTargetFrameBuffer.create(format, bufferCount,
                 iWidth(), iHeight(), true, false);
     }
 
@@ -476,6 +502,18 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     }
     public int iHeight() {
         return (int) height();
+    }
+
+    public int getDirLightCount() {
+        return dirLightCount > 0 ? dirLightCount : 1;
+    }
+
+    public int getPointLightCount() {
+        return pointLightCount > 0 ? pointLightCount : 1;
+    }
+
+    public int getSpotLightCount() {
+        return spotLightCount > 0 ? spotLightCount : 1;
     }
 
     @Override
@@ -501,9 +539,9 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     MultiTargetFrameBuffer blurMRT;
 
     public void initBlurSystem() {
-        blurMRT = create(1);
+        blurMRT = create(1, Pixmap.Format.RGBA4444);
         blurProgram = AppUtils.Shader.loadShader("pipeline/util/blur");
-        blurQuadBatch = new SpriteBatch(1024, blurProgram);
+        blurQuadBatch = new SpriteBatch(2, blurProgram);
     }
 
     public void disposeBlurSystem() {
