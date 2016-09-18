@@ -20,6 +20,16 @@ public class StringPacketEvent extends AbstractEvent {
         this.payload = payload;
     }
 
+    public StringPacketEvent key(String key) {
+        this.key = key;
+        return this;
+    }
+
+    public StringPacketEvent payload(String payload) {
+        this.payload = payload;
+        return this;
+    }
+
     public static interface StringPacketListener {
         @Subscribe
         public void onStringPacket(StringPacketEvent event);

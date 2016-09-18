@@ -4,14 +4,10 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.ArgentGame;
-import net.ncguy.argent.data.tree.TreeObjectWrapper;
-import net.ncguy.argent.data.tree.TreePopulator;
-import net.ncguy.argent.data.tree.VisitableTree;
-import net.ncguy.argent.data.tree.sample.PrintIndentedVisitor;
 import net.ncguy.argent.project.ProjectSelectorScreen;
+import net.ncguy.physics.PhysicsCore;
+import net.ncguy.physics.runtime.argent.ArgentPhysicsRuntime;
 import net.ncguy.screen.LoaderScreen;
-
-import java.util.ArrayList;
 
 /**
  * Created by Guy on 15/07/2016.
@@ -21,25 +17,8 @@ public class ArgentSample extends ArgentGame {
     @Override
     public void create() {
         super.create();
-        ArrayList<TreeTest> testList = new ArrayList<>();
-        testList.add(new TreeTest("a1|a2|a3", "test 1"));
-        testList.add(new TreeTest("a1|a2|a3", "test 2"));
-        testList.add(new TreeTest("a1|a2|a4", "test 1"));
-        testList.add(new TreeTest("b1|b2|b3", "test 1"));
-        testList.add(new TreeTest("b1|b4|b5", "test 1"));
-        testList.add(new TreeTest("b1|b4|b5", "test 2"));
 
-        VisitableTree<TreeObjectWrapper<TreeTest>> forest = new VisitableTree<>(new TreeObjectWrapper<>("Root"));
-
-        TreePopulator.populate(forest, testList, "\\|",
-            (d) -> d.cat+"|"+d.name,
-            (d, s) -> {
-                if(s.equals(d.cat+"|"+d.name)) return new TreeObjectWrapper<>(d, s);
-                return new TreeObjectWrapper<>(s);
-            }
-        );
-
-        forest.accept(new PrintIndentedVisitor<>(0));
+        PhysicsCore.loadRuntime(new ArgentPhysicsRuntime());
 
         Argent.loadDefaultModules();
         setScreen(new LoaderScreen(this, new ProjectSelectorScreen()));
