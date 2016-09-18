@@ -161,7 +161,7 @@ public class WorldEntity implements RenderableProvider {
 
     public <T extends ArgentComponent> T get(Class<T> componentCls) {
         for (ArgentComponent component : this.components)
-            if(component.getClass().equals(componentCls)) return (T) component;
+            if(componentCls.isAssignableFrom(component.getClass())) return (T) component;
         return null;
     }
 

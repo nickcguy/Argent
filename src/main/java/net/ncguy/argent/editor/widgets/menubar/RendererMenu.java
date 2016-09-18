@@ -6,6 +6,7 @@ import com.kotcrab.vis.ui.widget.Menu;
 import com.kotcrab.vis.ui.widget.MenuItem;
 import net.ncguy.argent.GlobalSettings;
 import net.ncguy.argent.editor.EditorUI;
+import net.ncguy.argent.editor.widgets.dialog.ResolutionScaleDialog;
 import net.ncguy.argent.render.argent.ArgentRenderer;
 
 import static net.ncguy.argent.render.argent.ArgentRenderer.*;
@@ -28,6 +29,15 @@ public class RendererMenu extends Menu {
         addItem(new MenuItem("Textures", new RendererSelector(ltg_TEXTURES)));
         addItem(new MenuItem("Lighting", new RendererSelector(ltg_LIGHTING)));
         addItem(new MenuItem("Ambient Geometry", new RendererSelector(ltg_GEOMETRY)));
+        addItem(new MenuItem("Reflection", new RendererSelector(ltg_REFLECTION)));
+        addItem(new MenuItem("Emissive", new RendererSelector(ltg_EMISSIVE)));
+        addSeparator();
+        addItem(new MenuItem("Resolution scale", new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                ResolutionScaleDialog.instance().show(getStage());
+            }
+        }));
     }
 
     public static class RendererSelector extends ChangeListener {

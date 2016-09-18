@@ -21,6 +21,7 @@ import net.ncguy.argent.entity.components.light.LightComponent;
 import net.ncguy.argent.entity.components.light.PointLightComponent;
 import net.ncguy.argent.entity.components.light.SpotLightComponent;
 import net.ncguy.argent.event.StringPacketEvent;
+import net.ncguy.argent.event.shader.RefreshFBOEvent;
 import net.ncguy.argent.render.BasicWorldRenderer;
 import net.ncguy.argent.utils.AppUtils;
 import net.ncguy.argent.utils.MultiTargetFrameBuffer;
@@ -34,7 +35,7 @@ import java.util.stream.Collectors;
 /**
  * Created by Guy on 23/07/2016.
  */
-public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T> {
+public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T> implements RefreshFBOEvent.RefreshFBOListener {
 
     MultiTargetFrameBuffer textureMRT;
     ModelBatch textureBatch, mutableTextureBatch;
@@ -82,13 +83,17 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
 
     public static final int previousFrameIndex = 8;
 
+    private DepthMapRenderer<T> depthMapRenderer;
+
     public ArgentRenderer(GameWorld<T> world) {
         this(world, true);
     }
 
     public ArgentRenderer(GameWorld<T> world, boolean attachGlobalListeners) {
         super(world);
+        Argent.event.register(this);
         size.set(camera().viewportWidth, camera().viewportHeight);
+        depthMapRenderer = new DepthMapRenderer<>(world);
         refreshShaders();
         refreshFBO();
 //        Argent.addOnResize(this::resize);
@@ -117,7 +122,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
             modelBatch = new ModelBatch(new DefaultShaderProvider() {
                 @Override
                 protected Shader createShader(Renderable renderable) {
-                    return new ArgentScreenShader(renderable, screenShader);
+                    return new ArgentScreenShader(renderable, screenShader, null);
                 }
             });
         }
@@ -144,6 +149,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
 
     @Override
     public void render(ModelBatch batch, float delta) {
+        depthMapRenderer.render(batch, delta);
         renderTexture(delta);
         applyGBufferToLighting();
         renderLighting(delta);
@@ -383,11 +389,12 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
             blurMRT = null;
         }
 
-        textureMRT = create(tex_ATTACHMENTS.length, Pixmap.Format.RGBA8888);
-        lightingMRT = create(ltg_ATTACHMENTS.length, MultiTargetFrameBuffer.Format.RGB32F);
-        quadFBO = create(3, Pixmap.Format.RGBA8888);
-        blurMRT = create(1, Pixmap.Format.RGB565);
+        textureMRT = create(tex_ATTACHMENTS.length, Pixmap.Format.RGBA8888, GlobalSettings.ResolutionScale.texture());
+        lightingMRT = create(ltg_ATTACHMENTS.length, MultiTargetFrameBuffer.Format.RGB32F, GlobalSettings.ResolutionScale.lighting());
+        quadFBO = create(3, Pixmap.Format.RGBA8888, GlobalSettings.ResolutionScale.quad());
+        blurMRT = create(1, Pixmap.Format.RGB565, GlobalSettings.ResolutionScale.blur());
 
+        refreshBlurShader();
 //        DebugPreview debugPreview = DebugPreview.instance();
 //        if(debugPreview != null) debugPreview.build(textureMRT, lightingMRT, quadFBO, blurMRT);
     }
@@ -400,6 +407,8 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         refreshQuadShader();
         refreshScreenShader();
         refreshBlurShader();
+
+        depthMapRenderer.invalidateBatch();
     }
 
     public void refreshTextureShader() {
@@ -446,7 +455,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         lightingBatch = new ModelBatch(new DefaultShaderProvider() {
             @Override
             protected Shader createShader(Renderable renderable) {
-                return new ArgentLightShader(renderable, lightingProgram);
+                return new ArgentLightShader(renderable, lightingProgram, vec -> vec.set(lightingMRT.getWidth(), lightingMRT.getHeight()));
             }
         });
     }
@@ -464,7 +473,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         quadBatch = new ModelBatch(new DefaultShaderProvider() {
             @Override
             protected Shader createShader(Renderable renderable) {
-                return new ArgentQuadShader(renderable, quadProgram);
+                return new ArgentQuadShader(renderable, quadProgram, vec -> vec.set(quadFBO.getWidth(), quadFBO.getHeight()));
             }
         });
     }
@@ -493,14 +502,14 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         initBlurSystem();
     }
 
-    private MultiTargetFrameBuffer create(int bufferCount, MultiTargetFrameBuffer.Format format) {
+    private MultiTargetFrameBuffer create(int bufferCount, MultiTargetFrameBuffer.Format format, float scale) {
         return MultiTargetFrameBuffer.create(format, bufferCount,
-                iWidth(), iHeight(), true, false);
+                (int) (width() * scale), (int)(height() * scale), true, false);
     }
 
-    private MultiTargetFrameBuffer create(int bufferCount, Pixmap.Format format) {
+    private MultiTargetFrameBuffer create(int bufferCount, Pixmap.Format format, float scale) {
         return MultiTargetFrameBuffer.create(format, bufferCount,
-                iWidth(), iHeight(), true, false);
+                (int)(width() * scale), (int)(height() * scale), true, false);
     }
 
     public float width() {
@@ -554,7 +563,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     MultiTargetFrameBuffer blurMRT;
 
     public void initBlurSystem() {
-        blurMRT = create(1, Pixmap.Format.RGBA4444);
+        blurMRT = create(1, Pixmap.Format.RGBA4444, GlobalSettings.ResolutionScale.blur());
         blurProgram = AppUtils.Shader.loadShader("pipeline/util/blur");
         blurQuadBatch = new SpriteBatch(2, blurProgram);
     }
@@ -590,6 +599,11 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         if(Gdx.input.isKeyJustPressed(Input.Keys.F2))
             ScreenshotUtils.saveScreenshot(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), "Blur");
         blurMRT.end();
+    }
+
+    @Override
+    public void onRefreshFBO(RefreshFBOEvent event) {
+        refreshFBO();
     }
 
     public static class FBOAttachment {

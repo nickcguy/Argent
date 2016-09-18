@@ -1,5 +1,6 @@
 package net.ncguy.argent.entity.components.light;
 
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
@@ -11,6 +12,7 @@ import net.ncguy.argent.editor.widgets.component.ComponentWidget;
 import net.ncguy.argent.editor.widgets.component.light.DirLightWidget;
 import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.entity.components.ComponentData;
+import net.ncguy.argent.render.argent.DepthMapRenderer;
 import net.ncguy.argent.utils.AppUtils;
 
 /**
@@ -61,5 +63,16 @@ public class DirLightComponent extends LightComponent {
     @Override
     public boolean usePosition() {
         return false;
+    }
+
+    @Override
+    public void bindShadow(DepthMapRenderer renderer) {
+        selectCamera(renderer).direction.set(getDirection());
+        super.bindShadow(renderer);
+    }
+
+    @Override
+    public Camera selectCamera(DepthMapRenderer renderer) {
+        return renderer.getOrtho();
     }
 }

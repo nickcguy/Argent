@@ -1,5 +1,6 @@
 package net.ncguy.argent.entity.components.light;
 
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
@@ -8,6 +9,7 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.graphics.glutils.GLFrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
@@ -15,6 +17,7 @@ import com.badlogic.gdx.utils.Pool;
 import net.ncguy.argent.GlobalSettings;
 import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.entity.components.ArgentComponent;
+import net.ncguy.argent.render.argent.DepthMapRenderer;
 import net.ncguy.argent.utils.AppUtils;
 
 import static net.ncguy.argent.GlobalSettings.VarKeys.bool_LIGHTDEBUG;
@@ -29,8 +32,9 @@ public abstract class LightComponent implements ArgentComponent {
     Vector3 localPosition;
 
     Color ambient, diffuse, specular;
-
     float intensity;
+    float clipRange;
+    private boolean dirtyShadows;
 
     protected Model debugModel;
     protected ModelInstance debugInstance;
@@ -58,7 +62,11 @@ public abstract class LightComponent implements ArgentComponent {
         this.diffuse = new Color();
         this.specular = new Color();
         this.intensity = 1.0f;
+        this.clipRange = 10.0f;
     }
+
+    public boolean isDirtyShadows() { return !dirtyShadows; }
+    public void setDirtyShadows(boolean dirtyShadows) { this.dirtyShadows = dirtyShadows; }
 
     @Override
     public WorldEntity getWorldEntity() {
@@ -132,6 +140,20 @@ public abstract class LightComponent implements ArgentComponent {
 
     public boolean usePosition() {
         return true;
+    }
+
+    public void bindShadow(DepthMapRenderer renderer) {
+        selectCamera(renderer).position.set(getWorldPosition());
+        selectCamera(renderer).far = clipRange;
+        selectCamera(renderer).update(true);
+    }
+
+    public Camera selectCamera(DepthMapRenderer renderer) {
+        return renderer.camera();
+    }
+
+    public GLFrameBuffer selectFBO(DepthMapRenderer renderer) {
+        return renderer.depthFBO();
     }
 
     public void bind(ShaderProgram program, String prefix) {

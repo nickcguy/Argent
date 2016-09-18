@@ -208,8 +208,8 @@ float Attenuate(float constant, float distance, float linear, float quadratic) {
 }
 
 #ifdef NR_DIRECTIONAL
-vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir) {
-    vec3 lightDir = normalize(-light.Direction);
+vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 fragPos, vec3 viewDir) {
+    vec3 lightDir = normalize(-light.Direction - fragPos);
     // Diffuse Shading
     float diff = max(dot(normal, lightDir), 0.0);
     // Specular Shading
@@ -395,7 +395,7 @@ void main() {
 
     #ifdef NR_DIRECTIONAL
     for(int i = 0; i < NR_DIRECTIONAL; i++) {
-        vec3 lightDiff = CalcDirLight(directionalLights[i], normal, viewDir);
+        vec3 lightDiff = CalcDirLight(directionalLights[i], normal, Position.xyz, viewDir);
         lighting += lightDiff;
         ltgLighting.rgb += lightDiff;
     }

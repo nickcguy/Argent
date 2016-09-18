@@ -1,6 +1,5 @@
 package net.ncguy.argent.render.argent;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g3d.Attributes;
@@ -11,7 +10,10 @@ import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.math.Vector2;
 import net.ncguy.argent.utils.AppUtils;
+
+import java.util.function.Consumer;
 
 /**
  * Created by Guy on 16/08/2016.
@@ -19,15 +21,18 @@ import net.ncguy.argent.utils.AppUtils;
 public class ArgentScreenShader extends BaseShader {
 
     public Renderable renderable;
-
+    Consumer<Vector2> screenResFunction;
+    Vector2 screenRes;
     @Override
     public void end() {
         super.end();
     }
 
-    public ArgentScreenShader(final Renderable renderable, final ShaderProgram shaderProgramModelBorder) {
+    public ArgentScreenShader(final Renderable renderable, final ShaderProgram shaderProgramModelBorder, Consumer<Vector2> screenResFunction) {
         this.renderable = renderable;
         this.program = shaderProgramModelBorder;
+        this.screenResFunction = screenResFunction;
+        this.screenRes = new Vector2();
         register(DefaultShader.Inputs.worldTrans, DefaultShader.Setters.worldTrans);
         register(DefaultShader.Inputs.projViewTrans, DefaultShader.Setters.projViewTrans);
 
@@ -41,7 +46,10 @@ public class ArgentScreenShader extends BaseShader {
         register(new Uniform("u_screenRes"), new LocalSetter() {
             @Override
             public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-                shader.program.setUniformf("u_screenRes", Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+                if(screenResFunction != null)
+                    screenResFunction.accept(screenRes);
+                else screenRes.set(AppUtils.Graphics.getScreenSize());
+                shader.program.setUniformf("u_screenRes", screenRes.x, screenRes.y);
             }
         });
     }

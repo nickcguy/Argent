@@ -4,10 +4,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.Attributes;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
@@ -120,6 +118,8 @@ public class AppUtils {
 
     public static class Graphics {
 
+        private static Vector2 screenSize = new Vector2();
+
         public static Color randomColour() {
             return new Color(MathUtils.random(0f, 1f), MathUtils.random(0f, 1f), MathUtils.random(0f, 1f), 1.0f);
         }
@@ -208,6 +208,10 @@ public class AppUtils {
             m.getValues()[Matrix4.M32] = 0.0f;
             m.getValues()[Matrix4.M33] = 1.0f;
             return m;
+        }
+
+        public static Vector2 getScreenSize() {
+            return screenSize.set(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         }
     }
 
@@ -316,6 +320,11 @@ public class AppUtils {
     }
 
     public static class GL {
+
+        public static void clear() {
+            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+            Gdx.gl.glClearColor(0, 0, 0, 1);
+        }
 
         public static float getTime() {
             return (float) GLFW.glfwGetTime();

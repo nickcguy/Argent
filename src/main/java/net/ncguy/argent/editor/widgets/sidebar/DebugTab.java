@@ -95,12 +95,10 @@ public class DebugTab extends Tab {
             Drawable drawable = img.getDrawable();
             if(drawable instanceof TextureRegionDrawable) {
                 TextureRegion region = ((TextureRegionDrawable) drawable).getRegion();
-                region.getTexture().dispose();
+//                region.getTexture().dispose();
                 region.setTexture(tex);
             }
         }
-
-
     }
 
     private void invalidateGrid() {

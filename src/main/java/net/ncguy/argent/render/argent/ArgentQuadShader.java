@@ -1,6 +1,5 @@
 package net.ncguy.argent.render.argent;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.GL30;
 import com.badlogic.gdx.graphics.g3d.Attributes;
@@ -9,7 +8,11 @@ import com.badlogic.gdx.graphics.g3d.Shader;
 import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
 import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.math.Vector2;
 import net.ncguy.argent.GlobalSettings;
+import net.ncguy.argent.utils.AppUtils;
+
+import java.util.function.Consumer;
 
 import static com.badlogic.gdx.graphics.g3d.shaders.DefaultShader.Inputs;
 import static com.badlogic.gdx.graphics.g3d.shaders.DefaultShader.Setters;
@@ -21,9 +24,14 @@ public class ArgentQuadShader extends BaseShader {
 
     public Renderable renderable;
 
-    public ArgentQuadShader(Renderable renderable, ShaderProgram quadProgram) {
+    Consumer<Vector2> screenResFunction;
+    Vector2 screenRes;
+
+    public ArgentQuadShader(Renderable renderable, ShaderProgram quadProgram, Consumer<Vector2> screenResFunction) {
         this.renderable = renderable;
         this.program = quadProgram;
+        this.screenResFunction = screenResFunction;
+        this.screenRes = new Vector2();
 
         register(Inputs.worldTrans, Setters.worldTrans);
         register(Inputs.projViewTrans, Setters.projViewTrans);
@@ -31,7 +39,10 @@ public class ArgentQuadShader extends BaseShader {
         register(new Uniform("u_screenRes"), new LocalSetter() {
             @Override
             public void set(BaseShader shader, int inputID, Renderable renderable, Attributes combinedAttributes) {
-                shader.program.setUniformf("u_screenRes", Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+                if(screenResFunction != null)
+                    screenResFunction.accept(screenRes);
+                else screenRes.set(AppUtils.Graphics.getScreenSize());
+                shader.program.setUniformf("u_screenRes", screenRes.x, screenRes.y);
             }
         });
         register(new Uniform("u_exposure"), new LocalSetter() {
