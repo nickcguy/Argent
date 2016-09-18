@@ -2,7 +2,9 @@ package net.ncguy.argent.render;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.graphics.glutils.GLFrameBuffer;
 import com.badlogic.gdx.utils.Disposable;
 import net.ncguy.argent.Argent;
 import net.ncguy.argent.entity.WorldEntity;
@@ -86,7 +88,7 @@ public abstract class AbstractWorldRenderer<T extends WorldEntity> implements Di
         camera().update(true);
     }
 
-    public MultiTargetFrameBuffer[] getMrts() {
+    public GLFrameBuffer<Texture>[] getMrts() {
         return new MultiTargetFrameBuffer[0];
     }
     public String[] getMrtNames() {

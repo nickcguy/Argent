@@ -2,11 +2,8 @@ package net.ncguy.argent.editor.tools;
 
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.graphics.g3d.Renderable;
-import com.badlogic.gdx.graphics.g3d.RenderableProvider;
-import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.utils.Disposable;
-import com.badlogic.gdx.utils.Pool;
 import net.ncguy.argent.editor.CommandHistory;
 import net.ncguy.argent.editor.project.ProjectManager;
 import net.ncguy.argent.editor.tools.picker.ToolHandlePicker;
@@ -20,7 +17,7 @@ import net.ncguy.argent.utils.InputManager;
 /**
  * Created by Guy on 30/07/2016.
  */
-public class ToolManager extends InputAdapter implements Disposable, RenderableProvider, WorldEntitySelectedEvent.WorldEntitySelectedListener {
+public class ToolManager extends InputAdapter implements Disposable, WorldEntitySelectedEvent.WorldEntitySelectedListener {
 
     public static final int KEY_DEACTIVATE = Input.Keys.ESCAPE;
     private final WorldEntityPicker wePicker;
@@ -91,9 +88,9 @@ public class ToolManager extends InputAdapter implements Disposable, RenderableP
         translateTool.dispose();
     }
 
-    @Override
-    public void getRenderables(Array<Renderable> renderables, Pool<Renderable> pool) {
-        if(activeTool != null) activeTool.getRenderables(renderables, pool);
+    public void render(ModelBatch rootBatch) {
+        if(activeTool == null) return;
+        activeTool.render(rootBatch);
     }
 
     public void selected(WorldEntity e) {

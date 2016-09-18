@@ -1,6 +1,7 @@
 package net.ncguy.argent.editor.tools;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import net.ncguy.argent.editor.CommandHistory;
 import net.ncguy.argent.editor.project.ProjectManager;
 import net.ncguy.argent.editor.tools.picker.ToolHandlePicker;
@@ -23,16 +24,16 @@ public abstract class TransformTool extends SelectionTool {
         IDLE
     }
 
-    protected static final int X_HANDLE_ID  = 1024;
-    protected static final int Y_HANDLE_ID  = 2048;
-    protected static final int Z_HANDLE_ID  = 4096;
-    protected static final int XZ_HANDLE_ID = 8192;
-
     protected static Color COLOUR_X = Color.RED;
     protected static Color COLOUR_Y = Color.GREEN;
     protected static Color COLOUR_Z = Color.BLUE;
     protected static Color COLOUR_XZ = Color.CYAN;
     protected static Color COLOUR_SELECTED = Color.YELLOW;
+
+    protected static final int X_HANDLE_ID  = COLOUR_X.toIntBits();
+    protected static final int Y_HANDLE_ID  = COLOUR_Y.toIntBits();
+    protected static final int Z_HANDLE_ID  = COLOUR_Z.toIntBits();
+    protected static final int XZ_HANDLE_ID = COLOUR_XZ.toIntBits();
 
     protected ToolHandlePicker handlePicker;
     protected WorldEntityModifiedEvent modEvent;
@@ -56,5 +57,8 @@ public abstract class TransformTool extends SelectionTool {
         rotateHandles();
         translateHandles();
     }
+
+    @Override
+    public abstract void render(ModelBatch rootBatch);
 
 }

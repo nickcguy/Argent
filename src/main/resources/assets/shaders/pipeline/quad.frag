@@ -3,6 +3,7 @@
 layout(location = 0) out vec4 OutputColour;
 layout(location = 1) out vec4 OutputColour_store;
 layout(location = 2) out vec4 OutputColour_Blur;
+layout(location = 3) out vec4 OutputColour_Depth;
 
 uniform sampler2D ltgPosition;
 uniform sampler2D ltgTextures;
@@ -55,4 +56,6 @@ void main() {
 	OutputColour_store = finalCol;
 
 	OutputColour_Blur = emi;
+
+	OutputColour_Depth = vec4(vec3(gl_FragCoord.z), 1.0);
 }

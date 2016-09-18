@@ -5,6 +5,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.math.Quaternion;
@@ -198,6 +199,12 @@ public class RotateTool extends TransformTool {
         yHandle.applyTransform();
         zHandle.scale.set(scaleFactor, scaleFactor, scaleFactor);
         zHandle.applyTransform();
+    }
+
+    @Override
+    public void render(ModelBatch rootBatch) {
+        for (RotateHandle handle : handles)
+            handle.render(rootBatch);
     }
 
     public static class RotateHandle extends ToolHandle {

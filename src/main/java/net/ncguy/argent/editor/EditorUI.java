@@ -22,6 +22,7 @@ import net.ncguy.argent.injector.ArgentInjector;
 import net.ncguy.argent.injector.Inject;
 import net.ncguy.argent.injector.InjectionStore;
 import net.ncguy.argent.misc.FreeCamController;
+import net.ncguy.argent.misc.shader.Shaders;
 import net.ncguy.argent.render.AbstractWorldRenderer;
 import net.ncguy.argent.ui.Toaster;
 import net.ncguy.argent.utils.InputManager;
@@ -51,6 +52,8 @@ public class EditorUI extends Stage {
     protected FreeCamController freeCamController;
     @Inject
     public ProjectManager projectManager;
+    @Inject
+    public Shaders shaders;
 
     private AbstractWorldRenderer renderer;
 
@@ -141,7 +144,7 @@ public class EditorUI extends Stage {
     }
 
     private void toolManagerRender(ModelBatch rootBatch, float delta) {
-        rootBatch.render(toolManager);
+        toolManager.render(rootBatch);
     }
 
     @Override

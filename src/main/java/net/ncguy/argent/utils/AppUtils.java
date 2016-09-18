@@ -17,6 +17,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import net.ncguy.argent.entity.attributes.PickerIDAttribute;
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.io.File;
@@ -322,12 +323,22 @@ public class AppUtils {
     public static class GL {
 
         public static void clear() {
-            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT | GL20.GL_STENCIL_BUFFER_BIT);
             Gdx.gl.glClearColor(0, 0, 0, 1);
         }
 
         public static float getTime() {
             return (float) GLFW.glfwGetTime();
+        }
+
+        public static void polygonMode_Point() {
+            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_POINT);
+        }
+        public static void polygonMode_Line() {
+            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
+        }
+        public static void polygonMode_Fill() {
+            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
         }
 
     }

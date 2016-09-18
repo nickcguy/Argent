@@ -1,12 +1,15 @@
 package net.ncguy.argent.editor.tools.picker;
 
-import com.badlogic.gdx.math.Intersector;
-import com.badlogic.gdx.math.Quaternion;
-import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.BoundingBox;
-import com.badlogic.gdx.math.collision.Ray;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import net.ncguy.argent.editor.project.EditorScene;
 import net.ncguy.argent.editor.tools.ToolHandle;
+import net.ncguy.argent.entity.attributes.PickerIDAttribute;
+import net.ncguy.argent.misc.shader.Shaders;
+import net.ncguy.argent.utils.ScreenshotUtils;
 
 /**
  * Created by Guy on 30/07/2016.
@@ -26,57 +29,30 @@ public class ToolHandlePicker extends BasePicker<ToolHandle> {
 
     @Override
     public ToolHandle pick(EditorScene scene, int screenX, int screenY) {
-        Ray ray = scene.sceneGraph.renderer.camera().getPickRay(screenX, screenY);
-        ToolHandle result = null;
-        float distance = -1;
-        Vector3 position = new Vector3();
-        BoundingBox box = new BoundingBox();
+        begin(scene.viewport);
+        renderPickableScene(handles, scene.sceneGraph.renderer.batch(), scene.sceneGraph.renderer.camera());
+        if(Gdx.input.isKeyPressed(Input.Keys.NUMPAD_7))
+            ScreenshotUtils.saveScreenshot(fbo.getWidth(), fbo.getHeight(), "Picker");
+        end();
+
+        Pixmap map = getFBOPixmap(scene.viewport);
+        int x = screenX;
+        int y = screenY;
+        System.out.printf("[X: %s, Y: %s]\n", x, y);
+
+        int id = PickerIDAttribute.decode(map.getPixel(x, y));
+        System.out.println(id);
         for (ToolHandle handle : handles) {
-
-//            Mesh mesh = handle.getInstance().nodes.first().parts.first().meshPart.mesh;
-
-//            short[] indices = new short[mesh.getNumIndices()];
-//            mesh.getIndices(indices);
-//            float[] vertices = new float[mesh.getNumVertices()];
-//            mesh.getVertices(vertices);
-
-            handle.getInstance().transform.getTranslation(position);
-            handle.getInstance().calculateBoundingBox(box);
-            Quaternion quat = handle.getInstance().transform.getRotation(new Quaternion());
-            Vector3 min = box.getMin(new Vector3()).add(position).rotateRad(quat.w, quat.x, quat.y, quat.z);
-            Vector3 max = box.getMax(new Vector3()).add(position).rotateRad(quat.w, quat.x, quat.y, quat.z);
-            box.set(min, max);
-            float dist2 = ray.origin.dst2(position);
-            if(distance >= 0 && dist2 > distance) continue;
-            if(Intersector.intersectRayBounds(ray, box, null)) {
-                result = handle;
-                distance = dist2;
-            }
+            if(handle.id == id) return handle;
         }
-        return result;
+        return null;
     }
 
-
-    /*
-    List<Vector3> trianglePoints = new ArrayList<>();
-            Vector3 point = new Vector3();
-            int i = 0;
-            for(short index : indices) {
-                switch(i) {
-                    case 0: point.x = vertices[index]; break;
-                    case 1: point.y = vertices[index]; break;
-                    case 2: point.z = vertices[index]; break;
-                }
-                i++;
-                if(i == 3) {
-                    trianglePoints.addZone(point.cpy());
-                    i = 0;
-                }
-            }
-
-            while(trianglePoints.size() % 3 != 0) trianglePoints.addZone(new Vector3());
-                        if(Intersector.intersectRayTriangles(ray, trianglePoints, null)) {
-
-     */
+    private void renderPickableScene(ToolHandle[] handles, ModelBatch batch, PerspectiveCamera cam) {
+        batch.begin(cam);
+        for(ToolHandle handle : handles)
+            handle.render(batch, Shaders.instance().pickerShader);
+        batch.end();
+    }
 
 }

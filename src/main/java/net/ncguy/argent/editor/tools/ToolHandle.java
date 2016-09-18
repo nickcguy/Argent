@@ -9,6 +9,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Pool;
 import net.ncguy.argent.entity.attributes.PickerIDAttribute;
+import net.ncguy.argent.misc.shader.Shaders;
 
 /**
  * Created by Guy on 30/07/2016.
@@ -25,6 +26,10 @@ public abstract class ToolHandle implements Disposable, RenderableProvider {
 
     protected Model model;
     protected ModelInstance instance;
+
+    public ToolHandle(Color id, Model model) {
+        this(id.toIntBits(), model);
+    }
 
     public ToolHandle(int id, Model model) {
         this.id = id;
@@ -54,7 +59,12 @@ public abstract class ToolHandle implements Disposable, RenderableProvider {
     public abstract void init();
 
     public void render(ModelBatch batch) {
-        batch.render(instance);
+//        batch.render(instance, Shaders.instance().maskedShader);
+        batch.render(instance, Shaders.instance().solidShader);
+    }
+
+    public void render(ModelBatch batch, Shader shader) {
+        batch.render(instance, shader);
     }
 
     public abstract void act();

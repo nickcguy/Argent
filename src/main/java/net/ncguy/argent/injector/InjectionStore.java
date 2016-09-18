@@ -9,6 +9,7 @@ import net.ncguy.argent.editor.project.ProjectManager;
 import net.ncguy.argent.editor.tools.ToolManager;
 import net.ncguy.argent.entity.ComponentSet;
 import net.ncguy.argent.misc.FreeCamController;
+import net.ncguy.argent.misc.shader.Shaders;
 import net.ncguy.argent.ui.Toaster;
 import net.ncguy.argent.utils.InputManager;
 
@@ -46,6 +47,7 @@ public class InjectionStore {
     private static DragAndDrop dragAndDrop;
     private static Toaster toaster;
     private static ArgentGame game;
+    private static Shaders shaders;
 
 
 }

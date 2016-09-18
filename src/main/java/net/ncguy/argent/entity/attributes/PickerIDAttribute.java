@@ -62,6 +62,10 @@ public class PickerIDAttribute extends Attribute {
         return attr;
     }
 
+    public static void encodeID(Color colour, PickerIDAttribute out) {
+        encodeID(colour.toIntBits(), out);
+    }
+
     public static void encodeID(int id, PickerIDAttribute out) {
         out.colour.r = id & 0x000000FF;
         out.colour.g = (id & 0x0000FF00) >>> 8;

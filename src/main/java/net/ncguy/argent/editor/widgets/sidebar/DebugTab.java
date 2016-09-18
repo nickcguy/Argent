@@ -2,6 +2,7 @@ package net.ncguy.argent.editor.widgets.sidebar;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.GLFrameBuffer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
@@ -49,11 +50,15 @@ public class DebugTab extends Tab {
 //                    MultiTargetFrameBuffer ltgMrt = renderer.getLightingMRT();
 //                    MultiTargetFrameBuffer quadFbo = renderer.getQuadFBO();
 
-                    MultiTargetFrameBuffer[] mrts = renderer.getMrts();
+                    GLFrameBuffer<Texture>[] mrts = renderer.getMrts();
 
                     final int[] index = {0};
-                    for (MultiTargetFrameBuffer mrt : mrts)
-                        mrt.forEach(tex -> configure(tex, index[0]++));
+                    for (GLFrameBuffer<Texture> mrt : mrts) {
+                        if(mrt instanceof MultiTargetFrameBuffer)
+                            ((MultiTargetFrameBuffer)mrt).forEach(tex -> configure(tex, index[0]++));
+                        else
+                            configure(mrt.getColorBufferTexture(), index[0]++);
+                    }
 
                     if(images.size() > index[0]) {
                         for(int i = index[0]; i < images.size(); i++)

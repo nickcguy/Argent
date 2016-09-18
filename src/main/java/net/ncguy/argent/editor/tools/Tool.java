@@ -1,6 +1,7 @@
 package net.ncguy.argent.editor.tools;
 
 import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.RenderableProvider;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.Disposable;
@@ -40,7 +41,7 @@ public abstract class Tool extends InputAdapter implements Disposable, Renderabl
     }
 
     public abstract void reset();
-    public abstract void render();
+    public abstract void render(ModelBatch rootBatch);
     public abstract void act();
 
 }

@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.GL30;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
@@ -196,6 +197,12 @@ public class ScaleTool extends TransformTool {
 
         zHandle.scale.set(scaleFactor / 2, scaleFactor / 2, scaleFactor * 0.7f);
         zHandle.applyTransform();
+    }
+
+    @Override
+    public void render(ModelBatch rootBatch) {
+        for (ScaleHandle handle : handles)
+            handle.render(rootBatch);
     }
 
     public static class ScaleHandle extends ToolHandle  {

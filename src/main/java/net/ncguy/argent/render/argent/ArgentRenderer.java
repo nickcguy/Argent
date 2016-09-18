@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.Shader;
 import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
+import com.badlogic.gdx.graphics.glutils.GLFrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector2;
 import net.ncguy.argent.Argent;
@@ -22,6 +23,7 @@ import net.ncguy.argent.entity.components.light.PointLightComponent;
 import net.ncguy.argent.entity.components.light.SpotLightComponent;
 import net.ncguy.argent.event.StringPacketEvent;
 import net.ncguy.argent.event.shader.RefreshFBOEvent;
+import net.ncguy.argent.misc.shader.Shaders;
 import net.ncguy.argent.render.BasicWorldRenderer;
 import net.ncguy.argent.utils.AppUtils;
 import net.ncguy.argent.utils.MultiTargetFrameBuffer;
@@ -96,6 +98,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         depthMapRenderer = new DepthMapRenderer<>(world);
         refreshShaders();
         refreshFBO();
+        Shaders.instance().depthFBOSupplier = () -> quadFBO.getColorBufferTexture(3);
 //        Argent.addOnResize(this::resize);
 
         if(attachGlobalListeners) attachGlobalListeners();
@@ -157,6 +160,11 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         renderToQuad(delta);
         applyToScreen();
         renderToScreen(delta);
+
+        batch.flush();
+        Gdx.gl.glClear(GL20.GL_DEPTH_BUFFER_BIT);
+        separateRenderers.forEach(r -> r.render(batch, delta));
+//        batch.flush();
     }
 
     private void renderToMRT(MultiTargetFrameBuffer mrt, ModelBatch batch, float delta) {
@@ -192,6 +200,10 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         int id = 1;
         quadFBO.getColorBufferTexture(0).bind(id);
         screenShader.setUniformi("u_quadBuffer", id);
+        if(Shaders.instance().fbo != null) {
+            Shaders.instance().fbo.getColorBufferTexture().bind(2);
+            screenShader.setUniformi("u_toolBuffer", 2);
+        }
         screenShader.end();
     }
 
@@ -358,15 +370,15 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     public MultiTargetFrameBuffer getQuadFBO() { return quadFBO; }
 
     @Override
-    public MultiTargetFrameBuffer[] getMrts() {
-        return new MultiTargetFrameBuffer[] { textureMRT, lightingMRT, quadFBO, blurMRT};
+    public GLFrameBuffer<Texture>[] getMrts() {
+        return new GLFrameBuffer[] { textureMRT, lightingMRT, quadFBO, blurMRT};
     }
 
     @Override
     public String[] getMrtNames() {
         String[] texMrt = AppUtils.General.extract(tex_ATTACHMENTS, String.class, a -> a.name);
         String[] ltgMrt = AppUtils.General.extract(ltg_ATTACHMENTS, String.class, a -> a.name);
-        String[] quadMrt = new String[] { "Quad", "Quad Store", "Quad Blur" };
+        String[] quadMrt = new String[] { "Quad", "Quad Store", "Quad Blur", "Quad Depth" };
         String[] blurMrt = new String[] { "Blur 1" };
         return AppUtils.General.union(String.class, texMrt, ltgMrt, quadMrt, blurMrt);
     }
@@ -391,7 +403,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
 
         textureMRT = create(tex_ATTACHMENTS.length, Pixmap.Format.RGBA8888, GlobalSettings.ResolutionScale.texture());
         lightingMRT = create(ltg_ATTACHMENTS.length, MultiTargetFrameBuffer.Format.RGB32F, GlobalSettings.ResolutionScale.lighting());
-        quadFBO = create(3, Pixmap.Format.RGBA8888, GlobalSettings.ResolutionScale.quad());
+        quadFBO = create(4, Pixmap.Format.RGBA8888, GlobalSettings.ResolutionScale.quad());
         blurMRT = create(1, Pixmap.Format.RGB565, GlobalSettings.ResolutionScale.blur());
 
         refreshBlurShader();

@@ -5,6 +5,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
@@ -157,6 +158,12 @@ public class TranslateTool extends TransformTool {
 
         xzHandle.scale.set(scaleFactor*0.13f,scaleFactor*0.13f, scaleFactor*0.13f);
         xzHandle.applyTransform();
+    }
+
+    @Override
+    public void render(ModelBatch rootBatch) {
+        for (TranslateHandle handle : handles)
+            handle.render(rootBatch);
     }
 
     @Override
