@@ -12,7 +12,6 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
-import net.ncguy.argent.Argent;
 import net.ncguy.argent.editor.CommandHistory;
 import net.ncguy.argent.editor.project.ProjectContext;
 import net.ncguy.argent.editor.project.ProjectManager;
@@ -71,22 +70,20 @@ public class RotateTool extends TransformTool {
 
             boolean modified = false;
             if(state == TRANSFORM_X) {
-                tmpQuat.setEulerAngles(0, rot, 0);
-                we.rotate(tmpQuat);
+                tmpQuat.setEulerAngles(rot, 0, 0);
                 modified = true;
             }else if(state == TRANSFORM_Y) {
-                tmpQuat.setEulerAngles(rot, 0, 0);
-                we.rotate(tmpQuat);
+                tmpQuat.setEulerAngles(0, rot, 0);
                 modified = true;
             }else if(state == TRANSFORM_Z) {
                 tmpQuat.setEulerAngles(0, 0, rot);
-                we.rotate(tmpQuat);
                 modified = true;
             }
 
             if(modified) {
+                we.rotate(tmpQuat);
                 modEvent.setEntity(we);
-                Argent.event.post(modEvent);
+                modEvent.fire();
             }
             lastRot = angle;
         }
@@ -175,8 +172,8 @@ public class RotateTool extends TransformTool {
         final Vector3 rot = new Vector3();
         rot.x = 90;
         rot.y = 90;
-        rot.z = 90;
-
+        rot.z =  0;
+        System.out.println("Rotating");
         xHandle.rotationEuler.set(0, rot.x, 0);
         xHandle.applyTransform();
         yHandle.rotationEuler.set(rot.y, 0, 0);
@@ -193,6 +190,7 @@ public class RotateTool extends TransformTool {
         final Vector3 pos = entity.getPosition(tmp0);
         float scaleFactor = context.currScene.sceneGraph.renderer.camera().position.dst(pos) * .005f;
         if(scaleFactor < 1) scaleFactor = .1f;
+        scaleFactor = .1f;
         xHandle.scale.set(scaleFactor, scaleFactor, scaleFactor);
         xHandle.applyTransform();
         yHandle.scale.set(scaleFactor, scaleFactor, scaleFactor);

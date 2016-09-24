@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.BoxShapeBuilder;
 import com.badlogic.gdx.math.Vector3;
@@ -32,6 +33,7 @@ public class ScaleTool extends TransformTool {
     private ScaleHandle xHandle;
     private ScaleHandle yHandle;
     private ScaleHandle zHandle;
+    private ScaleHandle xyzHandle;
     private ScaleHandle[] handles;
 
     private Vector3 tmp0 = new Vector3();
@@ -47,7 +49,8 @@ public class ScaleTool extends TransformTool {
         xHandle = ScaleHandle.scaleHandle(X_HANDLE_ID, COLOUR_X, Vector3.X.cpy());
         yHandle = ScaleHandle.scaleHandle(Y_HANDLE_ID, COLOUR_Y, Vector3.Y.cpy());
         zHandle = ScaleHandle.scaleHandle(Z_HANDLE_ID, COLOUR_Z, Vector3.Z.cpy());
-        handles = new ScaleHandle[]{xHandle, yHandle, zHandle};
+        xyzHandle = ScaleHandle.scaleHandle(XYZ_HANDLE_ID, COLOUR_XYZ, Vector3.Zero.cpy());
+        handles = new ScaleHandle[]{xHandle, yHandle, zHandle, xyzHandle};
     }
 
     @Override
@@ -72,8 +75,8 @@ public class ScaleTool extends TransformTool {
 
             boolean modified = false;
             Vector3 vec = new Vector3();
-            if(state == TransformState.TRANSFORM_XZ) {
-                vec.set(rayEnd.x - lastPos.x, 0, rayEnd.z - lastPos.z);
+            if(state == TransformState.TRANSFORM_XYZ) {
+                vec.set(rayEnd.x - lastPos.x, rayEnd.y - lastPos.y, rayEnd.z - lastPos.z);
                 modified = true;
             } else if(state == TransformState.TRANSFORM_X) {
                 vec.set(rayEnd.x - lastPos.x,
@@ -189,6 +192,7 @@ public class ScaleTool extends TransformTool {
     protected void scaleHandles() {
         Vector3 pos = projectManager.current().currScene.selected().getPosition(tmp0);
         float scaleFactor = projectManager.current().currScene.sceneGraph.renderer.camera().position.dst(pos) * 0.25f;
+        scaleFactor = 1;
         xHandle.scale.set(scaleFactor * 0.7f, scaleFactor / 2, scaleFactor / 2);
         xHandle.applyTransform();
 
@@ -208,15 +212,19 @@ public class ScaleTool extends TransformTool {
     public static class ScaleHandle extends ToolHandle  {
 
         public static ScaleHandle scaleHandle(int id, Color colour, Vector3 direction) {
-            direction.add(.1f);
             ModelBuilder mb = new ModelBuilder();
             mb.begin();
             Material mtl = new Material(ColorAttribute.createDiffuse(colour));
-            BoxShapeBuilder.build(mb.part("line", GL30.GL_TRIANGLES, VertexAttributes.Usage.Position, mtl), direction.x, direction.y, direction.z);
-            BoxShapeBuilder.build(mb.part("block", GL30.GL_TRIANGLES, VertexAttributes.Usage.Position, mtl), 1, 1, 1);
+            Node lineNode = mb.node();
+            lineNode.id = "Line";
+            lineNode.translation.set(direction.cpy().scl(.5f));
+            BoxShapeBuilder.build(mb.part("line", GL30.GL_TRIANGLES, VertexAttributes.Usage.Position, mtl), direction.x+.1f, direction.y+.1f, direction.z+.1f);
+            Node blockNode = mb.node();
+            blockNode.id = "Block";
+            blockNode.translation.set(direction);
+            BoxShapeBuilder.build(mb.part("block", GL30.GL_TRIANGLES, VertexAttributes.Usage.Position, mtl), .25f, .25f, .25f);
 
             Model model = mb.end();
-            model.meshParts.get(1).center.set(direction.sub(.1f));
             return new ScaleHandle(id, model);
         }
 
@@ -236,7 +244,8 @@ public class ScaleTool extends TransformTool {
 
         @Override
         public void applyTransform() {
-
+            rotation.setEulerAngles(rotationEuler.x, rotationEuler.y, rotationEuler.z);
+            instance.transform.set(position, rotation, scale);
         }
     }
 

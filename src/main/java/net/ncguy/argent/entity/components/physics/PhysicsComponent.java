@@ -6,11 +6,17 @@ import com.badlogic.gdx.utils.Pool;
 import net.ncguy.argent.editor.widgets.component.ComponentWidget;
 import net.ncguy.argent.entity.WorldEntity;
 import net.ncguy.argent.entity.components.ArgentComponent;
+import net.ncguy.argent.entity.components.ComponentData;
 
 /**
  * Created by Guy on 18/09/2016.
  */
+@ComponentData(name = "Physics")
 public class PhysicsComponent implements ArgentComponent {
+
+    public String identifier = "";
+    public boolean composite = false;
+    public PhysicsData data;
 
     WorldEntity entity;
 

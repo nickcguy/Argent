@@ -20,20 +20,31 @@ public abstract class TransformTool extends SelectionTool {
         TRANSFORM_X,
         TRANSFORM_Y,
         TRANSFORM_Z,
+        TRANSFORM_XY,
         TRANSFORM_XZ,
+        TRANSFORM_YZ,
+        TRANSFORM_XYZ,
         IDLE
     }
 
     protected static Color COLOUR_X = Color.RED;
     protected static Color COLOUR_Y = Color.GREEN;
     protected static Color COLOUR_Z = Color.BLUE;
-    protected static Color COLOUR_XZ = Color.CYAN;
+    protected static Color COLOUR_XY = Color.YELLOW;
+    protected static Color COLOUR_XZ = Color.PURPLE;
+    protected static Color COLOUR_YZ = Color.CYAN;
+    protected static Color COLOUR_XYZ = Color.WHITE;
+
+    // TODO change selected colour
     protected static Color COLOUR_SELECTED = Color.YELLOW;
 
     protected static final int X_HANDLE_ID  = COLOUR_X.toIntBits();
     protected static final int Y_HANDLE_ID  = COLOUR_Y.toIntBits();
     protected static final int Z_HANDLE_ID  = COLOUR_Z.toIntBits();
+    protected static final int XY_HANDLE_ID = COLOUR_XY.toIntBits();
     protected static final int XZ_HANDLE_ID = COLOUR_XZ.toIntBits();
+    protected static final int YZ_HANDLE_ID = COLOUR_YZ.toIntBits();
+    protected static final int XYZ_HANDLE_ID = COLOUR_XYZ.toIntBits();
 
     protected ToolHandlePicker handlePicker;
     protected WorldEntityModifiedEvent modEvent;

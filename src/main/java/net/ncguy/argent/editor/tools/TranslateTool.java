@@ -147,6 +147,7 @@ public class TranslateTool extends TransformTool {
     protected void scaleHandles() {
         Vector3 pos = projectManager.current().currScene.selected().getPosition(tmp0);
         float scaleFactor = projectManager.current().currScene.sceneGraph.renderer.camera().position.dst(pos) * 0.25f;
+        scaleFactor = 1;
         xHandle.scale.set(scaleFactor * 0.7f, scaleFactor / 2, scaleFactor / 2);
         xHandle.applyTransform();
 

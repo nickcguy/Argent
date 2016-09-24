@@ -9,7 +9,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.Array;
 import com.kotcrab.vis.ui.VisUI;
 import com.kotcrab.vis.ui.widget.Separator;
 import net.ncguy.argent.Argent;
@@ -29,6 +28,8 @@ import net.ncguy.argent.event.WorldEntitySelectedEvent;
 import net.ncguy.argent.injector.ArgentInjector;
 import net.ncguy.argent.injector.Inject;
 import net.ncguy.argent.ui.SearchableList;
+import net.ncguy.argent.ui.widget.DataTable;
+import net.ncguy.argent.ui.widget.DataTableModel;
 import net.ncguy.argent.utils.StringUtils;
 
 import java.lang.reflect.Constructor;
@@ -45,8 +46,9 @@ public class Inspector extends Table implements WorldEntitySelectedEvent.WorldEn
 
     private IdentifierWidget identifierWidget;
     private TransformWidget transformWidget;
-    private Array<ComponentWidget> componentWidgets;
-
+    private ComponentWidget activeComponentWidget;
+    private DataTableModel componentModel;
+    private DataTable connectedComponentTable;
     private TextButton addComponentBtn;
     private Table componentTable;
     private SearchableList<Class<? extends ArgentComponent>> componentSelection;
@@ -66,7 +68,9 @@ public class Inspector extends Table implements WorldEntitySelectedEvent.WorldEn
 
         identifierWidget = new IdentifierWidget();
         transformWidget = new TransformWidget();
-        componentWidgets = new Array<>();
+//        componentWidgets = new Array<>();
+        componentModel = new DataTableModel("Component");
+        connectedComponentTable = new DataTable(componentModel);
         addComponentBtn = new TextButton("Add Component", VisUI.getSkin());
         componentTable = new Table(VisUI.getSkin());
         componentSelection = new SearchableList<>();
@@ -109,7 +113,8 @@ public class Inspector extends Table implements WorldEntitySelectedEvent.WorldEn
     public void setupUI() {
         root.add(identifierWidget).expandX().fillX().pad(7).row();
         root.add(transformWidget).expandX().fillX().pad(7).row();
-        componentWidgets.forEach(w -> componentTable.add(w).row());
+        root.add(connectedComponentTable).growX().pad(7).row();
+//        componentWidgets.forEach(w -> componentTable.add(w).row());
         root.add(componentTable).expandX().fillX().pad(7).row();
         root.add(addComponentBtn).expandX().fill().top().center().pad(10).row();
 
@@ -131,9 +136,8 @@ public class Inspector extends Table implements WorldEntitySelectedEvent.WorldEn
         });
     }
     public void populateAvailableComponents() {
-        componentTable.clearChildren();
         buildComponentWidgets();
-        componentWidgets.forEach(w -> componentTable.add(w).row());
+//        componentWidgets.forEach(w -> componentTable.add(w).row());
 
         componentSelection.clearItems();
         WorldEntity e = projectManager.current().currScene.selected();
@@ -153,16 +157,36 @@ public class Inspector extends Table implements WorldEntitySelectedEvent.WorldEn
 
     private void buildComponentWidgets() {
         final ProjectContext context = projectManager.current();
-        componentWidgets.clear();
+        componentModel.getRows().clear();
         if(context.currScene.selected() != null) {
             for(ArgentComponent component : context.currScene.selected().components()) {
-                ComponentWidget widget = createWidget(component);
-                if (widget != null) {
-                    widget.component = component;
-                    componentWidgets.add(widget);
-                }
+                componentModel.addRow(createWidgetAccessor(component));
+//                ComponentWidget widget = createWidget(component);
+//                if (widget != null) {
+//                    widget.component = component;
+//                    componentWidgets.add(widget);
+//                }
             }
         }
+        connectedComponentTable.invalidateModel();
+
+    }
+    private TextButton createWidgetAccessor(ArgentComponent component) {
+        TextButton btn = new TextButton(component.getName(), VisUI.getSkin());
+        btn.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                ComponentWidget widget = createWidget(component);
+                componentTable.clearChildren();
+                activeComponentWidget = widget;
+                if(widget != null) {
+                    componentTable.add(widget).grow().row();
+                    widget.setValues(component.getWorldEntity());
+                }
+                connectedComponentTable.invalidateModel();
+            }
+        });
+        return btn;
     }
     private ComponentWidget createWidget(ArgentComponent component) {
         return createWidget(component.widgetClass(), component);
@@ -187,12 +211,14 @@ public class Inspector extends Table implements WorldEntitySelectedEvent.WorldEn
         final ProjectContext context = projectManager.current();
         identifierWidget.setValues(we);
         transformWidget.setValues(we);
-        buildComponentWidgets();
         componentTable.clearChildren();
-        componentWidgets.forEach(c -> {
-            componentTable.add(c).expand().fill().row();
-            c.setValues(we);
-        });
+        buildComponentWidgets();
+        activeComponentWidget = null;
+
+//        componentWidgets.forEach(c -> {
+//            componentTable.add(c).expand().fill().row();
+//            c.setValues(we);
+//        });
     }
 
     @Override

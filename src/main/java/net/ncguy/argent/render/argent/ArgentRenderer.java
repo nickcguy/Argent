@@ -54,6 +54,8 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
     ShaderProgram screenShader;
     SpriteBatch screenBatch;
 
+    ModelBatch cleanBatch;
+
     Vector2 size = new Vector2();
     int dirLightCount = 0;
     int pointLightCount = 0;
@@ -96,6 +98,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         Argent.event.register(this);
         size.set(camera().viewportWidth, camera().viewportHeight);
         depthMapRenderer = new DepthMapRenderer<>(world);
+        cleanBatch = new ModelBatch();
         refreshShaders();
         refreshFBO();
         Shaders.instance().depthFBOSupplier = () -> quadFBO.getColorBufferTexture(3);
@@ -161,9 +164,10 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         applyToScreen();
         renderToScreen(delta);
 
-        batch.flush();
-        Gdx.gl.glClear(GL20.GL_DEPTH_BUFFER_BIT);
-        separateRenderers.forEach(r -> r.render(batch, delta));
+//        batch.flush();
+        cleanBatch.begin(camera());
+            separateRenderers.forEach(r -> r.render(cleanBatch, delta));
+        cleanBatch.end();
 //        batch.flush();
     }
 
@@ -200,10 +204,6 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         int id = 1;
         quadFBO.getColorBufferTexture(0).bind(id);
         screenShader.setUniformi("u_quadBuffer", id);
-        if(Shaders.instance().fbo != null) {
-            Shaders.instance().fbo.getColorBufferTexture().bind(2);
-            screenShader.setUniformi("u_toolBuffer", 2);
-        }
         screenShader.end();
     }
 
@@ -565,6 +565,7 @@ public class ArgentRenderer<T extends WorldEntity> extends BasicWorldRenderer<T>
         disposeBlurSystem();
 
         quadProgram.dispose();
+        cleanBatch.dispose();
 
         Argent.removeOnResize(this::argentResize);
     }

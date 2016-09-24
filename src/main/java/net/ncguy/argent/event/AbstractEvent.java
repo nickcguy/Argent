@@ -13,7 +13,7 @@ public abstract class AbstractEvent {
             System.out.println("Event bus is not enabled");
             return;
         }
-        Log.info("[EventBus] >> "+getClass().getSimpleName());
+        Log.debug("[EventBus] >> "+getClass().getSimpleName());
         Argent.event.post(this);
     }
 
