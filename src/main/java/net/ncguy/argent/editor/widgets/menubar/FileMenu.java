@@ -8,6 +8,7 @@ import com.kotcrab.vis.ui.widget.MenuItem;
 import net.ncguy.argent.ArgentGame;
 import net.ncguy.argent.assets.ArgentShaderProvider;
 import net.ncguy.argent.event.NativeCleanupEvent;
+import net.ncguy.argent.event.shader.ReloadShaderEvent;
 import net.ncguy.argent.injector.ArgentInjector;
 import net.ncguy.argent.injector.Inject;
 import net.ncguy.argent.project.ProjectSelectorScreen;
@@ -25,6 +26,13 @@ public class FileMenu extends Menu {
     public FileMenu() {
         super("File");
         ArgentInjector.inject(this);
+
+        addItem(new MenuItem("Reload static shaders", new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                new ReloadShaderEvent().fire();
+            }
+        }));
 
         addItem(new MenuItem("Purge shader cache", new ChangeListener() {
             @Override

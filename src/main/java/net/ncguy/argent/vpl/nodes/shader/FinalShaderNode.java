@@ -22,8 +22,8 @@ import static net.ncguy.argent.vpl.VPLPin.Types.INPUT;
                 "Normal",
                 "Specular",
                 "Ambient",
-                "Displacement",
-                "Reflection",
+                "Metallic",
+                "Roughness",
                 "Emissive",
                 "World Position"
         },

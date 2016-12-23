@@ -398,6 +398,20 @@ public class AppUtils {
 
     }
 
+    public static class ClassPath {
+
+        public static String classPathToFilePath(Class<?> cls) {
+            return classPathToFilePath(cls, true);
+        }
+        public static String classPathToFilePath(Class<?> cls, boolean useParentsPath) {
+            String cp;
+            if(useParentsPath) cp = cls.getPackage().getName();
+            else cp = cls.getCanonicalName();
+            return cp.replace(".", "/");
+        }
+
+    }
+
     public static class Reference {
         private static Map<BaseShader.Uniform, BaseShader.Setter> UNIFORMS;
         public static final Map<BaseShader.Uniform, BaseShader.Setter> UNIFORMS() {

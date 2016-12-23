@@ -9,7 +9,7 @@ import net.ncguy.argent.event.WorldEntitySelectedEvent;
 import net.ncguy.argent.injector.ArgentInjector;
 import net.ncguy.argent.injector.Inject;
 import net.ncguy.argent.render.AbstractWorldRenderer;
-import net.ncguy.argent.render.argent.ArgentRenderer;
+import net.ncguy.argent.render.pbr.PBRWorldRenderer;
 import net.ncguy.argent.world.GameWorld;
 
 import java.util.List;
@@ -35,7 +35,8 @@ public class SceneGraph {
         };
         this.scene = scene;
 //        this.renderer = new ShaderWorldRenderer(this.world);
-        this.renderer = new ArgentRenderer(this.world);
+//        this.renderer = new ArgentRenderer(this.world);
+        this.renderer = new PBRWorldRenderer<>(this.world);
 //        this.renderer = new BasicWorldRenderer(this.world);
     }
 
