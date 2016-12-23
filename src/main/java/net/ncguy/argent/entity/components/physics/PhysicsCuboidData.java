@@ -10,14 +10,15 @@ public class PhysicsCuboidData extends PhysicsData {
 
     public float halfWidth, halfHeight, halfDepth;
 
-    public PhysicsCuboidData(float halfWidth, float halfHeight, float halfDepth) {
+    public PhysicsCuboidData(PhysicsComponent parentComponent, float halfWidth, float halfHeight, float halfDepth) {
+        super(parentComponent);
         this.halfWidth = halfWidth;
         this.halfHeight = halfHeight;
         this.halfDepth = halfDepth;
     }
 
-    public PhysicsCuboidData() {
-        this(.5f, .5f, .5f);
+    public PhysicsCuboidData(PhysicsComponent parentComponent) {
+        this(parentComponent, .5f, .5f, .5f);
     }
 
     public float getHalfWidth()  { return halfWidth;  }
@@ -39,6 +40,12 @@ public class PhysicsCuboidData extends PhysicsData {
         halfHeight = Math.abs(halfHeight);
         halfDepth = Math.abs(halfDepth);
 
-        box.set(new Vector3(-halfWidth, -halfHeight, -halfDepth), new Vector3(halfWidth, halfHeight, halfDepth));
+        Vector3 min = new Vector3(-halfWidth, -halfHeight, -halfDepth);
+        Vector3 max = new Vector3(halfWidth, halfHeight, halfDepth);
+
+        min.add(parentComponent.getWorldEntity().localPosition);
+        max.add(parentComponent.getWorldEntity().localPosition);
+
+        box.set(min, max);
     }
 }
